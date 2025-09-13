@@ -1,5 +1,5 @@
 const express = require('express');
-const clinicasRoutes = require('./rutas/clinicas');
+const clinicasRoutes = require('./routes/clinicas');
 
 const app = express();
 const PORT = 3001;
