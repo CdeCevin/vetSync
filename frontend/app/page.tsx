@@ -1,0 +1,173 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { SidebarNav } from "@/components/sidebar-nav"
+import { DashboardOverview } from "@/components/dashboard-overview"
+import { PatientRecords } from "@/components/patient-records"
+import { AppointmentScheduling } from "@/components/appointment-scheduling"
+import { InventoryManagement } from "@/components/inventory-management"
+import { BillingModule } from "@/components/billing-module"
+
+export default function VetManagementHome() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userRole, setUserRole] = useState<"veterinarian" | "receptionist" | null>(null)
+  const [activeSection, setActiveSection] = useState("dashboard")
+
+  const handleLogin = (role: "veterinarian" | "receptionist") => {
+    setUserRole(role)
+    setIsLoggedIn(true)
+  }
+
+  const handleSignOut = () => {
+    setIsLoggedIn(false)
+    setUserRole(null)
+    setActiveSection("dashboard")
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-8">
+          <div className="flex justify-end space-x-1 mb-4">
+            <div className="w-6 h-6 bg-secondary rounded"></div>
+            <div className="w-6 h-6 bg-primary rounded"></div>
+            <div className="w-6 h-6 bg-accent rounded"></div>
+            <div className="w-6 h-6 bg-muted rounded"></div>
+            <div className="w-6 h-6 bg-muted-foreground rounded"></div>
+            <div className="w-6 h-6 bg-foreground rounded"></div>
+          </div>
+
+          <div className="text-center space-y-2">
+            <h1 className="font-serif font-black text-4xl text-accent">VetSync</h1>
+            <p className="text-muted-foreground">Gestión profesional veterinaria</p>
+          </div>
+
+          <Card className="bg-card/50 backdrop-blur-sm">
+            <CardHeader className="text-center">
+              <CardTitle className="font-serif font-bold text-primary">Inicio de Sesión</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </Label>
+                <Input id="email" type="email" placeholder="Label Text" className="bg-background border-border" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Contraseña
+                </Label>
+                <Input id="password" type="password" placeholder="Label Text" className="bg-background border-border" />
+              </div>
+
+              <Tabs defaultValue="veterinarian" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-2 bg-muted">
+                  <TabsTrigger value="veterinarian">Veterinario</TabsTrigger>
+                  <TabsTrigger value="receptionist">Recepcionista</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="veterinarian">
+                  <Button
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                    onClick={() => handleLogin("veterinarian")}
+                  >
+                    Ingresar
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="receptionist">
+                  <Button
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                    onClick={() => handleLogin("receptionist")}
+                  >
+                    Ingresar
+                  </Button>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      <SidebarNav userRole={userRole!} activeSection={activeSection} onSectionChange={setActiveSection} />
+
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="border-b bg-card">
+          <div className="flex h-16 items-center px-6">
+            <div className="flex items-center space-x-4">
+              <h2 className="font-serif font-semibold text-lg capitalize">
+                {activeSection === "dashboard"
+                  ? "Panel Principal"
+                  : activeSection === "appointments"
+                    ? "Citas"
+                    : activeSection === "patients"
+                      ? "Pacientes"
+                      : activeSection === "inventory"
+                        ? "Inventario"
+                        : activeSection === "billing"
+                          ? "Facturación"
+                          : activeSection}
+              </h2>
+            </div>
+            <div className="ml-auto flex items-center space-x-4">
+              <span className="text-sm text-muted-foreground">
+                Bienvenido, {userRole === "veterinarian" ? "Dr." : ""} Usuario
+              </span>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                Cerrar Sesión
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <main className="flex-1 p-6">
+          {activeSection === "dashboard" && userRole && <DashboardOverview userRole={userRole} />}
+
+          {activeSection === "patients" && <PatientRecords />}
+
+          {activeSection === "appointments" && <AppointmentScheduling />}
+
+          {activeSection === "inventory" && <InventoryManagement />}
+
+          {activeSection === "billing" && <BillingModule />}
+
+          {activeSection !== "dashboard" &&
+            activeSection !== "patients" &&
+            activeSection !== "appointments" &&
+            activeSection !== "inventory" &&
+            activeSection !== "billing" && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="font-serif font-bold text-2xl text-foreground capitalize">{activeSection}</h1>
+                  <p className="text-muted-foreground">Gestión de {activeSection} para su práctica veterinaria</p>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="font-serif">Próximamente</CardTitle>
+                    <CardDescription>El módulo de {activeSection} está actualmente en desarrollo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">
+                      Esta sección contendrá herramientas completas de gestión de {activeSection}.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+        </main>
+      </div>
+    </div>
+  )
+}
