@@ -10,7 +10,7 @@ const verUsuario  = require('../../controllers/Usuarios/verUsuario');
 
 router.get('/usuarios', verUsuarios);
 router.post('/usuarios', crearUsuario);
-router.get('/usuarios/:id', verUsuario);
+router.get('/usuarios/:identificador', verUsuario);
 router.put('/usuarios/:id', editarUsuario);
 router.delete('/usuarios/:id', eliminarUsuario);
 
