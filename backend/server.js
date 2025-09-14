@@ -1,7 +1,7 @@
 const express = require('express');
-const path = require('path');
 require('dotenv').config();
-
+const cors = require('cors');
+pp.use(cors()); // Permite peticiones desde el frontend (configura dominios específicos en producción)
 console.log('JWT_SECRET en server.js:', process.env.JWT_SECRET);
 
 
