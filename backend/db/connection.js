@@ -1,10 +1,10 @@
 const mysql = require('mysql2');
 
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'passwd',
-  database: 'vetSyncDB',
+  host: 'www.teillier.cl',
+  user: 'teillier_vetsync',
+  password: '4SKdnVvDfYXrN2S24jSA',
+  database: 'teillier_vetsync',
   port: 3306,
 });
 
