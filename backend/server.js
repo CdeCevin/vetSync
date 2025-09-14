@@ -1,4 +1,8 @@
 const express = require('express');
+const path = require('path');
+const projectRootPath = path.resolve(__dirname, '..');
+require('dotenv').config({ path: path.join(projectRootPath, '.env') })
+
 const usuariosRoutes = require('./routes/Usuarios/index');
 const authRoutes = require('./routes/auth/login');  // Ruta para login
 
