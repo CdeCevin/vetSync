@@ -46,6 +46,9 @@ const login = (req, res) => {
         nombre_clinica: usuario.nombre_clinica,
       };
 
+      console.log('JWT_SECRET:', process.env.JWT_SECRET);
+
+
       // Firmar token
       const token = jwt.sign(
         payload,

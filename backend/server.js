@@ -1,7 +1,9 @@
 const express = require('express');
 const path = require('path');
-const projectRootPath = path.resolve(__dirname, '..');
-require('dotenv').config({ path: path.join(projectRootPath, '.env') })
+require('dotenv').config();
+
+console.log('JWT_SECRET en server.js:', process.env.JWT_SECRET);
+
 
 const usuariosRoutes = require('./routes/Usuarios/index');
 const authRoutes = require('./routes/auth/login');  // Ruta para login
