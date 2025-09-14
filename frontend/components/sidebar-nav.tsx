@@ -3,10 +3,10 @@
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Calendar, Users, FileText, Package, CreditCard, Settings, Home, Stethoscope } from "lucide-react"
+import { Calendar, Users, FileText, Package, CreditCard, Settings, Home, Stethoscope, UsersRound, FileClock } from "lucide-react"
 
 interface SidebarNavProps {
-  userRole: "veterinarian" | "receptionist"
+  userRole: "Admin" | "Veterinario" | "Recepcionista"
   activeSection: string
   onSectionChange: (section: string) => void
 }
@@ -17,50 +17,62 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
       title: "Panel Principal",
       icon: Home,
       id: "dashboard",
-      roles: ["veterinarian", "receptionist"],
+      roles: ["Veterinario", "Recepcionista"],
     },
     {
       title: "Citas",
       icon: Calendar,
       id: "appointments",
-      roles: ["veterinarian", "receptionist"],
+      roles: ["Veterinario", "Recepcionista"],
     },
     {
       title: "Pacientes",
       icon: Users,
       id: "patients",
-      roles: ["veterinarian", "receptionist"],
+      roles: ["Veterinario", "Recepcionista"],
     },
     {
       title: "Historiales Médicos",
       icon: FileText,
       id: "records",
-      roles: ["veterinarian"],
+      roles: ["Veterinario"],
     },
     {
       title: "Tratamientos",
       icon: Stethoscope,
       id: "treatments",
-      roles: ["veterinarian"],
+      roles: ["Veterinario"],
     },
     {
       title: "Inventario",
       icon: Package,
       id: "inventory",
-      roles: ["veterinarian", "receptionist"],
+      roles: ["Veterinario", "Recepcionista"],
     },
     {
       title: "Facturación",
       icon: CreditCard,
       id: "billing",
-      roles: ["receptionist"],
+      roles: ["Recepcionista"],
     },
     {
       title: "Configuración",
       icon: Settings,
       id: "settings",
-      roles: ["veterinarian", "receptionist"],
+      roles: ["Veterinario", "Recepcionista"],
     },
+    {
+      title: "Usuarios",
+      icon: UsersRound,
+      id: "settings",
+      roles: ["Admin"],
+    },
+    {
+      title: "Logs",
+      icon: FileClock,
+      id: "settings",
+      roles: ["Admin"],
+    }
   ]
 
   const filteredItems = navigationItems.filter((item) => item.roles.includes(userRole))
@@ -96,8 +108,9 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
 
       <div className="p-3 border-t">
         <div className="text-xs text-muted-foreground">
-          Conectado como {userRole === "veterinarian" ? "Veterinario" : "Recepcionista"}
-        </div>
+        Conectado como{" "}
+        {userRole === "Admin" ? "Administrador" : userRole === "Veterinario" ? "Veterinario" : "Recepcionista"}
+</div>
       </div>
     </div>
   )

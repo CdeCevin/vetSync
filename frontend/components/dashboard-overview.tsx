@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Users, Package, AlertTriangle, Clock, CheckCircle } from "lucide-react"
 
 interface DashboardOverviewProps {
-  userRole: "veterinarian" | "receptionist"
+  userRole: "Veterinario" | "Recepcionista"
 }
 
 export function DashboardOverview({ userRole }: DashboardOverviewProps) {
@@ -12,7 +12,7 @@ export function DashboardOverview({ userRole }: DashboardOverviewProps) {
     <div className="space-y-6">
       <div>
         <h1 className="font-serif font-bold text-2xl text-foreground">
-          Welcome back, {userRole === "veterinarian" ? "Doctor" : ""}
+          Welcome back, {userRole === "Veterinario" ? "Doctor" : ""}
         </h1>
         <p className="text-muted-foreground">Here's what's happening at your practice today</p>
       </div>
@@ -127,7 +127,7 @@ export function DashboardOverview({ userRole }: DashboardOverviewProps) {
                   <span className="text-xs opacity-80">Search medical records</span>
                 </div>
               </Button>
-              {userRole === "veterinarian" && (
+              {userRole === "Veterinario" && (
                 <Button variant="outline" className="justify-start h-auto p-4 bg-transparent">
                   <div className="flex flex-col items-start space-y-1">
                     <span className="font-serif font-semibold">Add Treatment</span>

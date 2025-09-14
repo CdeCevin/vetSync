@@ -1,5 +1,5 @@
 "use client"
-
+import { ROUTES } from '../apiRoutes';
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,22 +11,61 @@ import { DashboardOverview } from "@/components/dashboard-overview"
 import { PatientRecords } from "@/components/patient-records"
 import { AppointmentScheduling } from "@/components/appointment-scheduling"
 import { InventoryManagement } from "@/components/inventory-management"
-import { BillingModule } from "@/components/billing-module"
+import { BillingModule } from "../components/billing-module"
+import { AdminPanel } from "../components/Admin-Panel" // Importar componente Admin
 
 export default function VetManagementHome() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userRole, setUserRole] = useState<"veterinarian" | "receptionist" | null>(null)
+  const [userRole, setUserRole] = useState<"Admin" | "Veterinario" | "Recepcionista" | null>(null)
   const [activeSection, setActiveSection] = useState("dashboard")
 
-  const handleLogin = (role: "veterinarian" | "receptionist") => {
-    setUserRole(role)
-    setIsLoggedIn(true)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loginError, setLoginError] = useState<string | null>(null)
+  const [selectedRole, setSelectedRole] = useState<"Veterinario" | "Recepcionista">("Veterinario")
+
+  const handleLogin = async () => {
+    setLoginError(null)
+    try {
+      const response = await fetch(ROUTES.postLogin, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          correo_electronico: email,
+          contraseña: password,
+        }),
+      })
+      const data = await response.json()
+      if (response.ok && data.token) {
+        setIsLoggedIn(true)
+        switch (data.usuario.id_rol) {
+          case 1:
+            setUserRole("Admin")
+            break
+          case 2:
+            setUserRole("Veterinario")
+            break
+          case 3:
+            setUserRole("Recepcionista")
+            break
+          default:
+            setUserRole(null)
+        }
+      } else {
+        setLoginError(data.error || "Error al iniciar sesión")
+      }
+    } catch (error) {
+      setLoginError("Error de conexión con el servidor")
+    }
   }
 
   const handleSignOut = () => {
     setIsLoggedIn(false)
     setUserRole(null)
     setActiveSection("dashboard")
+    setEmail("")
+    setPassword("")
+    setLoginError(null)
   }
 
   if (!isLoggedIn) {
@@ -56,42 +95,52 @@ export default function VetManagementHome() {
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
                 </Label>
-                <Input id="email" type="email" placeholder="Label Text" className="bg-background border-border" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="nombre@dominio.com"
+                  className="bg-background border-border"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">
                   Contraseña
                 </Label>
-                <Input id="password" type="password" placeholder="Label Text" className="bg-background border-border" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="******"
+                  className="bg-background border-border"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
 
-              <Tabs defaultValue="veterinarian" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-2 bg-muted">
-                  <TabsTrigger value="veterinarian">Veterinario</TabsTrigger>
-                  <TabsTrigger value="receptionist">Recepcionista</TabsTrigger>
-                </TabsList>
+              {loginError && <p className="text-red-600 text-center">{loginError}</p>}
 
-                <TabsContent value="veterinarian">
-                  <Button
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-                    onClick={() => handleLogin("veterinarian")}
-                  >
-                    Ingresar
-                  </Button>
-                </TabsContent>
-
-                <TabsContent value="receptionist">
-                  <Button
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-                    onClick={() => handleLogin("receptionist")}
-                  >
-                    Ingresar
-                  </Button>
-                </TabsContent>
-              </Tabs>
+              <Button
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                onClick={handleLogin}
+                disabled={!email || !password}
+              >
+                Ingresar
+              </Button>
             </CardContent>
           </Card>
         </div>
+      </div>
+    )
+  }
+
+  if (userRole === "Admin") {
+    return (
+      <div className="min-h-screen h-full bg-background flex">
+        <SidebarNav userRole={userRole} activeSection={activeSection} onSectionChange={setActiveSection} />
+        <main className="flex-1 p-6">
+          <AdminPanel />
+        </main>
       </div>
     )
   }
@@ -121,7 +170,7 @@ export default function VetManagementHome() {
             </div>
             <div className="ml-auto flex items-center space-x-4">
               <span className="text-sm text-muted-foreground">
-                Bienvenido, {userRole === "veterinarian" ? "Dr." : ""} Usuario
+                Bienvenido, {userRole === "Veterinario" ? "Dr." : ""} Usuario
               </span>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 Cerrar Sesión
