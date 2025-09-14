@@ -66,13 +66,13 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
   const filteredItems = navigationItems.filter((item) => item.roles.includes(userRole))
 
   return (
-    <div className="flex h-full w-64 flex-col bg-card border-r">
+    <div className="h-screen w-64 flex flex-col bg-card border-r">
       <div className="p-6">
         <h2 className="font-serif font-black text-xl text-primary">VetSync</h2>
         <p className="text-sm text-muted-foreground mt-1">Gestión profesional veterinaria</p>
       </div>
 
-      <ScrollArea className="flex-1 px-3">
+      <ScrollArea className="flex-1 min-h-0 px-3">
         <div className="space-y-1">
           {filteredItems.map((item) => {
             const Icon = item.icon
