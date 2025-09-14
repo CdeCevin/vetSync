@@ -4,7 +4,7 @@ const verUsuario = (req, res) => {
   const idClinica = req.params.idClinica; // asegúrate que coincida con el nombre del parámetro en la ruta
   const idUsuario = req.params.id;
 
-  const query = 'SELECT * FROM Usuarios WHERE id = ? AND id_clinica = ?';
+  const query = 'SELECT * FROM Usuarios WHERE id = ? AND id_clinica = ? AND activo = TRUE';
 
   connection.query(query, [idUsuario, idClinica], (error, results) => {  // orden: [idUsuario, idClinica]
     if (error) {

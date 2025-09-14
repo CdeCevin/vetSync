@@ -3,7 +3,7 @@ const connection = require('../../db/connection');
 
 const verUsuarios = (req, res) => {
   const idClinica = req.clinicaId;
-  const query = 'SELECT * FROM Usuarios WHERE id_clinica = ?';
+  const query = 'SELECT * FROM Usuarios WHERE id_clinica = ? AND activo = TRUE';
   connection.query(query, [idClinica], (error, results) => {
     if (error) {
       console.error('Error obteniendo usuarios:', error);

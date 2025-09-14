@@ -12,7 +12,7 @@ const editarUsuario = (req, res) => {
 
   // Paso 1: Obtener datos actuales filtrando por clínica
   connection.query(
-    'SELECT * FROM Usuarios WHERE id = ? AND id_clinica = ?',
+    'SELECT * FROM Usuarios WHERE id = ? AND id_clinica = ? AND activo = TRUE',
     [idUsuario, idClinica],
     (err, results) => {
       if (err) {
