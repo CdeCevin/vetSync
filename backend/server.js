@@ -5,8 +5,9 @@ require('dotenv').config();
 console.log('JWT_SECRET en server.js:', process.env.JWT_SECRET);
 
 
-const usuariosRoutes = require('./routes/Usuarios/index');
-const authRoutes = require('./routes/auth/login');  // Ruta para login
+const usuariosRoutes = require('./routes/usuariosRoute');
+const authRoutes = require('./routes/login');  // Ruta para login
+const dueñosRoutes = require('./routes/dueñosRoute');
 
 const app = express();
 const PORT = 3001;
@@ -21,6 +22,11 @@ app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;  // Guardas el id de clínica para usarlo en los controladores
   next();
 }, usuariosRoutes);
+
+app.use('/api/:idClinica', (req, res, next) => {
+  req.clinicaId = req.params.idClinica;  // Guardas el id de clínica para usarlo en los controladores
+  next();
+}, dueñosRoutes);
 
 
 app.listen(PORT, () => {
