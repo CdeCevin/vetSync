@@ -13,8 +13,6 @@ const cors = require('cors');
 const app = express();
 app.use(cors()); // Ahora sí, 'app' existe
 
-app.use(cors()); // Ahora sí, 'app' existe
-
 const PORT = 3001;
 
 app.use(express.json());
