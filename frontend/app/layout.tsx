@@ -31,6 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${montserrat.variable} ${openSans.variable} antialiased`}>
+      <head>
+      <link rel="icon" href="/favicon2.ico" />
+      </head>
       <body className="font-sans">{children}</body>
     </html>
   )

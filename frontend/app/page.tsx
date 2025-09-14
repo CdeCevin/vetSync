@@ -31,7 +31,7 @@ export default function VetManagementHome() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen h-full bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           <div className="flex justify-end space-x-1 mb-4">
             <div className="w-6 h-6 bg-secondary rounded"></div>
@@ -97,10 +97,10 @@ export default function VetManagementHome() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen h-full bg-background flex">
       <SidebarNav userRole={userRole!} activeSection={activeSection} onSectionChange={setActiveSection} />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
         <div className="border-b bg-card">
           <div className="flex h-16 items-center px-6">
@@ -109,14 +109,14 @@ export default function VetManagementHome() {
                 {activeSection === "dashboard"
                   ? "Panel Principal"
                   : activeSection === "appointments"
-                    ? "Citas"
-                    : activeSection === "patients"
-                      ? "Pacientes"
-                      : activeSection === "inventory"
-                        ? "Inventario"
-                        : activeSection === "billing"
-                          ? "Facturación"
-                          : activeSection}
+                  ? "Citas"
+                  : activeSection === "patients"
+                  ? "Pacientes"
+                  : activeSection === "inventory"
+                  ? "Inventario"
+                  : activeSection === "billing"
+                  ? "Facturación"
+                  : activeSection}
               </h2>
             </div>
             <div className="ml-auto flex items-center space-x-4">
@@ -131,7 +131,7 @@ export default function VetManagementHome() {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 min-h-0 p-6">
           {activeSection === "dashboard" && userRole && <DashboardOverview userRole={userRole} />}
 
           {activeSection === "patients" && <PatientRecords />}
