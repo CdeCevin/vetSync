@@ -1,7 +1,6 @@
 const express = require('express');
 require('dotenv').config();
-const cors = require('cors');
-app.use(cors()); // Permite peticiones desde el frontend (configura dominios específicos en producción)
+
 console.log('JWT_SECRET en server.js:', process.env.JWT_SECRET);
 
 
@@ -9,7 +8,13 @@ const usuariosRoutes = require('./routes/usuariosRoute');
 const authRoutes = require('./routes/login');  // Ruta para login
 const dueñosRoutes = require('./routes/dueñosRoute');
 
+const express = require('express');
+const cors = require('cors');
 const app = express();
+app.use(cors()); // Ahora sí, 'app' existe
+
+app.use(cors()); // Ahora sí, 'app' existe
+
 const PORT = 3001;
 
 app.use(express.json());
