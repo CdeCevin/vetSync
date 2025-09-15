@@ -3,16 +3,16 @@ const router = express.Router({ mergeParams: true });
 
 // Importar funciones desde cada controlador
 
-//const  verDueños  = require('../controllers/Dueños/verDueño.js');
+const  verDuenos  = require('../controllers/Dueños/verDueño.js');
 const  crearDueno  = require('../controllers/Dueños/crearDueño.js');
-//const  editarDueño  = require('../controllers/Dueños/editarDueño.js');
-//const  eliminarDueño  = require('../controllers/Dueños/eliminarDueño.js');
-///const listadoDueño  = require('../controllers/Dueños/listadoDueño.js');
+const  editarDueno  = require('../controllers/Dueños/editarDueño.js');
+const  eliminarDueno  = require('../controllers/Dueños/eliminarDueño.js');
+const listadoDueño  = require('../controllers/Dueños/listadoDueño.js');
 
-//router.get('/dueños', listadoDueño);
+router.get('/duenos', listadoDueño);
 router.post('/duenos', crearDueno);
-//router.get('/dueños/:identificador', verDueños);
-//router.put('/dueños/:id', editarDueño);
-//router.delete('/dueños/:id', eliminarDueño);
+router.get('/duenos/:identificador', verDuenos);
+router.put('/duenos/:id', editarDueno);
+router.delete('/duenos/:id', eliminarDueno);
 
 module.exports = router;

@@ -9,11 +9,11 @@ const verUsuario = (req, res) => {
 
   if (/^\d+$/.test(identificador)) {
     // Si identificador es solo números, buscar por ID
-    query = 'SELECT * FROM Usuarios WHERE id = ? AND id_clinica = ? AND activo = TRUE LIMIT 1';
+    query = 'SELECT * FROM Usuarios WHERE id = ? AND id_clinica = ? AND activo = TRUE';
     params.unshift(parseInt(identificador)); // idUsuario delante de idClinica
   } else {
     // Buscar por nombre parcial (insensible a mayúsculas según collation)
-    query = 'SELECT * FROM Usuarios WHERE nombre_completo LIKE ? AND id_clinica = ? AND activo = TRUE LIMIT 1';
+    query = 'SELECT * FROM Usuarios WHERE nombre_completo LIKE ? AND id_clinica = ? AND activo = TRUE';
     params = [`%${identificador}%`, idClinica];
   }
 
