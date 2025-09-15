@@ -64,13 +64,13 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
     {
       title: "Usuarios",
       icon: UsersRound,
-      id: "settings",
+      id: "Users",
       roles: ["Admin"],
     },
     {
       title: "Logs",
       icon: FileClock,
-      id: "settings",
+      id: "Logs",
       roles: ["Admin"],
     }
   ]

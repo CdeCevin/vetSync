@@ -12,7 +12,6 @@ import { PatientRecords } from "@/components/patient-records"
 import { AppointmentScheduling } from "@/components/appointment-scheduling"
 import { InventoryManagement } from "@/components/inventory-management"
 import { BillingModule } from "../components/billing-module"
-import { AdminPanel } from "../components/Admin-Panel" // Importar componente Admin
 
 export default function VetManagementHome() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -136,16 +135,6 @@ export default function VetManagementHome() {
     )
   }
 
-  if (userRole === "Admin") {
-    return (
-      <div className="min-h-screen h-full bg-background flex">
-        <SidebarNav userRole={userRole} activeSection={activeSection} onSectionChange={setActiveSection} />
-        <main className="flex-1 p-6">
-          <AdminPanel />
-        </main>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen h-full bg-background flex">
@@ -172,7 +161,7 @@ export default function VetManagementHome() {
             </div>
             <div className="ml-auto flex items-center space-x-4">
               <span className="text-sm text-muted-foreground">
-                Bienvenido, {userRole === "Veterinario" ? "Dr." : ""} {userName}
+                Bienvenid@, {userRole === "Veterinario" ? "Dr." : ""} {userName}
               </span>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 Cerrar Sesión

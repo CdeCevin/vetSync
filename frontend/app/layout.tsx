@@ -19,8 +19,8 @@ const openSans = Open_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "VetCare Management System",
-  description: "Professional veterinary practice management system",
+  title: "VetSync",
+  description: "Sistema de gestión profesional de clínicas veterinarias",
   generator: "v0.app",
 }
 
