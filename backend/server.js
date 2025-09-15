@@ -10,6 +10,8 @@ console.log('JWT_SECRET en server.js:', process.env.JWT_SECRET);
 const usuariosRoutes = require('./routes/usuariosRoute');
 const authRoutes = require('./routes/login');
 const dueñosRoutes = require('./routes/dueñosRoute');
+const pacientesRoutes = require('./routes/pacientesRoute');
+
 
 const PORT = 3001;
 
@@ -28,6 +30,11 @@ app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
   next();
 }, dueñosRoutes);
+
+app.use('/api/:idClinica', (req, res, next) => {
+  req.clinicaId = req.params.idClinica;
+  next();
+}, pacientesRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);

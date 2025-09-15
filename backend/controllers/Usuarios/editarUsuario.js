@@ -1,16 +1,17 @@
 const connection = require('../../db/connection');
+const bcrypt = require('bcrypt');
 
 const editarUsuario = (req, res) => {
   const idUsuario = req.params.id;
-  const idClinica = req.clinicaId;  // obtenido de prefijo ruta o middleware
+  const idClinica = req.clinicaId;
   const {
     id_rol,
-    hash_contraseña,
+    contraseña,        // contraseña en texto plano para actualizar (nuevo parámetro)
     nombre_completo,
     correo_electronico
   } = req.body;
 
-  // Paso 1: Obtener datos actuales filtrando por clínica
+  // Paso 1: Obtener datos actuales
   connection.query(
     'SELECT * FROM Usuarios WHERE id = ? AND id_clinica = ? AND activo = TRUE',
     [idUsuario, idClinica],
@@ -25,30 +26,44 @@ const editarUsuario = (req, res) => {
 
       const usuarioActual = results[0];
 
-      // Paso 2: Combinar valores (si no se envían, mantener actuales)
-      const nuevoRol = id_rol !== undefined ? id_rol : usuarioActual.id_rol;
-      const nuevaHash = hash_contraseña !== undefined ? hash_contraseña : usuarioActual.hash_contraseña;
-      const nuevoNombre = nombre_completo !== undefined ? nombre_completo : usuarioActual.nombre_completo;
-      const nuevoCorreo = correo_electronico !== undefined ? correo_electronico : usuarioActual.correo_electronico;
+      // Función para actualizar en base de datos (recibe hash definido)
+      const actualizarConHash = (hashContraseña) => {
+        const nuevoRol = id_rol !== undefined ? id_rol : usuarioActual.id_rol;
+        const nuevoNombre = nombre_completo !== undefined ? nombre_completo : usuarioActual.nombre_completo;
+        const nuevoCorreo = correo_electronico !== undefined ? correo_electronico : usuarioActual.correo_electronico;
 
-      // Paso 3: Actualizar usuario con filtro por clínica
-      const query = `
-        UPDATE Usuarios 
-        SET id_rol = ?, hash_contraseña = ?, nombre_completo = ?, correo_electronico = ?
-        WHERE id = ? AND id_clinica = ?
-      `;
+        const query = `
+          UPDATE Usuarios 
+          SET id_rol = ?, hash_contraseña = ?, nombre_completo = ?, correo_electronico = ?
+          WHERE id = ? AND id_clinica = ?
+        `;
 
-      connection.query(
-        query,
-        [nuevoRol, nuevaHash, nuevoNombre, nuevoCorreo, idUsuario, idClinica],
-        (error) => {
-          if (error) {
-            console.error('Error actualizando usuario:', error);
-            return res.status(500).json({ error: 'Error al actualizar usuario' });
+        connection.query(
+          query,
+          [nuevoRol, hashContraseña, nuevoNombre, nuevoCorreo, idUsuario, idClinica],
+          (error) => {
+            if (error) {
+              console.error('Error actualizando usuario:', error);
+              return res.status(500).json({ error: 'Error al actualizar usuario' });
+            }
+            res.json({ message: 'Usuario actualizado correctamente' });
           }
-          res.json({ message: 'Usuario actualizado correctamente' });
-        }
-      );
+        );
+      };
+
+      // Si recibimos nueva contraseña, hacer hash primero
+      if (contraseña !== undefined && contraseña !== '') {
+        bcrypt.hash(contraseña, 10, (hashErr, hash) => {
+          if (hashErr) {
+            console.error('Error hasheando la contraseña:', hashErr);
+            return res.status(500).json({ error: 'Error interno del servidor' });
+          }
+          actualizarConHash(hash);
+        });
+      } else {
+        // No hay contraseña nueva, mantenemos hash actual
+        actualizarConHash(usuarioActual.hash_contraseña);
+      }
     }
   );
 };
