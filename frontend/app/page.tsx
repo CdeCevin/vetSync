@@ -22,6 +22,7 @@ export default function VetManagementHome() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loginError, setLoginError] = useState<string | null>(null)
+  const [userName, setUserName] = useState("")
   const [selectedRole, setSelectedRole] = useState<"Veterinario" | "Recepcionista">("Veterinario")
 
   const handleLogin = async () => {
@@ -38,6 +39,7 @@ export default function VetManagementHome() {
       const data = await response.json()
       if (response.ok && data.token) {
         setIsLoggedIn(true)
+        setUserName(data.usuario.nombre_completo)
         switch (data.usuario.id_rol) {
           case 1:
             setUserRole("Admin")
@@ -170,7 +172,7 @@ export default function VetManagementHome() {
             </div>
             <div className="ml-auto flex items-center space-x-4">
               <span className="text-sm text-muted-foreground">
-                Bienvenido, {userRole === "Veterinario" ? "Dr." : ""} Usuario
+                Bienvenido, {userRole === "Veterinario" ? "Dr." : ""} {userName}
               </span>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 Cerrar Sesión

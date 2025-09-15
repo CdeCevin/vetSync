@@ -80,8 +80,8 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
   return (
     <div className="h-screen w-64 flex flex-col bg-card border-r">
       <div className="p-6">
-        <h2 className="font-serif font-black text-xl text-primary">VetSync</h2>
-        <p className="text-sm text-muted-foreground mt-1">Gestión profesional veterinaria</p>
+        <img src="/LOGO_T.png" alt="VetSync Logo" className="h-10 w-auto" />
+        <p className="text-sm text-muted-foreground mt-1">Gestión veterinaria profesional</p>
       </div>
 
       <ScrollArea className="flex-1 min-h-0 px-3">

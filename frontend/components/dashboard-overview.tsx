@@ -12,9 +12,9 @@ export function DashboardOverview({ userRole }: DashboardOverviewProps) {
     <div className="space-y-6">
       <div>
         <h1 className="font-serif font-bold text-2xl text-foreground">
-          Welcome back, {userRole === "Veterinario" ? "Doctor" : ""}
+          Bienvenido, {userRole === "Veterinario" ? "Doctor" : ""}
         </h1>
-        <p className="text-muted-foreground">Here's what's happening at your practice today</p>
+        <p className="text-muted-foreground">Esto es lo que está pasando hoy en su consulta</p>
       </div>
 
       {/* Key Metrics */}
