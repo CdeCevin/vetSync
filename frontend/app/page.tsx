@@ -12,8 +12,11 @@ import { PatientRecords } from "@/components/patient-records"
 import { AppointmentScheduling } from "@/components/appointment-scheduling"
 import { InventoryManagement } from "@/components/inventory-management"
 import { BillingModule } from "../components/billing-module"
+import { UserManagementDashboard } from "../components/Usuarios/user-dashboard"
+import { useAuth } from '@/components/user-context'
 
 export default function VetManagementHome() {
+  const { usuario, token, setAuthInfo, clearAuthInfo } = useAuth()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userRole, setUserRole] = useState<"Admin" | "Veterinario" | "Recepcionista" | null>(null)
   const [activeSection, setActiveSection] = useState("dashboard")
@@ -39,6 +42,7 @@ export default function VetManagementHome() {
       if (response.ok && data.token) {
         setIsLoggedIn(true)
         setUserName(data.usuario.nombre_completo)
+        setAuthInfo(data.token, data.usuario)
         switch (data.usuario.id_rol) {
           case 1:
             setUserRole("Admin")
@@ -112,7 +116,7 @@ export default function VetManagementHome() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="******"
+                  placeholder="**********"
                   className="bg-background border-border"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -182,11 +186,16 @@ export default function VetManagementHome() {
 
           {activeSection === "billing" && <BillingModule />}
 
+          {activeSection === "users" && <UserManagementDashboard />}
+          
+          {activeSection === "logs" && <BillingModule />}
+
           {activeSection !== "dashboard" &&
             activeSection !== "patients" &&
             activeSection !== "appointments" &&
             activeSection !== "inventory" &&
-            activeSection !== "billing" && (
+            activeSection !== "billing" && 
+            activeSection !== "users" && (
               <div className="space-y-6">
                 <div>
                   <h1 className="font-serif font-bold text-2xl text-foreground capitalize">{activeSection}</h1>
