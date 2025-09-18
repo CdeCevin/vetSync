@@ -11,6 +11,7 @@ const usuariosRoutes = require('./routes/usuariosRoute');
 const authRoutes = require('./routes/login');
 const dueñosRoutes = require('./routes/dueñosRoute');
 const pacientesRoutes = require('./routes/pacientesRoute');
+const citasRoutes = require('./routes/citasRoute');
 
 
 const PORT = 3001;
@@ -35,6 +36,19 @@ app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
   next();
 }, pacientesRoutes);
+
+
+app.use('/api/:idClinica', (req, res, next) => {
+  req.clinicaId = req.params.idClinica;
+  next();
+}, citasRoutes);
+
+
+
+// Ruta raíz para verificar que el servidor está funcionando
+app.get('/', (req, res) => {
+  res.send('Servidor funcionando');
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
