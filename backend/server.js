@@ -1,7 +1,7 @@
 const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
-
+const verifyToken = require('./middleware/authMiddleware');  //ACUERDATE KEVIN
 const app = express();
 app.use(cors()); // Aplica CORS antes de las rutas
 
@@ -21,7 +21,9 @@ app.use(express.json());
 // Ruta de login sin prefijo de clínica
 app.use('/api', authRoutes);
 
-// Prefijo base con id de clínica dinámico para rutas protegidas
+// Prefijo base con id de clínica dinámico para rutas protegidas 
+
+//APLICAR EL VERIFYTOKEN A TODAS LAS RUTAS QUE LO NECESITEN, para no mandar directamente el idClinica
 app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
   next();
