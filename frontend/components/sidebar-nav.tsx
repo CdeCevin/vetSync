@@ -17,7 +17,7 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
       title: "Panel Principal",
       icon: Home,
       id: "dashboard",
-      roles: ["Veterinario", "Recepcionista"],
+      roles: ["Veterinario", "Recepcionista","Admin"],
     },
     {
       title: "Citas",
@@ -48,12 +48,6 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
       icon: Package,
       id: "inventory",
       roles: ["Veterinario", "Recepcionista"],
-    },
-    {
-      title: "Facturación",
-      icon: CreditCard,
-      id: "billing",
-      roles: ["Recepcionista"],
     },
     {
       title: "Configuración",

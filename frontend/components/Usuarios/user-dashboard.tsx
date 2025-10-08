@@ -85,7 +85,7 @@ export function UserManagementDashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     })
-    fetchUsers()
+    fetchUsers() 
     setIsEditModalOpen(false)
     setSelectedUser(null)
   }

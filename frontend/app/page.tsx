@@ -1,11 +1,11 @@
 "use client"
 import { ROUTES } from '../apiRoutes';
-import { useState } from "react"
+// Importa useEffect
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { PatientRecords } from "@/components/patient-records"
@@ -19,14 +19,43 @@ export default function VetManagementHome() {
   const { usuario, token, setAuthInfo, clearAuthInfo } = useAuth()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userRole, setUserRole] = useState<"Admin" | "Veterinario" | "Recepcionista" | null>(null)
-  const [activeSection, setActiveSection] = useState("dashboard")
-
+  const [activeSection, setActiveSection] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("activeSection") || "dashboard"
+    }
+    return "dashboard"
+  })
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loginError, setLoginError] = useState<string | null>(null)
   const [userName, setUserName] = useState("")
-  const [selectedRole, setSelectedRole] = useState<"Veterinario" | "Recepcionista">("Veterinario")
+  const [hydrated, setHydrated] = useState(false)
+  
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
+  // ✅ Hook para verificar la sesión al cargar el componente
+  useEffect(() => {
+    if (usuario) {
+      setUserName(usuario.nombre_completo)
+      switch (usuario.id_rol) {
+        case 1: setUserRole("Admin"); break
+        case 2: setUserRole("Veterinario"); break
+        case 3: setUserRole("Recepcionista"); break
+        default: setUserRole(null)
+      }
+    } else {
+      setUserRole(null)
+      setUserName("")
+    }
+  }, [usuario])
 
+  useEffect(() => {
+    if (activeSection) {
+      localStorage.setItem("activeSection", activeSection)
+    }
+  }, [activeSection])
+  
   const handleLogin = async () => {
     setLoginError(null)
     try {
@@ -40,22 +69,9 @@ export default function VetManagementHome() {
       })
       const data = await response.json()
       if (response.ok && data.token) {
-        setIsLoggedIn(true)
-        setUserName(data.usuario.nombre_completo)
+        // Al hacer login, la información se guarda en el contexto y localStorage
         setAuthInfo(data.token, data.usuario)
-        switch (data.usuario.id_rol) {
-          case 1:
-            setUserRole("Admin")
-            break
-          case 2:
-            setUserRole("Veterinario")
-            break
-          case 3:
-            setUserRole("Recepcionista")
-            break
-          default:
-            setUserRole(null)
-        }
+        // El useEffect se encargará de actualizar el estado local
       } else {
         setLoginError(data.error || "Error al iniciar sesión")
       }
@@ -64,8 +80,9 @@ export default function VetManagementHome() {
     }
   }
 
+  // ✅ Función de logout mejorada
   const handleSignOut = () => {
-    setIsLoggedIn(false)
+    clearAuthInfo()
     setUserRole(null)
     setActiveSection("dashboard")
     setEmail("")
@@ -73,24 +90,22 @@ export default function VetManagementHome() {
     setLoginError(null)
   }
 
-  if (!isLoggedIn) {
+  // El resto de tu componente no necesita cambios...
+  // ...
+  if (!hydrated) {
+    // Evita el render hasta hidratación para evitar error hidrato React
+    return null
+  }
+
+  if (!token || !usuario) {
     return (
+      // ... Tu formulario de Login
       <div className="min-h-screen h-full bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
-          <div className="flex justify-end space-x-1 mb-4">
-            <div className="w-6 h-6 bg-secondary rounded"></div>
-            <div className="w-6 h-6 bg-primary rounded"></div>
-            <div className="w-6 h-6 bg-accent rounded"></div>
-            <div className="w-6 h-6 bg-muted rounded"></div>
-            <div className="w-6 h-6 bg-muted-foreground rounded"></div>
-            <div className="w-6 h-6 bg-foreground rounded"></div>
-          </div>
-
           <div className="text-center space-y-2">
             <h1 className="font-serif font-black text-4xl text-accent">VetSync</h1>
             <p className="text-muted-foreground">Gestión profesional veterinaria</p>
           </div>
-
           <Card className="bg-card/50 backdrop-blur-sm">
             <CardHeader className="text-center">
               <CardTitle className="font-serif font-bold text-primary">Inicio de Sesión</CardTitle>
@@ -122,9 +137,7 @@ export default function VetManagementHome() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-
               {loginError && <p className="text-red-600 text-center">{loginError}</p>}
-
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 onClick={handleLogin}
@@ -138,7 +151,6 @@ export default function VetManagementHome() {
       </div>
     )
   }
-
 
   return (
     <div className="min-h-screen h-full bg-background flex">
@@ -158,8 +170,7 @@ export default function VetManagementHome() {
                   ? "Pacientes"
                   : activeSection === "inventory"
                   ? "Inventario"
-                  : activeSection === "billing"
-                  ? "Facturación"
+                  
                   : activeSection}
               </h2>
             </div>

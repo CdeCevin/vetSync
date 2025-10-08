@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useContext, useState } from "react"
+import React, { createContext, useContext, useState, useEffect } from "react"
 
 interface Usuario {
   id: number
@@ -20,8 +20,32 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null)
-  const [usuario, setUsuario] = useState<Usuario | null>(null)
+  // Inicializa a partir de sessionStorage
+  const [token, setToken] = useState<string | null>(() => {
+    return typeof window !== "undefined" ? sessionStorage.getItem("token") : null
+  })
+  const [usuario, setUsuario] = useState<Usuario | null>(() => {
+    if (typeof window === "undefined") return null
+    const storedUser = sessionStorage.getItem("usuario") // CAMBIO AQUÍ
+    return storedUser ? JSON.parse(storedUser) : null
+  })
+
+  // Guarda cambios en sessionStorage automáticamente
+  useEffect(() => {
+    if (token) {
+      sessionStorage.setItem("token", token) // CAMBIO AQUÍ
+    } else {
+      sessionStorage.removeItem("token") // CAMBIO AQUÍ
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (usuario) {
+      sessionStorage.setItem("usuario", JSON.stringify(usuario)) // CAMBIO AQUÍ
+    } else {
+      sessionStorage.removeItem("usuario") // CAMBIO AQUÍ
+    }
+  }, [usuario])
 
   const setAuthInfo = (t: string, u: Usuario) => {
     setToken(t)
