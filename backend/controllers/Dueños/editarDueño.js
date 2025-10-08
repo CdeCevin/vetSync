@@ -2,7 +2,7 @@ const connection = require('../../db/connection');
 
 const editarDueno = (req, res) => {
   const idDueno = req.params.id;
-  const idClinica = req.clinicaId; // obtenido de prefijo ruta o middleware
+  const idClinica = req.clinicaId;
   const {
     nombre,
     telefono,
@@ -10,7 +10,7 @@ const editarDueno = (req, res) => {
     direccion
   } = req.body;
 
-  // Paso 1: Obtener datos actuales filtrando por clínica y activo
+  // Paso 1: Obtener dueño actual
   connection.query(
     'SELECT * FROM Dueños WHERE id = ? AND id_clinica = ? AND activo = TRUE',
     [idDueno, idClinica],
@@ -25,30 +25,51 @@ const editarDueno = (req, res) => {
 
       const duenoActual = results[0];
 
-      // Paso 2: Combinar valores (si no se envían, mantener actuales)
-      const nuevoNombre = nombre !== undefined ? nombre : duenoActual.nombre;
-      const nuevoTelefono = telefono !== undefined ? telefono : duenoActual.telefono;
-      const nuevoCorreo = correo !== undefined ? correo : duenoActual.correo;
-      const nuevaDireccion = direccion !== undefined ? direccion : duenoActual.direccion;
-
-      // Paso 3: Actualizar dueño con filtro por clínica y activo
-      const query = `
-        UPDATE Dueños 
-        SET nombre = ?, telefono = ?, correo = ?, direccion = ?
-        WHERE id = ? AND id_clinica = ? AND activo = TRUE
-      `;
-
-      connection.query(
-        query,
-        [nuevoNombre, nuevoTelefono, nuevoCorreo, nuevaDireccion, idDueno, idClinica],
-        (error) => {
-          if (error) {
-            console.error('Error actualizando dueño:', error);
-            return res.status(500).json({ error: 'Error al actualizar dueño' });
+      // Validar que correo no esté en otro dueño (excepto este)
+      if (correo && correo !== duenoActual.correo) {
+        const queryValidarCorreo = `
+          SELECT COUNT(*) AS count FROM Dueños 
+          WHERE correo = ? AND id_clinica = ? AND activo = TRUE AND id != ?
+        `;
+        connection.query(queryValidarCorreo, [correo, idClinica, idDueno], (err2, res2) => {
+          if (err2) {
+            console.error('Error validando correo:', err2);
+            return res.status(500).json({ error: 'Error validando correo electrónico' });
           }
-          res.json({ message: 'Dueño actualizado correctamente' });
-        }
-      );
+          if (res2[0].count > 0) {
+            return res.status(409).json({ error: 'El correo electrónico ya está registrado en otro dueño' });
+          }
+          // Continúa actualización
+          actualizarDatos();
+        });
+      } else {
+        actualizarDatos();
+      }
+
+      function actualizarDatos() {
+        const nuevoNombre = nombre !== undefined ? nombre : duenoActual.nombre;
+        const nuevoTelefono = telefono !== undefined ? telefono : duenoActual.telefono;
+        const nuevoCorreo = correo !== undefined ? correo : duenoActual.correo;
+        const nuevaDireccion = direccion !== undefined ? direccion : duenoActual.direccion;
+
+        const queryUpdate = `
+          UPDATE Dueños 
+          SET nombre = ?, telefono = ?, correo = ?, direccion = ?
+          WHERE id = ? AND id_clinica = ? AND activo = TRUE
+        `;
+
+        connection.query(
+          queryUpdate,
+          [nuevoNombre, nuevoTelefono, nuevoCorreo, nuevaDireccion, idDueno, idClinica],
+          (error) => {
+            if (error) {
+              console.error('Error actualizando dueño:', error);
+              return res.status(500).json({ error: 'Error al actualizar dueño' });
+            }
+            res.json({ message: 'Dueño actualizado correctamente' });
+          }
+        );
+      }
     }
   );
 };
