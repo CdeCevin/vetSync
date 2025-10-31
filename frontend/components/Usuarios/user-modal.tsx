@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,6 +44,8 @@ export function UserModal({
     contraseña: "",
   })
 
+  const formRef = useRef<HTMLFormElement>(null)
+
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -64,6 +66,12 @@ export function UserModal({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (formRef.current && !formRef.current.checkValidity()) {
+      // Si no es válido, checkValidity() FORZARÁ que aparezca el
+      // mensaje nativo del navegador en el campo incorrecto.
+      // Detenemos la función aquí.
+      return
+    }
     // En edición, si contraseña está vacía no la mandes para no actualizarla
     const dataToSubmit = { ...formData }
     if (isEdit && !dataToSubmit.contraseña) {
@@ -87,7 +95,7 @@ export function UserModal({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="nombre_completo">Nombre completo</Label>
@@ -120,6 +128,9 @@ export function UserModal({
                 onChange={(e) => setFormData({ ...formData, contraseña: e.target.value })}
                 required={!isEdit}
                 placeholder={isEdit ? "Déjalo vacío para no cambiar" : ""}
+                minLength={isEdit ? undefined : 8}
+                pattern={isEdit && !formData.contraseña ? undefined : ".*[0-9].*"}
+                title="Debe tener al menos 8 caracteres y 1 número."
               />
             </div>
             <div className="space-y-2">

@@ -6,6 +6,7 @@ import { UserFilters } from "./user-filters"
 import { DeleteConfirmModal } from "./delete-confirm-modal"
 import { UserTable } from "./user-table"
 import { UserModal } from "./user-modal"
+import { Contrail_One } from 'next/font/google';
 
 // Ajusta este tipo según tu modelo real de usuario
 interface User {
@@ -79,6 +80,7 @@ export function UserManagementDashboard() {
       nombre_completo: userData.nombre_completo,
       correo_electronico: userData.correo_electronico,
       id_rol: userData.id_rol,
+      contraseña: userData.contraseña,
     }
     await fetch(`${ROUTES.gestionUser}/${idClinica}}/usuarios/${selectedUser.id}`, {
       method: "PUT",
