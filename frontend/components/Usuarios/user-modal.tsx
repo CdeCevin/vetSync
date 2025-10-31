@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAlertStore } from "@/hooks/use-alert-store"
 
 interface User {
   id?: number
@@ -23,19 +24,22 @@ interface UserModalProps {
   isEdit?: boolean
   title: string
   description: string
+  onSuccess: () => Promise<any>
 }
 
 export function UserModal({
   isOpen,
   onClose,
   onSubmit,
+  onSuccess,
   initialData,
   isEdit = false,
   title,
   description,
 }: UserModalProps) {
   const safeInitialData = initialData || {}
-
+  const [isLoading, setIsLoading] = useState(false)
+  const { onOpen: openAlert } = useAlertStore()
   const [formData, setFormData] = useState<User>({
     id: safeInitialData.id ?? 0,
     id_rol: safeInitialData.id_rol ?? 2, // Por defecto 'Veterinario'
@@ -64,7 +68,7 @@ export function UserModal({
     }
   }, [initialData, isEdit])
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (formRef.current && !formRef.current.checkValidity()) {
       // Si no es válido, checkValidity() FORZARÁ que aparezca el
@@ -72,12 +76,23 @@ export function UserModal({
       // Detenemos la función aquí.
       return
     }
-    // En edición, si contraseña está vacía no la mandes para no actualizarla
-    const dataToSubmit = { ...formData }
-    if (isEdit && !dataToSubmit.contraseña) {
+    try {
+      setIsLoading(true)
+      const dataToSubmit = { ...formData }
+      if (isEdit) {
+        dataToSubmit.id = safeInitialData.id
+      }
+
+      // Lógica original: no enviar contraseña si está vacía en edición
+      if (isEdit && !dataToSubmit.contraseña) {
       delete dataToSubmit.contraseña
-    }
-    onSubmit(dataToSubmit)
+      }
+      await onSubmit(dataToSubmit)
+      await onSuccess()
+      const successMessage = isEdit ? "Usuario actualizado" : "Usuario creado"  
+      openAlert("¡Éxito!", `${successMessage} correctamente.`, "success")
+    
+    // En edición, si contraseña está vacía no la mandes para no actualizarla
     if (!isEdit) {
       setFormData({
         id_rol: 2,
@@ -86,6 +101,17 @@ export function UserModal({
         contraseña: "",
       })
     }
+    onClose()
+    } catch (error: any) {
+      // 10. Si 'onSubmit' lanzó un error:
+      // Muestra el modal de error
+      openAlert("Error", error.message || "Ocurrió un error inesperado.", "error")
+    } finally {
+      // 11. Se ejecuta siempre (después de 'try' o 'catch')
+      // Desactiva el estado de "cargando"
+     setIsLoading(false) 
+     }
+    
   }
 
   return (

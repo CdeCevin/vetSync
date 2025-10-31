@@ -37,7 +37,9 @@ export function UserManagementDashboard() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
   const fetchUsers = async () => {
-    const res = await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios`)
+    const res = await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios`, {
+    cache: 'no-store' // <-- AÑADE ESTO
+  });
     const data = await res.json()
     setUsers(data)
   }
@@ -57,48 +59,69 @@ export function UserManagementDashboard() {
   })
 
   const handleCreateUser = async (userData: Partial<User>) => {
-    // Mapea de frontend a API si fuera necesario (ejemplo)
-    const body = {
-      nombre_completo: userData.nombre_completo,
-      correo_electronico: userData.correo_electronico,
-      id_rol: userData.id_rol,
+     const body = {
+       nombre_completo: userData.nombre_completo,
+       correo_electronico: userData.correo_electronico,
+       id_rol: userData.id_rol,
       contraseña: userData.contraseña
     }
-    await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    })
-    fetchUsers()
-    setIsCreateModalOpen(false)
+     const response = await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios/`, { // Guarda la respuesta
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify(body),
+     })
+
+    // --- ESTO ES LO QUE FALTA ---
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al crear el usuario.");
+    }
+
+    return response.json(); // Devuelve el éxito
   }
 
   const handleEditUser = async (userData: Partial<User>) => {
-    if (!selectedUser) return
+    // Nota: El 'if (!selectedUser)' no es necesario aquí, 
+    // el modal ya tiene el ID en 'userData.id'
     const body = {
-      id: userData.id,
+       id: userData.id,
       nombre_completo: userData.nombre_completo,
       correo_electronico: userData.correo_electronico,
       id_rol: userData.id_rol,
       contraseña: userData.contraseña,
     }
-    await fetch(`${ROUTES.gestionUser}/${idClinica}}/usuarios/${selectedUser.id}`, {
+    // Corregí un '}' extra en tu URL original
+    const response = await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios/${userData.id}`, { 
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    })
-    fetchUsers() 
-    setIsEditModalOpen(false)
-    setSelectedUser(null)
-  }
+      })
+
+    // --- ESTO ES LO QUE FALTA ---
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al actualizar el usuario.");
+    }
+    
+    return response.json(); // Devuelve el éxito
+    }
 
   const handleDeleteUser = async () => {
-    if (!selectedUser) return
-    await fetch(`${ROUTES.gestionUser}/${idClinica}}/usuarios/${selectedUser.id}`, { method: "DELETE" })
-    fetchUsers()
-    setIsDeleteModalOpen(false)
-    setSelectedUser(null)
-  }
+    if (!selectedUser) {
+      throw new Error("No hay ningún usuario seleccionado para eliminar.");
+    }
+    const response = await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios/${selectedUser.id}`, { 
+      method: "DELETE" 
+    });
+    // Lanza un error si la API falló
+    if (!response.ok) {
+      const errorData = await response.json(); // Intenta leer el error de la API
+      throw new Error(errorData.message || "No se pudo eliminar el usuario.");
+    }
+
+    //Devuelve los datos (o true) si tuvo éxito
+    return response.json(); 
+}
 
   const openEditModal = (user: User) => {
     setSelectedUser(user)
@@ -133,6 +156,7 @@ export function UserManagementDashboard() {
             isOpen={isCreateModalOpen}
             onClose={() => setIsCreateModalOpen(false)}
             onSubmit={handleCreateUser}
+            onSuccess={fetchUsers}
             title="Crear Nuevo Usuario"
             description="Completa la información para crear un nuevo usuario en el sistema."
           />
@@ -143,7 +167,8 @@ export function UserManagementDashboard() {
               setSelectedUser(null)
             }}
             onSubmit={handleEditUser}
-            initialData={selectedUser}
+            onSuccess={fetchUsers}
+            initialData={selectedUser || undefined}
             isEdit={true}
             title="Editar Usuario"
             description="Modifica la información del usuario seleccionado."
@@ -155,8 +180,9 @@ export function UserManagementDashboard() {
               setSelectedUser(null)
             }}
             onConfirm={handleDeleteUser}
+            onSuccess={fetchUsers}
             userName={selectedUser?.nombre_completo}
-          />
+        />
         </main>
       </div>
     </div>

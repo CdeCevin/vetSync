@@ -34,7 +34,7 @@ export default function VetManagementHome() {
   useEffect(() => {
     setHydrated(true)
   }, [])
-  // ✅ Hook para verificar la sesión al cargar el componente
+  // Hook para verificar la sesión al cargar el componente
   useEffect(() => {
     if (usuario) {
       setUserName(usuario.nombre_completo)
@@ -80,7 +80,7 @@ export default function VetManagementHome() {
     }
   }
 
-  // ✅ Función de logout mejorada
+  // Función de logout mejorada
   const handleSignOut = () => {
     clearAuthInfo()
     setUserRole(null)
