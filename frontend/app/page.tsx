@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { DashboardOverview } from "@/components/dashboard-overview"
-import { PatientRecords } from "@/components/patient-records"
+import { PatientDashboard  } from "@/components/Pacientes/patient-dashboard"
 import { AppointmentScheduling } from "@/components/appointment-scheduling"
 import { InventoryManagement } from "@/components/inventory-management"
 import { BillingModule } from "../components/billing-module"
@@ -118,7 +118,7 @@ export default function VetManagementHome() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="nombre@dominio.com"
+                  placeholder="ejemplo: nombre@dominio.com"
                   className="bg-background border-border"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -189,7 +189,7 @@ export default function VetManagementHome() {
         <main className="flex-1 min-h-0 p-6">
           {activeSection === "dashboard" && userRole && <DashboardOverview userRole={userRole} />}
 
-          {activeSection === "patients" && <PatientRecords />}
+          {activeSection === "patients" && <PatientDashboard  />}
 
           {activeSection === "appointments" && <AppointmentScheduling />}
 
