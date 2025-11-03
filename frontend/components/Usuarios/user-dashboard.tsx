@@ -3,7 +3,7 @@ import { ROUTES } from '../../apiRoutes';
 import { useAuth } from "../user-context"
 import { useEffect, useState } from "react"
 import { UserFilters } from "./user-filters"
-import { DeleteConfirmModal } from "./delete-confirm-modal"
+import { DeleteConfirmModal } from "../modals/delete-confirm-modal"
 import { UserTable } from "./user-table"
 import { UserModal } from "./user-modal"
 import { Contrail_One } from 'next/font/google';
@@ -181,7 +181,7 @@ export function UserManagementDashboard() {
             }}
             onConfirm={handleDeleteUser}
             onSuccess={fetchUsers}
-            userName={selectedUser?.nombre_completo}
+            userName={`usuario ${selectedUser?.nombre_completo}`}
         />
         </main>
       </div>
