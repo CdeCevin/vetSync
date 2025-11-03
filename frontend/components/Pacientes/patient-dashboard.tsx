@@ -125,12 +125,10 @@ export function PatientDashboard() {
       setIsLoadingDetails(false)
     }
   }
-
   const handleSearch = async () => {
     await fetchPacientes(searchTerm)
   }
-
-  // Estas funciones solo definen la API. El modal manejará el 'try/catch'.
+ // Estas funciones solo definen la API. El modal manejará el 'try/catch'.
   const handleCreate = async (data: any) => {
     const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes`, {
       method: "POST",
@@ -138,10 +136,10 @@ export function PatientDashboard() {
       body: JSON.stringify(data),
     })
     if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err.message || "Error al crear paciente")
-    }
-    return res.json()
+      const err = await res.json()
+      throw new Error(err.message || "Error al crear paciente")
+    }
+     return res.json()
   }
 
   const handleEdit = async (data: any) => {
@@ -210,15 +208,14 @@ export function PatientDashboard() {
       </div>
 
       {/* Layout de Lista / Detalle */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="w-full grid gap-6 lg:grid-cols-3">
         {/* Columna de la Lista (Izquierda) */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-serif">Pacientes ({pacientes.length})</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="max-h-96 overflow-y-auto">
+          <div className="bg-muted/10 rounded-xl shadow border">
+            <div className="px-6 pt-6 pb-2">
+              <span className="font-semibold">Patients ({pacientes.length})</span>
+            </div>
+            <div className="max-h-96 overflow-y-auto">
                 {isLoadingList ? (
                   <div className="flex items-center justify-center h-64">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -226,26 +223,24 @@ export function PatientDashboard() {
                 ) : (
                   pacientes.map((paciente) => (
                     <div
-                      key={paciente.id}
-                      className={`p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
-                        selectedPatient?.mascota.id === paciente.id ? "bg-muted" : ""
-                      }`}
-                      onClick={() => handleSelectPatient(paciente)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold">{paciente.nombre}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {paciente.raza} • {paciente.dueno.nombre}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                      key={paciente.id}
+                      className={`
+                        flex items-center justify-between p-4 cursor-pointer border-b
+                        ${selectedPatient?.mascota.id === paciente.id ? "bg-muted" : ""}
+                        hover:bg-muted/50 transition-colors
+                      `}
+                      onClick={() => handleSelectPatient(paciente)}
+                    >
+                      <div>
+                        <div className="font-semibold">{paciente.nombre}</div>
+                        <div className="text-xs text-muted-foreground">{paciente.raza} • {paciente.dueno.nombre}</div>
+                      </div>
+                      
+                    </div>
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
         </div>
 
         {/* Columna de Detalles (Derecha) */}
@@ -263,15 +258,11 @@ export function PatientDashboard() {
               onDeleteClick={() => setIsDeleteDialogOpen(true)}
             />
           ) : (
-            <Card>
-              <CardContent className="flex items-center justify-center h-96">
-                <div className="text-center">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-serif font-semibold text-lg">Selecciona un Paciente</h3>
-                  <p className="text-muted-foreground">Elige un paciente de la lista para ver sus detalles.</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center justify-center h-[410px] w-full bg-muted/10 rounded-xl border shadow">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <span className="font-semibold text-lg">Select a Patient</span>
+              <span className="text-muted-foreground">Choose a patient from the list to view their details</span>
+            </div>
           )}
         </div>
       </div>
