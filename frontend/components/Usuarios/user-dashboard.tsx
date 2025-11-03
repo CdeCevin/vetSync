@@ -1,21 +1,14 @@
 "use client"
-import { ROUTES } from '../../apiRoutes';
-import { useAuth } from "../user-context"
+
 import { useEffect, useState } from "react"
 import { UserFilters } from "./user-filters"
 import { DeleteConfirmModal } from "../modals/delete-confirm-modal"
 import { UserTable } from "./user-table"
 import { UserModal } from "./user-modal"
+import { useUserService, User } from "@/hooks/useUsuarioService"
 import { Contrail_One } from 'next/font/google';
 
-// Ajusta este tipo según tu modelo real de usuario
-interface User {
-  id:number
-  id_rol: number
-  nombre_completo: string
-  correo_electronico: string
-  contraseña?: string
-}
+
 
 // Función para mapear id_rol a rol en texto para frontend
 const rolMap: Record<number, string> = {
@@ -25,8 +18,7 @@ const rolMap: Record<number, string> = {
 }
 
 export function UserManagementDashboard() {
-  const { usuario } = useAuth()
-  const idClinica = usuario?.id_clinica
+  const { getUsers, createUser, updateUser, deleteUser } = useUserService()
   const [users, setUsers] = useState<User[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRole, setSelectedRole] = useState("all")
@@ -37,10 +29,7 @@ export function UserManagementDashboard() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
   const fetchUsers = async () => {
-    const res = await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios`, {
-    cache: 'no-store' // <-- AÑADE ESTO
-  });
-    const data = await res.json()
+    const data = await getUsers()
     setUsers(data)
   }
 
@@ -59,69 +48,17 @@ export function UserManagementDashboard() {
   })
 
   const handleCreateUser = async (userData: Partial<User>) => {
-     const body = {
-       nombre_completo: userData.nombre_completo,
-       correo_electronico: userData.correo_electronico,
-       id_rol: userData.id_rol,
-      contraseña: userData.contraseña
-    }
-     const response = await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios/`, { // Guarda la respuesta
-     method: "POST",
-     headers: { "Content-Type": "application/json" },
-     body: JSON.stringify(body),
-     })
-
-    // --- ESTO ES LO QUE FALTA ---
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al crear el usuario.");
-    }
-
-    return response.json(); // Devuelve el éxito
+    await createUser(userData)
   }
 
   const handleEditUser = async (userData: Partial<User>) => {
-    // Nota: El 'if (!selectedUser)' no es necesario aquí, 
-    // el modal ya tiene el ID en 'userData.id'
-    const body = {
-       id: userData.id,
-      nombre_completo: userData.nombre_completo,
-      correo_electronico: userData.correo_electronico,
-      id_rol: userData.id_rol,
-      contraseña: userData.contraseña,
-    }
-    // Corregí un '}' extra en tu URL original
-    const response = await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios/${userData.id}`, { 
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      })
-
-    // --- ESTO ES LO QUE FALTA ---
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al actualizar el usuario.");
-    }
-    
-    return response.json(); // Devuelve el éxito
-    }
+    await updateUser(userData)
+  }
 
   const handleDeleteUser = async () => {
-    if (!selectedUser) {
-      throw new Error("No hay ningún usuario seleccionado para eliminar.");
-    }
-    const response = await fetch(`${ROUTES.gestionUser}/${idClinica}/usuarios/${selectedUser.id}`, { 
-      method: "DELETE" 
-    });
-    // Lanza un error si la API falló
-    if (!response.ok) {
-      const errorData = await response.json(); // Intenta leer el error de la API
-      throw new Error(errorData.message || "No se pudo eliminar el usuario.");
-    }
-
-    //Devuelve los datos (o true) si tuvo éxito
-    return response.json(); 
-}
+    if (!selectedUser) return
+    await deleteUser(selectedUser.id)
+  }
 
   const openEditModal = (user: User) => {
     setSelectedUser(user)
@@ -140,7 +77,7 @@ export function UserManagementDashboard() {
         <main className="flex-1 p-6">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Gestión de Usuarios</h2>
-            <p className="text-gray-600">Administra los usuarios del sistema VetSync</p>
+            <p className="text-gray-600">Administra los usuarios de tu clínica</p>
           </div>
           <UserFilters
             searchTerm={searchTerm}
