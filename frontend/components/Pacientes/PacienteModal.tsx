@@ -43,7 +43,7 @@ interface PacienteModalProps {
   onClose: () => void // Función para cerrarlo
   onSubmit: (data: any) => Promise<any> // La función de API ASÍNCRONA (handleCreate/handleEdit)
   onSuccess: () => Promise<any> // La función de refresco ASÍNCRONA (fetchPacientes)
-  initialData?: PacienteDetallado | null // Los datos para editar
+  initialData?: PacienteDetallado | null | undefined // Los datos para editar
   isEdit?: boolean
   title: string
   description: string

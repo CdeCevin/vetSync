@@ -40,11 +40,11 @@ interface Mascota {
   edad: number
   peso: string
   numero_microchip: string | null
-  activo: number | boolean
-  id_dueno: number
+  activo: 1 | 0
+  id_dueño: number
 }
 
-interface dueno {
+interface Dueño {
   nombre: string
   telefono: string
   correo: string
@@ -61,7 +61,7 @@ interface HistorialMedico {
 
 interface PacienteDetallado {
   mascota: Mascota
-  dueno: dueno
+  dueño: Dueño
   historial: HistorialMedico[]
 }
 
@@ -69,7 +69,7 @@ type TipoHistorial = "Vacunación" | "Cirugía" | "Chequeo" | "Tratamiento" | "E
 
 // --- 3. Componente Principal (Dashboard) ---
 
-export function PatientDashboard () {
+export function PatientDashboard() {
   // --- Estados ---
   const { usuario } = useAuth()
   const idClinica = usuario?.id_clinica
@@ -92,7 +92,7 @@ export function PatientDashboard () {
     if (!idClinica) return
     setIsLoadingList(true)
     try {
-      const res = await fetch(`${ROUTES.gestionUser}/${idClinica}/Pacientes/buscar?q=${encodeURIComponent(q)}`)
+      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/buscar?q=${encodeURIComponent(q)}`)
       if (!res.ok) throw new Error("Error al obtener pacientes")
       const data = await res.json()
       setPacientes(data)
@@ -110,12 +110,12 @@ export function PatientDashboard () {
   }, [fetchPacientes, idClinica])
 
   const handleSelectPatient = async (paciente: PacienteEnLista) => {
-    if (selectedPatient && selectedPatient.mascota.id === paciente.id) return
+    if (selectedPatient?.mascota.id === paciente.id) return
     
     setIsLoadingDetails(true)
     setSelectedPatient(null)
     try {
-      const res = await fetch(`${API_BASE}/api/${idClinica}/Pacientes/${paciente.id}`)
+      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${paciente.id}`)
       if (!res.ok) throw new Error("Error al cargar detalles del paciente")
       const data: PacienteDetallado = await res.json()
       setSelectedPatient(data)
@@ -132,7 +132,7 @@ export function PatientDashboard () {
 
   // Estas funciones solo definen la API. El modal manejará el 'try/catch'.
   const handleCreate = async (data: any) => {
-    const res = await fetch(`${API_BASE}/api/${idClinica}/Pacientes`, {
+    const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -146,7 +146,7 @@ export function PatientDashboard () {
 
   const handleEdit = async (data: any) => {
     if (!selectedPatient?.mascota.id) throw new Error("No hay paciente seleccionado")
-    const res = await fetch(`${API_BASE}/api/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
+    const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -160,7 +160,7 @@ export function PatientDashboard () {
 
   const handleDelete = async () => {
     if (!selectedPatient?.mascota.id) throw new Error("No hay paciente seleccionado")
-    const res = await fetch(`${API_BASE}/api/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
+    const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
       method: "DELETE",
     })
     if (!res.ok) {
@@ -190,7 +190,7 @@ export function PatientDashboard () {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar pacientes, duenos o razas..."
+            placeholder="Buscar pacientes, dueños o razas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -286,7 +286,7 @@ export function PatientDashboard () {
         onSuccess={fetchPacientes} // Pasa la función de refresco
         isEdit={false}
         title="Añadir Nuevo Paciente"
-        description="Ingresa la información del paciente y dueno."
+        description="Ingresa la información del paciente y dueño."
       />
 
       {/* Modal de Editar */}
@@ -389,7 +389,7 @@ function DetallesPaciente({
           <TabsList>
             <TabsTrigger value="overview">Resumen</TabsTrigger>
             <TabsTrigger value="medical">Historial Médico</TabsTrigger>
-            <TabsTrigger value="owner">Info. dueno</TabsTrigger>
+            <TabsTrigger value="owner">Info. Dueño</TabsTrigger>
           </TabsList>
 
           {/* Tab de Resumen */}
@@ -485,34 +485,34 @@ function DetallesPaciente({
             </div>
           </TabsContent>
 
-          {/* Tab de Info. dueno */}
+          {/* Tab de Info. Dueño */}
           <TabsContent value="owner" className="space-y-4">
             <div className="space-y-4">
-              <h4 className="font-serif font-semibold">Información del dueno</h4>
+              <h4 className="font-serif font-semibold">Información del Dueño</h4>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                     <span className="text-sm font-semibold text-primary">
-                      {paciente.dueno.nombre ? paciente.dueno.nombre.charAt(0) : "D"}
+                      {paciente.dueño.nombre ? paciente.dueño.nombre.charAt(0) : "D"}
                     </span>
                   </div>
                   <div>
-                    <p className="font-semibold">{paciente.dueno.nombre}</p>
-                    <p className="text-sm text-muted-foreground">dueno de Mascota</p>
+                    <p className="font-semibold">{paciente.dueño.nombre}</p>
+                    <p className="text-sm text-muted-foreground">Dueño de Mascota</p>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-3">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{paciente.dueno.telefono}</span> 
+                    <span className="text-sm">{paciente.dueño.telefono}</span> 
                   </div>
                   <div className="flex items-center space-x-3">
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{paciente.dueno.correo}</span>
+                    <span className="text-sm">{paciente.dueño.correo}</span>
                   </div>
                   <div className="flex items-start space-x-3">
                     <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <span className="text-sm">{paciente.dueno.direccion}</span>
+                    <span className="text-sm">{paciente.dueño.direccion}</span>
                   </div>
                 </div>
               </div>
