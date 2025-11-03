@@ -18,96 +18,96 @@ import { useAlertStore } from "@/hooks/use-alert-store"
 
 // --- 1. IMPORTA TUS MODALES ---
 import { PacienteModal } from "@/components/Pacientes/PacienteModal" 
-import { DeleteConfirmModal } from "@/components/Usuarios/delete-confirm-modal" 
+import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal" 
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 // --- 2. Interfaces Basadas en tu API ---
 
 interface PacienteEnLista {
-  id: number
-  nombre: string
-  raza: string
-  dueno: { nombre: string }
+   id: number
+   nombre: string
+   raza: string
+   dueño: {nombre: string}
 }
 
 interface Mascota {
-  id: number
-  nombre: string
-  especie: string
-  raza: string
-  color: string
-  edad: number
-  peso: string
-  numero_microchip: string | null
-  activo: 1 | 0
-  id_dueño: number
+   id: number
+   nombre: string
+   especie: string
+   raza: string
+   color: string
+   edad: number
+   peso: string
+   numero_microchip: string | null
+   activo: 1 | 0
+   id_dueño: number
 }
 
 interface Dueño {
-  nombre: string
-  telefono: string
-  correo: string
-  direccion: string
+   nombre: string
+   telefono: string
+   correo: string
+   direccion: string
 }
 
 interface HistorialMedico {
-  id: number
-  fecha_visita: string
-  diagnostico: string
-  notas: string | null
-  id_usuario: number
+   id: number
+   fecha_visita: string
+   diagnostico: string
+   notas: string | null
+   id_usuario: number
 }
 
 interface PacienteDetallado {
-  mascota: Mascota
-  dueño: Dueño
-  historial: HistorialMedico[]
+   mascota: Mascota
+   dueño: Dueño
+   historial: HistorialMedico[]
 }
 
-type TipoHistorial = "Vacunación" | "Cirugía" | "Chequeo" | "Tratamiento" | "Emergencia" | "Otro"
+type TipoHistorial = "Vacunacion" | "Cirugia" | "Chequeo" | "Tratamiento" | "Emergencia" | "Otro"
 
 // --- 3. Componente Principal (Dashboard) ---
 
 export function PatientDashboard() {
   // --- Estados ---
-  const { usuario } = useAuth()
-  const idClinica = usuario?.id_clinica
-  const [pacientes, setPacientes] = useState<PacienteEnLista[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedPatient, setSelectedPatient] = useState<PacienteDetallado | null>(null)
+   const { usuario } = useAuth()
+   const idClinica = usuario?.id_clinica
+   const [pacientes, setPacientes] = useState<PacienteEnLista[]>([])
+   const [searchTerm, setSearchTerm] = useState("")
+   const [selectedPatient, setSelectedPatient] = useState<PacienteDetallado | null>(null)
 
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  const [isLoadingList, setIsLoadingList] = useState(false)
-  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
+   const [isLoadingList, setIsLoadingList] = useState(false)
+   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
-  const { onOpen: openAlert } = useAlertStore()
+   const { onOpen: openAlert } = useAlertStore()
 
-  // --- 4. Funciones de API (solo la lógica de fetch y error) ---
+  // --- 4. Funciones de API (solo la l  gica de fetch y error) ---
 
-  const fetchPacientes = useCallback(async (q: string = "") => {
-    if (!idClinica) return
-    setIsLoadingList(true)
-    try {
-      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/buscar?q=${encodeURIComponent(q)}`)
-      if (!res.ok) throw new Error("Error al obtener pacientes")
-      const data = await res.json()
-      setPacientes(data)
-    } catch (err: any) {
-      openAlert("Error", err.message || "No se pudieron cargar los pacientes", "error")
-    } finally {
-      setIsLoadingList(false)
-    }
-  }, [idClinica, openAlert])
+   const fetchPacientes = useCallback(async (q: string = "") => {
+      if (!idClinica) return
+      setIsLoadingList(true)
+      try {
+         const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/buscar?q=${encodeURIComponent(q)}`)
+         if (!res.ok) throw new Error("Error al obtener pacientes")
+         const data = await res.json()
+         setPacientes(data)
+      } catch (err: any) {
+         openAlert("Error", err.message || "No se pudieron cargar los pacientes", "error")
+      } finally {
+         setIsLoadingList(false)
+      }
+   }, [idClinica, openAlert])
 
-  useEffect(() => {
+   useEffect(() => {
     if (idClinica) {
-      fetchPacientes()
+        fetchPacientes()
     }
-  }, [fetchPacientes, idClinica])
+   }, [fetchPacientes, idClinica])
 
   const handleSelectPatient = async (paciente: PacienteEnLista) => {
     if (selectedPatient?.mascota.id === paciente.id) return
@@ -125,104 +125,111 @@ export function PatientDashboard() {
       setIsLoadingDetails(false)
     }
   }
-  const handleSearch = async () => {
-    await fetchPacientes(searchTerm)
-  }
- // Estas funciones solo definen la API. El modal manejará el 'try/catch'.
-  const handleCreate = async (data: any) => {
-    const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-    if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err.message || "Error al crear paciente")
-    }
-     return res.json()
-  }
+   const handleSearch = async () => {
+      await fetchPacientes(searchTerm)
+   }
+ // Estas funciones solo definen la API. El modal manejar   el 'try/catch'.
+   const handleCreate = async (data: any) => {
+      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes`, {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.message || "Error al crear paciente")
+      }
+       return res.json()
+   }
 
-  const handleEdit = async (data: any) => {
-    if (!selectedPatient?.mascota.id) throw new Error("No hay paciente seleccionado")
-    const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-    if (!res.ok) {
+   const handleEdit = async (data: any) => {
+      if (!selectedPatient?.mascota.id) throw new Error("No hay paciente seleccionado")
+      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
+         method: "PUT",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify(data),
+      })
+      if (!res.ok) {
       const err = await res.json()
       throw new Error(err.message || "Error al actualizar paciente")
     }
     return res.json()
-  }
+   }
 
-  const handleDelete = async () => {
+   const handleDelete = async () => {
     if (!selectedPatient?.mascota.id) throw new Error("No hay paciente seleccionado")
-    const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
-      method: "DELETE",
-    })
-    if (!res.ok) {
+      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
+         method: "DELETE",
+      })
+      if (!res.ok) {
       const err = await res.json()
       throw new Error(err.message || "Error al eliminar paciente")
     }
     return res.json()
-  }
+   }
 
   // --- 5. Renderizado (Layout del Ejemplo) ---
-  return (
-    <div className="p-4 md:p-6 space-y-6">
-      {/* Título y Botón de Añadir */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-serif font-bold text-2xl text-foreground">Registros de Pacientes</h1>
-          <p className="text-muted-foreground">Administra la información de pacientes y sus historiales.</p>
-        </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Añadir Paciente
-        </Button>
-      </div>
+   return (
+      <div className="p-4 md:p-6 space-y-6">
+      {/* Titulo y Boton de Añadir */}
+         <div className="flex items-center justify-between">
+            <div>
+               <h1 className="font-serif font-bold text-2xl text-foreground">Registros de Pacientes</h1>
+               <p className="text-muted-foreground">Administra la informacion de pacientes y sus historiales.</p>
+            </div>
+            
+         </div>
 
-      {/* Barra de Búsqueda y Filtros */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar pacientes, dueños o razas..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="pl-10"
-          />
-        </div>
-        <Select defaultValue="all">
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Filtrar por estado" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="active">Activos</SelectItem>
-            <SelectItem value="inactive">Inactivos</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Barra de Busqueda y Filtros */}
+       <Card className="mb-6">
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+         <div className="flex flex-col sm:flex-row gap-4 flex-1">
+            <div className="relative flex-1 max-w-sm">
+               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"/>
+               <Input
+                  placeholder="Buscar pacientes, dueños o razas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-10 border-gray/80"
+               />
+            </div>
+            <Select defaultValue="all">
+               <SelectTrigger className="w-[180px] border-gray/80">
+                  <SelectValue placeholder="Filtrar por estado" />
+               </SelectTrigger>
+               <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Activos</SelectItem>
+                  <SelectItem value="inactive">Inactivos</SelectItem>
+               </SelectContent>
+            </Select>
+         </div>
+         <Button onClick={() => setIsAddDialogOpen(true)}>
+               <Plus className="h-4 w-4 mr-2" />
+               Añadir Paciente
+            </Button>
+            </div>
+      </CardHeader>
+    </Card>
 
       {/* Layout de Lista / Detalle */}
-      <div className="w-full grid gap-6 lg:grid-cols-3">
+         <div className="w-full grid gap-6 grid-cols-3 ">
         {/* Columna de la Lista (Izquierda) */}
-        <div className="lg:col-span-1">
-          <div className="bg-muted/10 rounded-xl shadow border">
+            <div className="lg:col-span-1 ">
+               <div className="rounded-xl shadow border bg-card">
             <div className="px-6 pt-6 pb-2">
-              <span className="font-semibold">Patients ({pacientes.length})</span>
+              <span className="font-semibold ">Pacientes ({pacientes.length})</span>
             </div>
-            <div className="max-h-96 overflow-y-auto">
+            <div className="max-h-96 overflow-y-auto bg-card">
                 {isLoadingList ? (
                   <div className="flex items-center justify-center h-64">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
                 ) : (
                   pacientes.map((paciente) => (
-                    <div
+                           <div
                       key={paciente.id}
                       className={`
                         flex items-center justify-between p-4 cursor-pointer border-b
@@ -233,18 +240,21 @@ export function PatientDashboard() {
                     >
                       <div>
                         <div className="font-semibold">{paciente.nombre}</div>
-                        <div className="text-xs text-muted-foreground">{paciente.raza} • {paciente.dueno.nombre}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {paciente.raza}
+                          {paciente.dueño?.nombre}
+                          </div>
                       </div>
                       
                     </div>
-                  ))
+                        ))
                 )}
-              </div>
-            </div>
-        </div>
+                     </div>
+                  </div>
+            </div>
 
         {/* Columna de Detalles (Derecha) */}
-        <div className="lg:col-span-2">
+            <div className="lg:col-span-2">
           {isLoadingDetails ? (
             <Card>
               <CardContent className="flex items-center justify-center h-96">
@@ -252,32 +262,32 @@ export function PatientDashboard() {
               </CardContent>
             </Card>
           ) : selectedPatient ? (
-            <DetallesPaciente 
+                  <DetallesPaciente 
               paciente={selectedPatient}
               onEditClick={() => setIsEditDialogOpen(true)}
               onDeleteClick={() => setIsDeleteDialogOpen(true)}
             />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-[410px] w-full bg-muted/10 rounded-xl border shadow">
+               ) : (
+                  <div className="flex flex-col items-center justify-center h-[410px] w-full bg-card rounded-xl border shadow">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <span className="font-semibold text-lg">Select a Patient</span>
-              <span className="text-muted-foreground">Choose a patient from the list to view their details</span>
+              <span className="font-semibold text-lg">Seleccione un Paciente</span>
+              <span className="text-muted-foreground">escoja un paciente de la lista para ver sus detalles</span>
             </div>
-          )}
-        </div>
-      </div>
+               )}
+            </div>
+         </div>
 
       {/* --- 6. Modales (Renderizado) --- */}
 
-      {/* Modal de Añadir */}
+      {/* Modal de A  adir */}
       <PacienteModal
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
         onSubmit={handleCreate} 
-        onSuccess={fetchPacientes} // Pasa la función de refresco
+        onSuccess={fetchPacientes} // Pasa la funci  n de refresco
         isEdit={false}
         title="Añadir Nuevo Paciente"
-        description="Ingresa la información del paciente y dueño."
+        description="Ingresa la informacion del paciente y dueño."
       />
 
       {/* Modal de Editar */}
@@ -295,10 +305,10 @@ export function PatientDashboard() {
         isEdit={true}
         initialData={selectedPatient} // Pasa el PacienteDetallado
         title="Editar Paciente"
-        description="Actualiza la información del paciente."
+        description="Actualiza la informacion del paciente."
       />
 
-      {/* Modal de Confirmar Eliminación */}
+      {/* Modal de Confirmar Eliminaci  n */}
       {selectedPatient && (
         <DeleteConfirmModal
           isOpen={isDeleteDialogOpen}
@@ -308,11 +318,11 @@ export function PatientDashboard() {
             fetchPacientes(); // Refresca la lista
             setSelectedPatient(null); // Limpia el detalle
           }}
-          userName={selectedPatient.mascota.nombre}
+          userName={`paciente ${selectedPatient.mascota.nombre}`}
         />
       )}
-    </div>
-  )
+      </div>
+   )
 }
 
 
@@ -328,11 +338,11 @@ function DetallesPaciente({
   onDeleteClick: () => void
 }) {
 
-  // Derivamos el tipo de historial desde el diagnóstico
+  // Derivamos el tipo de historial desde el diagn  stico
   const getRecordType = (diagnostico: string): TipoHistorial => {
     const diag = diagnostico.toLowerCase()
-    if (diag.includes("vacuna")) return "Vacunación"
-    if (diag.includes("cirugía") || diag.includes("sutura")) return "Cirugía"
+    if (diag.includes("vacuna")) return "Vacunacion"
+    if (diag.includes("cirug  a") || diag.includes("sutura")) return "Cirugia"
     if (diag.includes("chequeo") || diag.includes("rutina")) return "Chequeo"
     if (diag.includes("tratamiento")) return "Tratamiento"
     if (diag.includes("emergencia")) return "Emergencia"
@@ -340,177 +350,178 @@ function DetallesPaciente({
   }
 
   const getRecordTypeColor = (type: TipoHistorial) => {
-    switch (type) {
-      case "Vacunación": return "bg-blue-100 text-blue-800";
-      case "Cirugía": return "bg-red-100 text-red-800";
-      case "Chequeo": return "bg-green-100 text-green-800";
-      case "Tratamiento": return "bg-orange-100 text-orange-800";
-      case "Emergencia": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  }
+      switch (type) {
+         case "Vacunacion": return "bg-blue-100 text-blue-800";
+         case "Cirugia": return "bg-red-100 text-red-800";
+         case "Chequeo": return "bg-green-100 text-green-800";
+         case "Tratamiento": return "bg-orange-100 text-orange-800";
+         case "Emergencia": return "bg-red-100 text-red-800";
+         default: return "bg-gray-100 text-gray-800";
+      }
+   }
 
   const estadoPaciente = paciente.mascota.activo === 1 ? "Activo" : "Inactivo";
   const estadoColor = estadoPaciente === "Activo" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="font-serif">{paciente.mascota.nombre}</CardTitle>
-            <CardDescription>
-              {paciente.mascota.raza} • {paciente.mascota.edad} años
-            </CardDescription>
-          </div>
+   return (
+      <Card>
+         <CardHeader>
+            <div className="flex items-center justify-between">
+               <div>
+                  <CardTitle className="font-serif">{paciente.mascota.nombre}</CardTitle>
+                  <CardDescription>
+                     {paciente.mascota.raza} {paciente.mascota.edad} años
+                  </CardDescription>
+               </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onEditClick}>
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
-            </Button>
+                <Button variant="outline" size="sm" onClick={onEditClick}>
+                   <Edit className="h-4 w-4 mr-2" />
+                   Editar
+                </Button>
             <Button variant="destructive" size="sm" onClick={onDeleteClick}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Eliminar
-            </Button>
+                   <Trash2 className="h-4 w-4 mr-2" />
+                   Eliminar
+                </Button>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Resumen</TabsTrigger>
-            <TabsTrigger value="medical">Historial Médico</TabsTrigger>
-            <TabsTrigger value="owner">Info. Dueño</TabsTrigger>
-          </TabsList>
+            </div>
+         </CardHeader>
+         <CardContent>
+            <Tabs defaultValue="overview" className="space-y-4">
+               <TabsList>
+                  <TabsTrigger value="overview">Resumen</TabsTrigger>
+                  <TabsTrigger value="medical">Historial Medico</TabsTrigger>
+                  <TabsTrigger value="owner">Info. dueño</TabsTrigger>
+               </TabsList>
 
           {/* Tab de Resumen */}
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-3">
-                <h4 className="font-serif font-semibold">Información Básica</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Especie:</span>
-                    <span>{paciente.mascota.especie}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Raza:</span>
-                    <span>{paciente.mascota.raza}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Peso:</span>
-                    <span>{paciente.mascota.peso} kg</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Color:</span>
-                    <span>{paciente.mascota.color}</span>
-                  </div>
-                  {paciente.mascota.numero_microchip && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Microchip:</span>
-                      <span className="font-mono text-xs">{paciente.mascota.numero_microchip}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+               <TabsContent value="overview" className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                     <div className="space-y-3">
+                        <h4 className="font-serif font-semibold">Informacion Basica</h4>
+                        <div className="space-y-2 text-sm">
+                           <div className="flex justify-between">
+                              <span className="text-muted-foreground">Especie:</span>
+                              <span>{paciente.mascota.especie}</span>
+                           </div>
+                           <div className="flex justify-between">
+                              <span className="text-muted-foreground">Raza:</span>
+                              <span>{paciente.mascota.raza}</span>
+                           </div>
+                           <div className="flex justify-between">
+                              <span className="text-muted-foreground">Peso:</span>
+                              <span>{paciente.mascota.peso} kg</span>
+                           </div>
+                           <div className="flex justify-between">
+                              <span className="text-muted-foreground">Color:</span>
+                              <span>{paciente.mascota.color}</span>
+                           </div>
+                           {paciente.mascota.numero_microchip && (
+                              <div className="flex justify-between">
+                                 <span className="text-muted-foreground">Microchip:</span>
+                                 <span className="font-mono text-xs">{paciente.mascota.numero_microchip}</span>
+                              </div>
+                           )}
+                        </div>
+                     </div>
 
-              <div className="space-y-3">
-                <h4 className="font-serif font-semibold">Información de Visita</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Última Visita:</span>
-                    <span>
+                     <div className="space-y-3">
+                        <h4 className="font-serif font-semibold">Informacion de Visita</h4>
+                        <div className="space-y-2 text-sm">
+                           <div className="flex justify-between">
+                              <span className="text-muted-foreground"> Ultima Visita:</span>
+                              <span>
                       {paciente.historial.length > 0 ? 
                         new Date(paciente.historial[paciente.historial.length - 1].fecha_visita).toLocaleDateString() : 
                         "N/A"}
                     </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Estado:</span>
-                    <Badge className={estadoColor}>{estadoPaciente}</Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
+                           </div>
+                           <div className="flex justify-between">
+                              <span className="text-muted-foreground">Estado:</span>
+                              <Badge className={estadoColor}>{estadoPaciente}</Badge>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </TabsContent>
 
-          {/* Tab de Historial Médico */}
-          <TabsContent value="medical" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-serif font-semibold">Historial Médico</h4>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Añadir Registro
-              </Button>
-            </div>
-            <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+          {/* Tab de Historial M  dico */}
+               <TabsContent value="medical" className="space-y-4">
+                  <div className="flex items-center justify-between">
+                     <h4 className="font-serif font-semibold">Historial Medico</h4>
+                     <Button size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        A  adir Registro
+                     </Button>
+                  </div>
+                  <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
               {paciente.historial.length > 0 ? (
-                paciente.historial.map((record) => {
+                       paciente.historial.map((record) => {
                   const recordType = getRecordType(record.diagnostico)
                   return (
-                    <Card key={record.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <Badge className={getRecordTypeColor(recordType)}>{recordType}</Badge>
-                              <span className="text-sm text-muted-foreground">
-                                {new Date(record.fecha_visita).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <h5 className="font-semibold">{record.diagnostico}</h5>
-                            <p className="text-sm text-muted-foreground">Veterinario: (ID: {record.id_usuario})</p>
-                            {record.notas && <p className="text-sm">{record.notas}</p>}
-                          </div>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                           <Card key={record.id}>
+                              <CardContent className="p-4">
+                                 <div className="flex items-start justify-between">
+                                    <div className="space-y-2">
+                                       <div className="flex items-center space-x-2">
+                                          <Badge className={getRecordTypeColor(recordType)}>{recordType}</Badge>
+                                          <span className="text-sm text-muted-foreground">
+                                             {new Date(record.fecha_visita).toLocaleDateString()}
+                                          </span>
+                                       </div>
+                                       <h5 className="font-semibold">{record.diagnostico}</h5>
+                                       <p className="text-sm text-muted-foreground">Veterinario: (ID: {record.id_usuario})</p>
+                                       {record.notas && <p className="text-sm">{record.notas}</p>}
+                                    </div>
+                                    <Button variant="ghost" size="sm">
+                                       <Edit className="h-4 w-4" />
+                                    </Button>
+                                 </div>
+                              </CardContent>
+                           </Card>
                   )
                 })
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">No hay registros médicos.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">No hay registros medicos.</p>
               )}
-            </div>
-          </TabsContent>
+                  </div>
+               </TabsContent>
 
-          {/* Tab de Info. Dueño */}
-          <TabsContent value="owner" className="space-y-4">
-            <div className="space-y-4">
-              <h4 className="font-serif font-semibold">Información del Dueño</h4>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-semibold text-primary">
+          {/* Tab de Info. dueño */}
+               <TabsContent value="owner" className="space-y-4">
+                  <div className="space-y-4">
+                     <h4 className="font-serif font-semibold">Informacion del dueño</h4>
+                     <div className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                           <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-semibold text-primary">
                       {paciente.dueño.nombre ? paciente.dueño.nombre.charAt(0) : "D"}
                     </span>
-                  </div>
-                  <div>
-                    <p className="font-semibold">{paciente.dueño.nombre}</p>
-                    <p className="text-sm text-muted-foreground">Dueño de Mascota</p>
-                  </div>
-                </div>
+                           </div>
+                           <div>
+                              <p className="font-semibold">{paciente.dueño.nombre}</p>
+                              <p className="text-sm text-muted-foreground">dueño de Mascota</p>
+                           </div>
+                        </div>
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{paciente.dueño.telefono}</span> 
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{paciente.dueño.correo}</span>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <span className="text-sm">{paciente.dueño.direccion}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
-  )
+                        <div className="flex items-center space-x-3">
+                           <Phone className="h-4 w-4 text-muted-foreground" />
+                           <span className="text-sm">{paciente.dueño.telefono}</span> 
+                        </div>
+                        <div className="flex items-center space-x-3">
+                           <Mail className="h-4 w-4 text-muted-foreground" />
+                           <span className="text-sm">{paciente.dueño.correo}</span>
+                        </div>
+                        <div className="flex items-start space-x-3">
+                           <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                           <span className="text-sm">{paciente.dueño.direccion}</span>
+                        </div>
+                     </div>
+                     </div>
+                  </div>
+               </TabsContent>
+            </Tabs>
+         </CardContent>
+      </Card>
+   )
 }
+  

@@ -36,7 +36,7 @@ export function DeleteConfirmModal({
       onSuccess() // Refresca la lista (ej. fetchUsers())
 
       // Muestra alerta de éxito
-      openAlert("Éxito", `El usuario ${userName} ha sido eliminado.`, "success")
+      openAlert("Éxito", `El ${userName} ha sido eliminado.`, "success")
       
       onClose() // Cierra este modal
 
@@ -57,7 +57,7 @@ export function DeleteConfirmModal({
   			<DialogTitle>Confirmar Eliminación</DialogTitle>
   		  </div>
   		  <DialogDescription>
-     			¿Estás seguro de que deseas eliminar al usuario <strong>{userName || ""}</strong>? Esta acción no se puede
+     			¿Estás seguro de que deseas eliminar al <strong>{userName || ""}</strong>? Esta acción no se puede
    			deshacer.
    		  </DialogDescription>
    		</DialogHeader>
