@@ -22,30 +22,38 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Inicializa a partir de sessionStorage
   const [token, setToken] = useState<string | null>(() => {
-    return typeof window !== "undefined" ? sessionStorage.getItem("token") : null
+  return typeof window !== "undefined" ? localStorage.getItem("token") : null
   })
+
   const [usuario, setUsuario] = useState<Usuario | null>(() => {
     if (typeof window === "undefined") return null
-    const storedUser = sessionStorage.getItem("usuario") // CAMBIO AQUÍ
+    const storedUser = localStorage.getItem("usuario")
     return storedUser ? JSON.parse(storedUser) : null
   })
 
   // Guarda cambios en sessionStorage automáticamente
   useEffect(() => {
-    if (token) {
-      sessionStorage.setItem("token", token) // CAMBIO AQUÍ
-    } else {
-      sessionStorage.removeItem("token") // CAMBIO AQUÍ
-    }
+  if (token) localStorage.setItem("token", token)
+  else localStorage.removeItem("token")
   }, [token])
 
   useEffect(() => {
-    if (usuario) {
-      sessionStorage.setItem("usuario", JSON.stringify(usuario)) // CAMBIO AQUÍ
-    } else {
-      sessionStorage.removeItem("usuario") // CAMBIO AQUÍ
-    }
+  if (usuario) localStorage.setItem("usuario", JSON.stringify(usuario))
+  else localStorage.removeItem("usuario")
   }, [usuario])
+  
+  useEffect(() => {
+  const syncLogout = (event: StorageEvent) => {
+    if (event.key === "token" && !event.newValue) {
+      // Si se elimina el token desde otra pestaña
+      clearAuthInfo()
+    }
+  }
+  window.addEventListener("storage", syncLogout)
+  return () => {
+    window.removeEventListener("storage", syncLogout)
+  }
+}, [])
 
   const setAuthInfo = (t: string, u: Usuario) => {
     setToken(t)
