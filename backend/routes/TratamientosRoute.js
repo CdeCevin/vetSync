@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
+const verifyToken = require('../middleware/authMiddleware.js');  //ACUERDATE KEVIN
+router.use(verifyToken);
+
 
 // Importar funciones desde cada controlador
 
@@ -11,8 +14,8 @@ const  verTratamientos  = require('../controllers/Tratamientos/verTratamientos.j
 
 
 //router.post('/Tratamientos', crearTratamientos);
-//router.get('/Tratamientos/buscar', busquedaTratamientos);    // ruta específica arriba
-router.get('/Tratamientos/:idPaciente', verTratamientos);     // ruta dinámica abajo
+//router.get('/Tratamientos/buscar', busquedaTratamientos);    
+router.get('/Tratamientos/:idPaciente', verTratamientos);    
 //router.put('/Tratamientos/:id', editarTratamientos);
 //router.delete('/Tratamientos/:id', eliminarTratamientos);
 

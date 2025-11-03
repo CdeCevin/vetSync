@@ -1,12 +1,14 @@
 const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
+const router = express.Router({ mergeParams: true });
 const verifyToken = require('./middleware/authMiddleware');  //ACUERDATE KEVIN
 const app = express();
 app.use(cors()); // Aplica CORS antes de las rutas
 
 console.log('JWT_SECRET en server.js:', process.env.JWT_SECRET);
 
+router.use(verifyToken)
 const usuariosRoutes = require('./routes/usuariosRoute');
 const authRoutes = require('./routes/login');
 const dueñosRoutes = require('./routes/dueñosRoute');

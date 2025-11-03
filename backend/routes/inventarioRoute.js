@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
+const verifyToken = require('../middleware/authMiddleware.js');  //ACUERDATE KEVIN
+router.use(verifyToken);
+
 
 // Importar funciones desde cada controlador
 

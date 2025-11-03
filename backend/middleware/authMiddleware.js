@@ -8,8 +8,9 @@ const verifyToken = (req, res, next) => {
   }  
     
   try {  
+    console.log('Verificando con el secreto:', process.env.JWT_SECRET);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);  
-      
+    
     // Validar que el ID de la URL coincida con el del token  
     if (req.params.idClinica && decoded.id_clinica !== parseInt(req.params.idClinica)) {  
       return res.status(403).json({ error: 'Acceso denegado a esta clínica' });  
