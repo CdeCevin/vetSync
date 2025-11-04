@@ -170,7 +170,8 @@ export default function VetManagementHome() {
                   ? "Pacientes"
                   : activeSection === "inventory"
                   ? "Inventario"
-                  
+                  : activeSection === "users"
+                  ? "Usuarios"
                   : activeSection}
               </h2>
             </div>

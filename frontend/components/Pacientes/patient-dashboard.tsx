@@ -4,66 +4,19 @@ import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Plus, Edit, FileText, Phone, Mail, MapPin, Trash2, Loader2 } from "lucide-react"
-
-// Hooks y Contexto
-import { ROUTES } from '../../apiRoutes';
-import { useAuth } from "../user-context"
 import { useAlertStore } from "@/hooks/use-alert-store"
-
-// --- 1. IMPORTA TUS MODALES ---
 import { PacienteModal } from "@/components/Pacientes/PacienteModal" 
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal" 
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
-
-// --- 2. Interfaces Basadas en tu API ---
-
-interface PacienteEnLista {
-   id: number
-   nombre: string
-   raza: string
-   dueño: {nombre: string}
-}
-
-interface Mascota {
-   id: number
-   nombre: string
-   especie: string
-   raza: string
-   color: string
-   edad: number
-   peso: string
-   numero_microchip: string | null
-   activo: 1 | 0
-   id_dueño: number
-}
-
-interface Dueño {
-   nombre: string
-   telefono: string
-   correo: string
-   direccion: string
-}
-
-interface HistorialMedico {
-   id: number
-   fecha_visita: string
-   diagnostico: string
-   notas: string | null
-   id_usuario: number
-}
-
-interface PacienteDetallado {
-   mascota: Mascota
-   dueño: Dueño
-   historial: HistorialMedico[]
-}
+import {
+  usePacienteService,
+  PacienteEnLista,
+  PacienteDetallado,
+} from "@/hooks/usePacienteService"
 
 type TipoHistorial = "Vacunacion" | "Cirugia" | "Chequeo" | "Tratamiento" | "Emergencia" | "Otro"
 
@@ -71,146 +24,143 @@ type TipoHistorial = "Vacunacion" | "Cirugia" | "Chequeo" | "Tratamiento" | "Eme
 
 export function PatientDashboard() {
   // --- Estados ---
-   const { usuario } = useAuth()
-   const idClinica = usuario?.id_clinica
-   const [pacientes, setPacientes] = useState<PacienteEnLista[]>([])
-   const [searchTerm, setSearchTerm] = useState("")
-   const [selectedPatient, setSelectedPatient] = useState<PacienteDetallado | null>(null)
-
-   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-
-   const [isLoadingList, setIsLoadingList] = useState(false)
-   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
-
-   const { onOpen: openAlert } = useAlertStore()
+  const {
+    getPacientes,
+    getPacienteDetalle,
+    createPaciente,
+    updatePaciente,
+    deletePaciente,
+    createOwner,
+    
+  } = usePacienteService()
+  const { onOpen: openAlert } = useAlertStore()
+  const [pacientes, setPacientes] = useState<PacienteEnLista[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedPatient, setSelectedPatient] = useState<PacienteDetallado | null>(null)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isLoadingList, setIsLoadingList] = useState(false)
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
   // --- 4. Funciones de API (solo la l  gica de fetch y error) ---
 
-   const fetchPacientes = useCallback(async (q: string = "") => {
-      if (!idClinica) return
-      setIsLoadingList(true)
-      try {
-         const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/buscar?q=${encodeURIComponent(q)}`)
-         if (!res.ok) throw new Error("Error al obtener pacientes")
-         const data = await res.json()
-         setPacientes(data)
-      } catch (err: any) {
-         openAlert("Error", err.message || "No se pudieron cargar los pacientes", "error")
-      } finally {
-         setIsLoadingList(false)
-      }
-   }, [idClinica, openAlert])
-
-   useEffect(() => {
-    if (idClinica) {
-        fetchPacientes()
-    }
-   }, [fetchPacientes, idClinica])
+   const fetchPacientes = useCallback(async (q = "") => {
+  setIsLoadingList(true)
+  try {
+    const data = await getPacientes(q)
+    setPacientes(data)
+  } catch (err: any) {
+    openAlert("Error", err.message, "error")
+  } finally {
+    setIsLoadingList(false)
+  }
+}, [getPacientes, openAlert])
 
   const handleSelectPatient = async (paciente: PacienteEnLista) => {
-    if (selectedPatient?.mascota.id === paciente.id) return
-    
-    setIsLoadingDetails(true)
-    setSelectedPatient(null)
-    try {
-      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${paciente.id}`)
-      if (!res.ok) throw new Error("Error al cargar detalles del paciente")
-      const data: PacienteDetallado = await res.json()
-      setSelectedPatient(data)
-    } catch (err: any) {
-      openAlert("Error", err.message, "error")
-    } finally {
-      setIsLoadingDetails(false)
-    }
+  setIsLoadingDetails(true)
+  try {
+    const detalle = await getPacienteDetalle(paciente.id)
+    setSelectedPatient(detalle)
+  } catch (err: any) {
+    openAlert("Error", err.message, "error")
+  } finally {
+    setIsLoadingDetails(false)
   }
-   const handleSearch = async () => {
-      await fetchPacientes(searchTerm)
-   }
+}
+
+
+useEffect(() => {
+  fetchPacientes()
+}, [fetchPacientes])
+
+  const handleSearch = async () => {
+    await fetchPacientes(searchTerm)
+  }
  // Estas funciones solo definen la API. El modal manejar   el 'try/catch'.
    const handleCreate = async (data: any) => {
-      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes`, {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify(data),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.message || "Error al crear paciente")
-      }
-       return res.json()
-   }
+    await createPaciente(data)
+  }
 
    const handleEdit = async (data: any) => {
-      if (!selectedPatient?.mascota.id) throw new Error("No hay paciente seleccionado")
-      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
-         method: "PUT",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify(data),
-      })
-      if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err.message || "Error al actualizar paciente")
-    }
-    return res.json()
-   }
+    if (!selectedPatient) throw new Error("No hay paciente seleccionado")
+    await updatePaciente(selectedPatient.mascota.id, data)
+  }
 
    const handleDelete = async () => {
-    if (!selectedPatient?.mascota.id) throw new Error("No hay paciente seleccionado")
-      const res = await fetch(`${ROUTES.base}/${idClinica}/Pacientes/${selectedPatient.mascota.id}`, {
-         method: "DELETE",
-      })
-      if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err.message || "Error al eliminar paciente")
-    }
-    return res.json()
-   }
+    if (!selectedPatient) throw new Error("No hay paciente seleccionado")
+    await deletePaciente(selectedPatient.mascota.id)
+  }
 
   // --- 5. Renderizado (Layout del Ejemplo) ---
    return (
       <div className="p-4 md:p-6 space-y-6">
-      {/* Titulo y Boton de Añadir */}
-         <div className="flex items-center justify-between">
-            <div>
-               <h1 className="font-serif font-bold text-2xl text-foreground">Registros de Pacientes</h1>
-               <p className="text-muted-foreground">Administra la informacion de pacientes y sus historiales.</p>
-            </div>
-            
-         </div>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-serif font-bold text-2xl">Registros de Pacientes</h1>
+          <p className="text-muted-foreground">Administra la información de pacientes y sus historiales.</p>
+        </div>
+        
+      </div>
 
       {/* Barra de Busqueda y Filtros */}
        <Card className="mb-6">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-         <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            <div className="relative flex-1 max-w-sm">
-               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"/>
-               <Input
-                  placeholder="Buscar pacientes, dueños o razas..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-10 border-gray/80"
-               />
+  <CardHeader>
+    {/* --- CONTENEDOR PRINCIPAL ---
+      - sm:justify-between: Esta es la clase clave. En pantallas 'sm' o más grandes,
+        empuja a sus hijos a los extremos opuestos (izquierda y derecha).
+      - gap-4: Sigue siendo útil para la vista móvil (flex-col)
+    */}
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      
+      {/* --- GRUPO IZQUIERDO (NUEVO) ---
+        - Este div agrupa la búsqueda y el filtro.
+        - También es flex para que sus hijos (búsqueda y filtro) se
+          alineen bien en móvil (col) y desktop (row).
+      */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto">
+        
+        {/* 1. Input de Búsqueda */}
+        <div className="relative flex-1 max-w-sm w-full sm:w-auto">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Buscar pacientes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && fetchPacientes(searchTerm)}
+            className="pl-10"
+              />
             </div>
+            
+            {/* 2. Filtro (Select) */}
             <Select defaultValue="all">
-               <SelectTrigger className="w-[180px] border-gray/80">
-                  <SelectValue placeholder="Filtrar por estado" />
-               </SelectTrigger>
-               <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="active">Activos</SelectItem>
-                  <SelectItem value="inactive">Inactivos</SelectItem>
-               </SelectContent>
+              {/* - w-full sm:w-[180px]: Hace que ocupe todo el ancho en móvil 
+                  y un ancho fijo en desktop.
+              */}
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filtrar por estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="active">Activos</SelectItem>
+                <SelectItem value="inactive">Inactivos</SelectItem>
+              </SelectContent>
             </Select>
-         </div>
-         <Button onClick={() => setIsAddDialogOpen(true)}>
-               <Plus className="h-4 w-4 mr-2" />
-               Añadir Paciente
-            </Button>
-            </div>
+          </div>
+
+          {/* --- GRUPO DERECHO ---
+            - Este es el botón, ahora es el segundo hijo del contenedor principal.
+            - w-full sm:w-auto: Ocupa todo el ancho en móvil y ancho automático en desktop.
+          */}
+          <Button 
+            onClick={() => setIsAddDialogOpen(true)} 
+            className="w-full sm:w-auto"
+          >
+            <Plus className="h-4 w-4 mr-2" /> Añadir Paciente
+          </Button>
+
+        </div>
       </CardHeader>
     </Card>
 
@@ -279,33 +229,49 @@ export function PatientDashboard() {
 
       {/* --- 6. Modales (Renderizado) --- */}
 
-      {/* Modal de A  adir */}
+      {/* Modal de Añadir Paciente */}
+{/* Modal de Añadir Paciente */}
       <PacienteModal
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
-        onSubmit={handleCreate} 
-        onSuccess={fetchPacientes} // Pasa la funci  n de refresco
-        isEdit={false}
+        onSubmit={async (data) => {
+          // Si se está creando un nuevo dueño primero lo creamos
+          if (data.id_dueño === 0) {
+            const newOwner = await createOwner({
+              nombre: data.ownerNombre,
+              telefono: data.ownerTelefono,
+              correo: data.ownerCorreo,
+              direccion: data.ownerDireccion,
+            })
+            data.id_dueño = newOwner.id_dueño
+          }
+          return handleCreate(data) // crea paciente con dueño ya asignado
+        }}
+        onSuccess={fetchPacientes} // refresca la lista
         title="Añadir Nuevo Paciente"
-        description="Ingresa la informacion del paciente y dueño."
+        description="Ingresa la información del paciente y dueño."
+        //idClinica={usuario?.id_clinica!}
       />
 
-      {/* Modal de Editar */}
+      {/* Modal de Editar Paciente */}
       <PacienteModal
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
-        onSubmit={handleEdit} 
+        onSubmit={async (data) => {
+          // Actualiza paciente
+          return handleEdit(data)
+        }}
         onSuccess={async () => {
-          await fetchPacientes();
-          // Vuelve a cargar los detalles
+          await fetchPacientes()
           if (selectedPatient) {
-            await handleSelectPatient(selectedPatient.mascota as any); 
+            setSelectedPatient(await getPacienteDetalle(selectedPatient.mascota.id))
           }
         }}
-        isEdit={true}
-        initialData={selectedPatient} // Pasa el PacienteDetallado
+        initialData={selectedPatient || undefined} // paciente + dueño
+        isEdit
         title="Editar Paciente"
-        description="Actualiza la informacion del paciente."
+        description="Actualiza la información del paciente o del dueño."
+        //idClinica={usuario?.id_clinica!}
       />
 
       {/* Modal de Confirmar Eliminaci  n */}
@@ -313,15 +279,15 @@ export function PatientDashboard() {
         <DeleteConfirmModal
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
-          onConfirm={handleDelete} 
+          onConfirm={handleDelete}
           onSuccess={() => {
-            fetchPacientes(); // Refresca la lista
-            setSelectedPatient(null); // Limpia el detalle
+            fetchPacientes()
+            setSelectedPatient(null)
           }}
           userName={`paciente ${selectedPatient.mascota.nombre}`}
         />
       )}
-      </div>
+    </div>
    )
 }
 
