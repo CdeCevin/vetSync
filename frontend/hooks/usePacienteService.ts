@@ -25,7 +25,7 @@ export interface Mascota {
 }
 
 export interface Dueño {
-  id_dueño: number
+  id: number
   nombre: string
   telefono?: string
   correo?: string

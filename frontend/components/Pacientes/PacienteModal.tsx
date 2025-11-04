@@ -24,7 +24,7 @@ interface Mascota {
 }
 
 interface Dueño {
-  id_dueño: number
+  id: number
   nombre: string
   telefono?: string
   correo?: string
@@ -56,7 +56,7 @@ const defaultFormState = {
   edad: 0,
   peso: 0,
   numero_microchip: "",
-  id_dueño: 0,
+  id: 0,
   ownerNombre: "",
   ownerTelefono: "",
   ownerCorreo: "",
@@ -87,10 +87,14 @@ export function PacienteModal({
   useEffect(() => {
   if (isOpen) {
     getOwners()
-      .then(setOwnersList)
-      .catch((err) => console.error(err))
-  }
-}, [isOpen, getOwners])
+      .then((data) => {
+        console.log("📋 Lista de dueños cargada:", data)
+        setOwnersList(data)
+      })
+      .catch((err) => console.error("❌ Error al obtener dueños:", err))
+   }
+   }, [isOpen, getOwners])
+
 
   // --- Cargar datos en modo edición ---
   useEffect(() => {
@@ -104,7 +108,7 @@ export function PacienteModal({
           edad: initialData.mascota.edad || 0,
           peso: parseFloat(initialData.mascota.peso) || 0,
           numero_microchip: initialData.mascota.numero_microchip || "",
-          id_dueño: initialData.mascota.id_dueño || 0,
+          id: initialData.mascota.id_dueño || 0,
           ownerNombre: initialData.dueño?.nombre || "",
           ownerTelefono: initialData.dueño?.telefono || "",
           ownerCorreo: initialData.dueño?.correo || "",
@@ -137,9 +141,9 @@ export function PacienteModal({
                correo: formData.ownerCorreo,
                direccion: formData.ownerDireccion,
             })
-            setFormData({ ...formData, id_dueño: newOwner.id_dueño })
+            setFormData({ ...formData, id: newOwner.id })
          } else {
-            await updateOwner(formData.id_dueño, {
+            await updateOwner(formData.id, {
                nombre: formData.ownerNombre,
                telefono: formData.ownerTelefono,
                correo: formData.ownerCorreo,
@@ -170,7 +174,7 @@ export function PacienteModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
-
+            
           {/* Botón para actualizar dueño en modo edición */}
           {isEdit && !isOwnerEdit && (
             <div className="flex justify-end">
@@ -180,13 +184,16 @@ export function PacienteModal({
             </div>
           )}
         </DialogHeader>
-
+         
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 pt-4">
+         
           {!isOwnerEdit ? (
             <>
+            
               {/* Campos de paciente */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  
                   <Label htmlFor="nombre">Nombre</Label>
                   <Input
                     id="nombre"
@@ -265,48 +272,53 @@ export function PacienteModal({
 
                 {/* Selección de dueño o crear nuevo */}
                 <div className="space-y-2">
-                  <Label htmlFor="id_dueño">Dueño</Label>
+                  <Label htmlFor="id">Dueño</Label>
                   <select
-                    value={formData.id_dueño}
-                    onChange={(e) => {
-                      const id = Number(e.target.value)
-                      if (id === 0) {
-                        // 🟢 Activar modo creación de dueño
-                        setIsCreatingOwner(true)
-                        setIsOwnerEdit(true)
-                        setFormData({
+                     value={formData.id || ""}
+                     onChange={(e) => {
+                        const id = parseInt(e.target.value)
+
+                        if (id === 0) {
+                           // 🟢 Activar modo creación de dueño
+                           setIsCreatingOwner(true)
+                           setIsOwnerEdit(true)
+                           setFormData({
                            ...formData,
-                           id_dueño: 0,
+                           id: 0,
                            ownerNombre: "",
                            ownerTelefono: "",
                            ownerCorreo: "",
                            ownerDireccion: "",
-                        })
-                              
-                      } else {
-                        setIsCreatingOwner(false)
-                        setFormData({ ...formData, id_dueño: id })
-                        const selected = ownersList.find((o) => o.id_dueño === id)
-                        if (selected) {
-                          setFormData((prev) => ({
-                            ...prev,
-                            ownerNombre: selected.nombre,
-                            ownerTelefono: selected.telefono || "",
-                            ownerCorreo: selected.correo || "",
-                            ownerDireccion: selected.direccion || "",
-                          }))
+                           })
+                        } else {
+                           // 🟢 Seleccionar un dueño existente
+                           setIsCreatingOwner(false)
+                           setIsOwnerEdit(false)
+                           
+                           const selected = ownersList.find((o) => o.id === id)
+                           if (selected) {
+                           setFormData({
+                              ...formData,
+                              id: selected.id,
+                              ownerNombre: selected.nombre,
+                              ownerTelefono: selected.telefono || "",
+                              ownerCorreo: selected.correo || "",
+                              ownerDireccion: selected.direccion || "",
+                           })
+                           }
                         }
-                      }
-                    }}
-                    className="w-full border p-2 rounded"
-                  >
-                    <option value={0}>Crear nuevo dueño</option>
-                    {ownersList.map((o) => (
-                      <option key={o.id_dueño} value={o.id_dueño}>
-                        {o.nombre}
-                      </option>
-                    ))}
-                  </select>
+                     }}
+                     className="border rounded p-2 w-full"
+                     >
+                     <option value="">Seleccionar dueño</option>
+                     {ownersList.map((o) => (
+                        <option key={o.id} value={o.id}>
+                           {o.nombre}
+                        </option>
+                     ))}
+                     <option value={0}>➕ Crear nuevo dueño</option>
+                     </select>
+
                 </div>
               </div>
 
