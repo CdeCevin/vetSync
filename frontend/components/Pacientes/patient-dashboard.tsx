@@ -30,6 +30,8 @@ export function PatientDashboard() {
     createPaciente,
     updatePaciente,
     deletePaciente,
+    createOwner,
+    
   } = usePacienteService()
   const { onOpen: openAlert } = useAlertStore()
   const [pacientes, setPacientes] = useState<PacienteEnLista[]>([])
@@ -44,25 +46,33 @@ export function PatientDashboard() {
   // --- 4. Funciones de API (solo la l  gica de fetch y error) ---
 
    const fetchPacientes = useCallback(async (q = "") => {
-    setIsLoadingList(true)
-    try {
-      const data = await getPacientes(q)
-      setPacientes(data)
-    } catch (err: any) {
-      openAlert("Error", err.message, "error")
-    } finally {
-      setIsLoadingList(false)
-    }
-  }, [getPacientes, openAlert])
+  setIsLoadingList(true)
+  try {
+    const data = await getPacientes(q)
+    setPacientes(data)
+  } catch (err: any) {
+    openAlert("Error", err.message, "error")
+  } finally {
+    setIsLoadingList(false)
+  }
+}, [getPacientes, openAlert])
 
-   useEffect(() => {
-    fetchPacientes()
-  }, [fetchPacientes])
-
-  const handleSelectPatient = (paciente: any) => {
-  setSelectedPatient(paciente)
+  const handleSelectPatient = async (paciente: PacienteEnLista) => {
+  setIsLoadingDetails(true)
+  try {
+    const detalle = await getPacienteDetalle(paciente.id)
+    setSelectedPatient(detalle)
+  } catch (err: any) {
+    openAlert("Error", err.message, "error")
+  } finally {
+    setIsLoadingDetails(false)
+  }
 }
 
+
+useEffect(() => {
+  fetchPacientes()
+}, [fetchPacientes])
 
   const handleSearch = async () => {
     await fetchPacientes(searchTerm)
@@ -91,27 +101,44 @@ export function PatientDashboard() {
           <h1 className="font-serif font-bold text-2xl">Registros de Pacientes</h1>
           <p className="text-muted-foreground">Administra la información de pacientes y sus historiales.</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Añadir Paciente
-        </Button>
+        
       </div>
 
       {/* Barra de Busqueda y Filtros */}
        <Card className="mb-6">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Buscar pacientes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && fetchPacientes(searchTerm)}
-                className="pl-10"
+  <CardHeader>
+    {/* --- CONTENEDOR PRINCIPAL ---
+      - sm:justify-between: Esta es la clase clave. En pantallas 'sm' o más grandes,
+        empuja a sus hijos a los extremos opuestos (izquierda y derecha).
+      - gap-4: Sigue siendo útil para la vista móvil (flex-col)
+    */}
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      
+      {/* --- GRUPO IZQUIERDO (NUEVO) ---
+        - Este div agrupa la búsqueda y el filtro.
+        - También es flex para que sus hijos (búsqueda y filtro) se
+          alineen bien en móvil (col) y desktop (row).
+      */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto">
+        
+        {/* 1. Input de Búsqueda */}
+        <div className="relative flex-1 max-w-sm w-full sm:w-auto">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Buscar pacientes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && fetchPacientes(searchTerm)}
+            className="pl-10"
               />
             </div>
+            
+            {/* 2. Filtro (Select) */}
             <Select defaultValue="all">
-              <SelectTrigger className="w-[180px]">
+              {/* - w-full sm:w-[180px]: Hace que ocupe todo el ancho en móvil 
+                  y un ancho fijo en desktop.
+              */}
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filtrar por estado" />
               </SelectTrigger>
               <SelectContent>
@@ -121,8 +148,21 @@ export function PatientDashboard() {
               </SelectContent>
             </Select>
           </div>
-        </CardHeader>
-      </Card>
+
+          {/* --- GRUPO DERECHO ---
+            - Este es el botón, ahora es el segundo hijo del contenedor principal.
+            - w-full sm:w-auto: Ocupa todo el ancho en móvil y ancho automático en desktop.
+          */}
+          <Button 
+            onClick={() => setIsAddDialogOpen(true)} 
+            className="w-full sm:w-auto"
+          >
+            <Plus className="h-4 w-4 mr-2" /> Añadir Paciente
+          </Button>
+
+        </div>
+      </CardHeader>
+    </Card>
 
       {/* Layout de Lista / Detalle */}
          <div className="w-full grid gap-6 grid-cols-3 ">
@@ -189,30 +229,49 @@ export function PatientDashboard() {
 
       {/* --- 6. Modales (Renderizado) --- */}
 
-      {/* Modal de A  adir */}
+      {/* Modal de Añadir Paciente */}
+{/* Modal de Añadir Paciente */}
       <PacienteModal
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
-        onSubmit={handleCreate}
-        onSuccess={fetchPacientes}
+        onSubmit={async (data) => {
+          // Si se está creando un nuevo dueño primero lo creamos
+          if (data.id_dueño === 0) {
+            const newOwner = await createOwner({
+              nombre: data.ownerNombre,
+              telefono: data.ownerTelefono,
+              correo: data.ownerCorreo,
+              direccion: data.ownerDireccion,
+            })
+            data.id_dueño = newOwner.id_dueño
+          }
+          return handleCreate(data) // crea paciente con dueño ya asignado
+        }}
+        onSuccess={fetchPacientes} // refresca la lista
         title="Añadir Nuevo Paciente"
         description="Ingresa la información del paciente y dueño."
+        //idClinica={usuario?.id_clinica!}
       />
 
-      {/* Modal de Editar */}
+      {/* Modal de Editar Paciente */}
       <PacienteModal
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
-        onSubmit={handleEdit}
+        onSubmit={async (data) => {
+          // Actualiza paciente
+          return handleEdit(data)
+        }}
         onSuccess={async () => {
           await fetchPacientes()
-          if (selectedPatient)
+          if (selectedPatient) {
             setSelectedPatient(await getPacienteDetalle(selectedPatient.mascota.id))
+          }
         }}
-        initialData={selectedPatient || undefined}
+        initialData={selectedPatient || undefined} // paciente + dueño
         isEdit
         title="Editar Paciente"
-        description="Actualiza la información del paciente."
+        description="Actualiza la información del paciente o del dueño."
+        //idClinica={usuario?.id_clinica!}
       />
 
       {/* Modal de Confirmar Eliminaci  n */}
