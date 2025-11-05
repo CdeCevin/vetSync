@@ -9,6 +9,8 @@ import { useAlertStore } from "@/hooks/use-alert-store"
 import { Loader2 } from "lucide-react"
 import { usePacienteService } from "@/hooks/usePacienteService"
 import { Dueño } from "@/hooks/usePacienteService"
+import { useAuth } from "@/components/user-context"  // ajusta esta línea según tu estructura real
+
 
 interface Mascota {
   id: number
@@ -72,6 +74,7 @@ export function PacienteModal({
   const { onOpen: openAlert } = useAlertStore()
   const formRef = useRef<HTMLFormElement>(null)
   const { getOwners, createOwner, updateOwner } = usePacienteService()
+  const { usuario } = useAuth()
 
   useEffect(() => {
     if (isOpen) {

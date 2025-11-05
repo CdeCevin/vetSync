@@ -11,6 +11,7 @@ import { Search, Plus, Edit, FileText, Phone, Mail, MapPin, Trash2, Loader2 } fr
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { PacienteModal } from "@/components/Pacientes/PacienteModal" 
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal" 
+import { useAuth } from "@/components/user-context"  
 
 import {
   usePacienteService,
@@ -31,6 +32,7 @@ export function PatientDashboard() {
     createOwner,
     
   } = usePacienteService()
+  const { usuario } = useAuth()
   const { onOpen: openAlert } = useAlertStore()
   const [pacientes, setPacientes] = useState<PacienteEnLista[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -100,6 +102,9 @@ useEffect(() => {
     await deletePaciente(selectedPatient.mascota.id)
   }
 
+  // 👇 permisos por rol
+  const puedeCRUD = usuario?.nombre_rol === "Recepcionista"
+
    return (
       <div className="p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -133,12 +138,11 @@ useEffect(() => {
           </div>
 
           {/* --- GRUPO DERECHO --- */}
-          <Button 
-            onClick={() => setIsAddDialogOpen(true)} 
-            className="w-full sm:w-auto"
-          >
+          {puedeCRUD && (
+          <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" /> Añadir Paciente
           </Button>
+        )}
 
         </div>
       </CardHeader>
@@ -192,11 +196,13 @@ useEffect(() => {
               </CardContent>
             </Card>
           ) : selectedPatient ? (
-                  <DetallesPaciente 
-              paciente={selectedPatient}
-              onEditClick={() => setIsEditDialogOpen(true)}
-              onDeleteClick={() => setIsDeleteDialogOpen(true)}
-            />
+              
+                <DetallesPaciente
+                  paciente={selectedPatient}
+                  onEditClick={() => setIsEditDialogOpen(true)}
+                  onDeleteClick={() => setIsDeleteDialogOpen(true)}
+                  puedeCRUD={puedeCRUD}
+                />
                ) : (
                   <div className="flex flex-col items-center justify-center h-[410px] w-full bg-card rounded-xl border shadow">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
@@ -268,13 +274,15 @@ useEffect(() => {
 }
 
 function DetallesPaciente({ 
-  paciente, 
+  paciente,
   onEditClick,
-  onDeleteClick 
+  onDeleteClick,
+  puedeCRUD,
 }: { 
-  paciente: PacienteDetallado,
-  onEditClick: () => void,
+  paciente: PacienteDetallado
+  onEditClick: () => void
   onDeleteClick: () => void
+  puedeCRUD: boolean
 }) {
 
   // Derivamos el tipo de historial desde el diagnOstico
@@ -313,14 +321,18 @@ function DetallesPaciente({
                   </CardDescription>
                </div>
           <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={onEditClick}>
-                   <Edit className="h-4 w-4 mr-2" />
-                   Editar
-                </Button>
-            <Button variant="destructive" size="sm" onClick={onDeleteClick}>
-                   <Trash2 className="h-4 w-4 mr-2" />
-                   Eliminar
-                </Button>
+                {puedeCRUD && (
+              <Button variant="outline" size="sm" onClick={onEditClick}>
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )}
+            {puedeCRUD && (
+              <Button variant="destructive" size="sm" onClick={onDeleteClick}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Eliminar
+              </Button>
+            )}
           </div>
             </div>
          </CardHeader>
@@ -389,7 +401,7 @@ function DetallesPaciente({
                      <h4 className="font-serif font-semibold">Historial Medico</h4>
                      <Button size="sm">
                         <Plus className="h-4 w-4 mr-2" />
-                        A  adir Registro
+                        Añadir Registro
                      </Button>
                   </div>
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
