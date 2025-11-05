@@ -36,12 +36,12 @@ export function OwnerManagementDashboard() {
     return matchesSearch
   })
 
-  const handleCreateOwner = async (userData: Partial<Dueño>) => {
-    await createOwner(userData)
+  const handleCreateOwner = async (ownerData: Partial<Dueño>) => {
+    await createOwner(ownerData)
   }
 
-  const handleEditOwner = async (userData: Partial<Dueño>) => {
-    await updateOwner(userData)
+  const handleEditOwner = async (ownerData: Partial<Dueño>) => {
+    await updateOwner(ownerData)
   }
 
   const handleDeleteOwner = async () => {
@@ -77,7 +77,7 @@ export function OwnerManagementDashboard() {
             setSelectedStatus={setSelectedStatus}
             onCreateOwner={() => setIsCreateModalOpen(true)}
           />
-          <OwnerTable users={filteredOwners} onEditUser={openEditModal} onDeleteUser={openDeleteModal} />
+          <OwnerTable owners={filteredOwners} onEditOwner={openEditModal} onDeleteOwner={openDeleteModal} />
           <OwnerModal
             isOpen={isCreateModalOpen}
             onClose={() => setIsCreateModalOpen(false)}
@@ -107,7 +107,7 @@ export function OwnerManagementDashboard() {
             }}
             onConfirm={handleDeleteOwner}
             onSuccess={fetchOwners}
-            userName={`usuario ${selectedOwner?.nombre}`}
+            userName={`dueño ${selectedOwner?.nombre}`}
         />
         </main>
       </div>

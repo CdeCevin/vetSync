@@ -8,19 +8,19 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAlertStore } from "@/hooks/use-alert-store"
 
-interface User {
-  id?: number
-  id_rol: number
-  nombre_completo: string
-  correo_electronico: string
-  contraseña?: string
+interface Dueño {
+  id: number
+  nombre: string
+  telefono?: string
+  correo: string
+  direccion?: string
 }
 
-interface UserModalProps {
+interface OwnerModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (userData: User) => void
-  initialData?: Partial<User>
+  onSubmit: (ownerData: Dueño) => void
+  initialData?: Partial<Dueño>
   isEdit?: boolean
   title: string
   description: string
@@ -36,16 +36,16 @@ export function OwnerModal({
   isEdit = false,
   title,
   description,
-}: UserModalProps) {
+}: OwnerModalProps) {
   const safeInitialData = initialData || {}
   const [isLoading, setIsLoading] = useState(false)
   const { onOpen: openAlert } = useAlertStore()
-  const [formData, setFormData] = useState<User>({
+  const [formData, setFormData] = useState<Dueño>({
     id: safeInitialData.id ?? 0,
-    id_rol: safeInitialData.id_rol ?? 2, // Por defecto 'Veterinario'
-    nombre_completo: safeInitialData.nombre_completo || "",
-    correo_electronico: safeInitialData.correo_electronico || "",
-    contraseña: "",
+    nombre: safeInitialData.nombre || "",
+    correo: safeInitialData.correo || "",
+    telefono: safeInitialData.telefono  || "",
+    direccion:safeInitialData.direccion  || "",
   })
 
   const formRef = useRef<HTMLFormElement>(null)
@@ -53,18 +53,20 @@ export function OwnerModal({
   useEffect(() => {
     if (initialData) {
       setFormData({
-        id_rol: initialData.id_rol ?? 2,
-        nombre_completo: initialData.nombre_completo || "",
-        correo_electronico: initialData.correo_electronico || "",
-        contraseña: "", // No se rellena la contraseña en edición
+        id: initialData.id || 0,
+        nombre: initialData.nombre || "",
+        telefono: initialData.telefono || "",
+        correo: initialData.correo || "", // No se rellena la contraseña en edición
+        direccion: initialData.direccion || "",
       })
     } else if (!isEdit) {
       setFormData({
-        id_rol: 2,
-        nombre_completo: "",
-        correo_electronico: "",
-        contraseña: "",
-      })
+        id: 0,
+        nombre: "",
+        telefono: "",
+        correo: "",
+        direccion: "",
+       })
     }
   }, [initialData, isEdit])
 
@@ -80,13 +82,10 @@ export function OwnerModal({
       setIsLoading(true)
       const dataToSubmit = { ...formData }
       if (isEdit) {
-        dataToSubmit.id = safeInitialData.id
+        dataToSubmit.id = safeInitialData.id ?? -1;
       }
 
       // Lógica original: no enviar contraseña si está vacía en edición
-      if (isEdit && !dataToSubmit.contraseña) {
-      delete dataToSubmit.contraseña
-      }
       await onSubmit(dataToSubmit)
       await onSuccess()
       const successMessage = isEdit ? "Usuario actualizado" : "Usuario creado"  
@@ -95,10 +94,11 @@ export function OwnerModal({
     // En edición, si contraseña está vacía no la mandes para no actualizarla
     if (!isEdit) {
       setFormData({
-        id_rol: 2,
-        nombre_completo: "",
-        correo_electronico: "",
-        contraseña: "",
+        id: 2,
+        nombre: "",
+        telefono: "",
+        correo: "",
+        direccion: "",
       })
     }
     onClose()
@@ -124,21 +124,21 @@ export function OwnerModal({
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="nombre_completo">Nombre completo</Label>
+              <Label htmlFor="nombre">Nombre completo</Label>
               <Input
-                id="nombre_completo"
-                value={formData.nombre_completo}
-                onChange={(e) => setFormData({ ...formData, nombre_completo: e.target.value })}
+                id="nombre"
+                value={formData.nombre}
+                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                 required={!isEdit}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="correo_electronico">Correo electrónico</Label>
+              <Label htmlFor="correo">Correo electrónico</Label>
               <Input
-                id="correo_electronico"
+                id="correo"
                 type="email"
-                value={formData.correo_electronico}
-                onChange={(e) => setFormData({ ...formData, correo_electronico: e.target.value })}
+                value={formData.correo}
+                onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
                 required={!isEdit}
               />
             </div>
@@ -146,34 +146,25 @@ export function OwnerModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contraseña">{isEdit ? "Nueva contraseña (opcional)" : "Contraseña"}</Label>
+              <Label htmlFor="telefono">Télefono</Label>
               <Input
-                id="contraseña"
-                type="password"
-                value={formData.contraseña}
-                onChange={(e) => setFormData({ ...formData, contraseña: e.target.value })}
+                id="telefono"
+                value={formData.telefono}
+                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                 required={!isEdit}
                 placeholder={isEdit ? "Déjalo vacío para no cambiar" : ""}
-                minLength={isEdit ? undefined : 8}
-                pattern={isEdit && !formData.contraseña ? undefined : ".*[0-9].*"}
-                title="Debe tener al menos 8 caracteres y 1 número."
-              />
+                maxLength={11}
+                />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="id_rol">Rol</Label>
-              <Select
-                value={String(formData.id_rol)}
-                onValueChange={(value) => setFormData({ ...formData, id_rol: Number(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Administrador</SelectItem>
-                  <SelectItem value="2">Veterinario</SelectItem>
-                  <SelectItem value="3">Recepcionista</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="direccion">Dirección</Label>
+              <Input
+                id="direccion"
+                value={formData.direccion}
+                onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
+                required={!isEdit}
+                maxLength={60}
+                />
             </div>
           </div>
 

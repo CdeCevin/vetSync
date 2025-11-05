@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, UserPlus } from "lucide-react"
 
-interface UserFiltersProps {
+interface OwnerFiltersProps {
   searchTerm: string
   setSearchTerm: (term: string) => void
   selectedRole: string
@@ -20,7 +20,7 @@ export function OwnerFilters({
   searchTerm,
   setSearchTerm,
   onCreateOwner
-}: UserFiltersProps) {
+}: OwnerFiltersProps) {
   return (
     <Card className="mb-6">
       <CardHeader>
