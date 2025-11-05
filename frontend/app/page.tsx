@@ -172,6 +172,8 @@ export default function VetManagementHome() {
                   ? "Inventario"
                   : activeSection === "users"
                   ? "Usuarios"
+                  : activeSection === "owners"
+                  ? "Dueños"
                   : activeSection}
               </h2>
             </div>
