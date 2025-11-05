@@ -13,6 +13,7 @@ import { AppointmentScheduling } from "@/components/appointment-scheduling"
 import { InventoryManagement } from "@/components/inventory-management"
 import { BillingModule } from "../components/billing-module"
 import { UserManagementDashboard } from "../components/Usuarios/user-dashboard"
+import { OwnerManagementDashboard } from "../components/Dueños/ow-dashboard"
 import { useAuth } from '@/components/user-context'
 
 export default function VetManagementHome() {
@@ -204,12 +205,15 @@ export default function VetManagementHome() {
           
           {activeSection === "logs" && <BillingModule />}
 
+          {activeSection === "owners" && <OwnerManagementDashboard />}
+
           {activeSection !== "dashboard" &&
             activeSection !== "patients" &&
             activeSection !== "appointments" &&
             activeSection !== "inventory" &&
             activeSection !== "billing" && 
-            activeSection !== "users" && (
+            activeSection !== "users" && 
+            activeSection !== "owners" && (
               <div className="space-y-6">
                 <div>
                   <h1 className="font-serif font-bold text-2xl text-foreground capitalize">{activeSection}</h1>
