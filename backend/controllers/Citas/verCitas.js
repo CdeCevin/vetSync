@@ -1,7 +1,7 @@
 const connection = require('../../db/connection');
 
 const verCita = (req, res) => {
-console.log('HOLAAAAAAAAAAAAAAAAAAA');
+
   if (!req.usuario) {
     return res.status(401).json({ error: 'No autorizado' });
   }
@@ -11,7 +11,7 @@ console.log('HOLAAAAAAAAAAAAAAAAAAA');
   const idClinicaDelUsuario = req.usuario.id_clinica; 
 
   const identificador = req.params.identificador;
-  console.log('Identificador recibido:', identificador);
+
   
 
   let query = `
@@ -29,16 +29,13 @@ console.log('HOLAAAAAAAAAAAAAAAAAAA');
     query += ` AND c.id_usuario = ?`;
     params.push(idUsuarioLogueado);
   }
-  // Si ES Rol 3, este filtro se omite y verá todo lo de la clínica.
-  // -----------------------------------------------------
 
-  // --- 4. LÓGICA DE BÚSQUEDA (Tu código original) ---
   if (/^\d+$/.test(identificador)) {
-    // Si es número puede ser id_paciente, id_usuario o id cita
+    
     query += ` AND (c.id_paciente = ? OR c.id_usuario = ? OR c.id = ?)`;
     params.push(identificador, identificador, identificador);
   } else {
-    // Si es string buscar por nombre paciente o usuario (LIKE insensible)
+   
     query += ` AND (p.nombre LIKE ? OR u.nombre_completo LIKE ?)`;
     params.push(`%${identificador}%`, `%${identificador}%`);
   }
@@ -50,9 +47,6 @@ console.log('HOLAAAAAAAAAAAAAAAAAAA');
       return res.status(500).json({ error: 'Error al obtener cita' });
     }
     if (results.length === 0) {
-      // Es importante no dar error 404 si es un admin (puede ser que
-      // la búsqueda no arrojó nada), pero sí si un usuario normal
-      // intenta buscar algo que no le pertenece.
       return res.status(404).json({ error: 'Cita no encontrada o sin permisos para verla' });
     }
     res.json(results);

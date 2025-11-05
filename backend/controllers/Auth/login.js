@@ -53,7 +53,7 @@ const login = (req, res) => {
       const token = jwt.sign(
         payload,
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
+        { expiresIn: process.env.JWT_EXPIRES_IN || '3h' }
       );
 
       // Responder con token y datos

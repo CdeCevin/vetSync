@@ -3,7 +3,7 @@ const connection = require('../../db/connection');
 
 const listadoCita = (req, res) => {
   // --- 1. Obtener datos del usuario logueado (del JWT) ---
-  console.log("hola")
+  
   if (!req.usuario) {
     return res.status(401).json({ error: 'No autorizado' });
   }
@@ -24,14 +24,10 @@ const listadoCita = (req, res) => {
   // Usamos la clínica del token
   const params = [idClinicaDelUsuario];
 
-  // --- 2. Aplicar lógica de permisos ---
-  // Si NO es Recepcionista (Rol 3), filtramos solo por su ID
   if (idRolUsuarioLogueado !== 3) { 
     query += ` AND c.id_usuario = ?`;
     params.push(idUsuarioLogueado);
   }
-  // Si ES Rol 3, el filtro se omite y ve todo lo de la clínica.
-  // ---------------------------------------------
 
   connection.query(query, params, (error, results) => {
     if (error) {

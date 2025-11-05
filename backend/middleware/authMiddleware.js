@@ -8,7 +8,6 @@ const verifyToken = (req, res, next) => {
   }  
     
   try {  
-    console.log('Verificando con el secreto:', process.env.JWT_SECRET);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);  
     
     // Validar que el ID de la URL coincida con el del token  
