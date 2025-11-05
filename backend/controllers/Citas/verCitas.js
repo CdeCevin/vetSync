@@ -1,7 +1,7 @@
 const connection = require('../../db/connection');
 
 const verCita = (req, res) => {
-console.log('HOLAAAAAAAAAAAAAAAAAAA');
+
   if (!req.usuario) {
     return res.status(401).json({ error: 'No autorizado' });
   }

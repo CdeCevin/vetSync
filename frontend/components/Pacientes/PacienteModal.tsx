@@ -210,7 +210,6 @@ export function PacienteModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
-
           {isEdit && !isOwnerEdit && (
             <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={() => { setIsOwnerEdit(true); setIsCreatingOwner(false) }}>
@@ -219,13 +218,15 @@ export function PacienteModal({
             </div>
           )}
         </DialogHeader>
-
+         
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 pt-4">
+         
           {!isOwnerEdit ? (
             <>
               {/* Campos paciente */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  
                   <Label htmlFor="nombre">Nombre</Label>
                   <Input id="nombre" required value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
                 </div>
@@ -264,7 +265,7 @@ export function PacienteModal({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="id_dueño">Dueño</Label>
+                  <Label htmlFor="id">Dueño</Label>
                   <select
                     value={formData.id_dueño}
                     onChange={(e) => handleSelectOwner(Number(e.target.value))}
