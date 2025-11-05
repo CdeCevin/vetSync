@@ -20,10 +20,8 @@ import {
 
 type TipoHistorial = "Vacunacion" | "Cirugia" | "Chequeo" | "Tratamiento" | "Emergencia" | "Otro"
 
-// --- 3. Componente Principal (Dashboard) ---
 
 export function PatientDashboard() {
-  // --- Estados ---
   const {
     getPacientes,
     getPacienteDetalle,
@@ -43,7 +41,6 @@ export function PatientDashboard() {
   const [isLoadingList, setIsLoadingList] = useState(false)
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
-  // --- 4. Funciones de API (solo la l  gica de fetch y error) ---
 
    const fetchPacientes = useCallback(async (q = "") => {
   setIsLoadingList(true)
@@ -61,7 +58,19 @@ export function PatientDashboard() {
   setIsLoadingDetails(true)
   try {
     const detalle = await getPacienteDetalle(paciente.id)
-    setSelectedPatient(detalle)
+
+    const mappedDetalle: PacienteDetallado = {
+    ...detalle,
+    dueño: {
+      id: detalle.dueño.id,
+      nombre: detalle.dueño.nombre,
+      telefono: detalle.dueño.telefono,
+      correo: detalle.dueño.correo,
+      direccion: detalle.dueño.direccion,
+    }
+  }
+
+    setSelectedPatient(mappedDetalle)
   } catch (err: any) {
     openAlert("Error", err.message, "error")
   } finally {
@@ -77,7 +86,6 @@ useEffect(() => {
   const handleSearch = async () => {
     await fetchPacientes(searchTerm)
   }
- // Estas funciones solo definen la API. El modal manejar   el 'try/catch'.
    const handleCreate = async (data: any) => {
     await createPaciente(data)
   }
@@ -92,10 +100,8 @@ useEffect(() => {
     await deletePaciente(selectedPatient.mascota.id)
   }
 
-  // --- 5. Renderizado (Layout del Ejemplo) ---
    return (
       <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-serif font-bold text-2xl">Registros de Pacientes</h1>
@@ -107,21 +113,12 @@ useEffect(() => {
       {/* Barra de Busqueda y Filtros */}
        <Card className="mb-6">
   <CardHeader>
-    {/* --- CONTENEDOR PRINCIPAL ---
-      - sm:justify-between: Esta es la clase clave. En pantallas 'sm' o más grandes,
-        empuja a sus hijos a los extremos opuestos (izquierda y derecha).
-      - gap-4: Sigue siendo útil para la vista móvil (flex-col)
-    */}
+
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       
-      {/* --- GRUPO IZQUIERDO (NUEVO) ---
-        - Este div agrupa la búsqueda y el filtro.
-        - También es flex para que sus hijos (búsqueda y filtro) se
-          alineen bien en móvil (col) y desktop (row).
-      */}
+      {/* GRUPO IZQUIERDO  */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto">
         
-        {/* 1. Input de Búsqueda */}
         <div className="relative flex-1 max-w-sm w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -133,11 +130,8 @@ useEffect(() => {
               />
             </div>
             
-            {/* 2. Filtro (Select) */}
             <Select defaultValue="all">
-              {/* - w-full sm:w-[180px]: Hace que ocupe todo el ancho en móvil 
-                  y un ancho fijo en desktop.
-              */}
+
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filtrar por estado" />
               </SelectTrigger>
@@ -149,10 +143,7 @@ useEffect(() => {
             </Select>
           </div>
 
-          {/* --- GRUPO DERECHO ---
-            - Este es el botón, ahora es el segundo hijo del contenedor principal.
-            - w-full sm:w-auto: Ocupa todo el ancho en móvil y ancho automático en desktop.
-          */}
+          {/* --- GRUPO DERECHO --- */}
           <Button 
             onClick={() => setIsAddDialogOpen(true)} 
             className="w-full sm:w-auto"
@@ -227,10 +218,8 @@ useEffect(() => {
             </div>
          </div>
 
-      {/* --- 6. Modales (Renderizado) --- */}
 
       {/* Modal de Añadir Paciente */}
-{/* Modal de Añadir Paciente */}
       <PacienteModal
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
@@ -243,14 +232,13 @@ useEffect(() => {
               correo: data.ownerCorreo,
               direccion: data.ownerDireccion,
             })
-            data.id_dueño = newOwner.id_dueño
+            data.id_dueño = newOwner.id
           }
           return handleCreate(data) // crea paciente con dueño ya asignado
         }}
-        onSuccess={fetchPacientes} // refresca la lista
+        onSuccess={fetchPacientes} 
         title="Añadir Nuevo Paciente"
         description="Ingresa la información del paciente y dueño."
-        //idClinica={usuario?.id_clinica!}
       />
 
       {/* Modal de Editar Paciente */}
@@ -267,14 +255,13 @@ useEffect(() => {
             setSelectedPatient(await getPacienteDetalle(selectedPatient.mascota.id))
           }
         }}
-        initialData={selectedPatient || undefined} // paciente + dueño
+        initialData={selectedPatient ?? null} // paciente + dueño
         isEdit
         title="Editar Paciente"
         description="Actualiza la información del paciente o del dueño."
-        //idClinica={usuario?.id_clinica!}
       />
 
-      {/* Modal de Confirmar Eliminaci  n */}
+      {/* Modal de Confirmar Eliminacion */}
       {selectedPatient && (
         <DeleteConfirmModal
           isOpen={isDeleteDialogOpen}
@@ -291,9 +278,6 @@ useEffect(() => {
    )
 }
 
-
-// --- 7. Componente de Detalles (Sub-componente) ---
-
 function DetallesPaciente({ 
   paciente, 
   onEditClick,
@@ -304,7 +288,7 @@ function DetallesPaciente({
   onDeleteClick: () => void
 }) {
 
-  // Derivamos el tipo de historial desde el diagn  stico
+  // Derivamos el tipo de historial desde el diagnOstico
   const getRecordType = (diagnostico: string): TipoHistorial => {
     const diag = diagnostico.toLowerCase()
     if (diag.includes("vacuna")) return "Vacunacion"
@@ -410,7 +394,7 @@ function DetallesPaciente({
                   </div>
                </TabsContent>
 
-          {/* Tab de Historial M  dico */}
+          {/* Tab de Historial Medico */}
                <TabsContent value="medical" className="space-y-4">
                   <div className="flex items-center justify-between">
                      <h4 className="font-serif font-semibold">Historial Medico</h4>
