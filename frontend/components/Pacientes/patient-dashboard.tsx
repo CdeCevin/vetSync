@@ -129,18 +129,7 @@ useEffect(() => {
             className="pl-10"
               />
             </div>
-            
-            <Select defaultValue="all">
 
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* --- GRUPO DERECHO --- */}

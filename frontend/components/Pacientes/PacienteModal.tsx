@@ -307,15 +307,15 @@ export function PacienteModal({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ownerTelefono">Teléfono</Label>
-                <Input id="ownerTelefono" value={formData.ownerTelefono} onChange={(e) => setFormData({ ...formData, ownerTelefono: e.target.value })} />
+                <Input id="ownerTelefono" maxLength={11} value={formData.ownerTelefono} onChange={(e) => setFormData({ ...formData, ownerTelefono: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ownerCorreo">Correo</Label>
-                <Input id="ownerCorreo" value={formData.ownerCorreo} onChange={(e) => setFormData({ ...formData, ownerCorreo: e.target.value })} />
+                <Input id="ownerCorreo" required type="email" value={formData.ownerCorreo} onChange={(e) => setFormData({ ...formData, ownerCorreo: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ownerDireccion">Dirección</Label>
-                <Input id="ownerDireccion" value={formData.ownerDireccion} onChange={(e) => setFormData({ ...formData, ownerDireccion: e.target.value })} />
+                <Input id="ownerDireccion" maxLength={60} value={formData.ownerDireccion} onChange={(e) => setFormData({ ...formData, ownerDireccion: e.target.value })} />
               </div>
 
               <div className="flex justify-end gap-2 pt-4 col-span-2">
