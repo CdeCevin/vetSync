@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Calendar, Users, FileText, Package, CreditCard, Settings, Home, Stethoscope, UsersRound, FileClock } from "lucide-react"
+import { Calendar, Users, FileText, Package, CreditCard, Settings, Home, Stethoscope, UsersRound, FileClock, PawPrint } from "lucide-react"
 
 interface SidebarNavProps {
   userRole: "Admin" | "Veterinario" | "Recepcionista"
@@ -27,9 +27,15 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
     },
     {
       title: "Pacientes",
-      icon: Users,
+      icon: PawPrint,
       id: "patients",
       roles: ["Veterinario", "Recepcionista"],
+    },
+    {
+      title: "Dueños ",
+      icon: UsersRound,
+      id: "owners",
+      roles: ["Recepcionista"],
     },
     {
       title: "Historiales Médicos",
@@ -61,6 +67,7 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
       id: "users",
       roles: ["Admin"],
     },
+    
     {
       title: "Logs",
       icon: FileClock,

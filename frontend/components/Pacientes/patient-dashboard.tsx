@@ -11,6 +11,7 @@ import { Search, Plus, Edit, FileText, Phone, Mail, MapPin, Trash2, Loader2 } fr
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { PacienteModal } from "@/components/Pacientes/PacienteModal" 
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal" 
+import { useAuth } from "@/components/user-context"  
 
 import {
   usePacienteService,
@@ -20,10 +21,8 @@ import {
 
 type TipoHistorial = "Vacunacion" | "Cirugia" | "Chequeo" | "Tratamiento" | "Emergencia" | "Otro"
 
-// --- 3. Componente Principal (Dashboard) ---
 
 export function PatientDashboard() {
-  // --- Estados ---
   const {
     getPacientes,
     getPacienteDetalle,
@@ -33,6 +32,7 @@ export function PatientDashboard() {
     createOwner,
     
   } = usePacienteService()
+  const { usuario } = useAuth()
   const { onOpen: openAlert } = useAlertStore()
   const [pacientes, setPacientes] = useState<PacienteEnLista[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -43,7 +43,6 @@ export function PatientDashboard() {
   const [isLoadingList, setIsLoadingList] = useState(false)
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
-  // --- 4. Funciones de API (solo la l  gica de fetch y error) ---
 
    const fetchPacientes = useCallback(async (q = "") => {
   setIsLoadingList(true)
@@ -61,7 +60,19 @@ export function PatientDashboard() {
   setIsLoadingDetails(true)
   try {
     const detalle = await getPacienteDetalle(paciente.id)
-    setSelectedPatient(detalle)
+
+    const mappedDetalle: PacienteDetallado = {
+    ...detalle,
+    dueño: {
+      id: detalle.dueño.id,
+      nombre: detalle.dueño.nombre,
+      telefono: detalle.dueño.telefono,
+      correo: detalle.dueño.correo,
+      direccion: detalle.dueño.direccion,
+    }
+  }
+
+    setSelectedPatient(mappedDetalle)
   } catch (err: any) {
     openAlert("Error", err.message, "error")
   } finally {
@@ -77,7 +88,6 @@ useEffect(() => {
   const handleSearch = async () => {
     await fetchPacientes(searchTerm)
   }
- // Estas funciones solo definen la API. El modal manejar   el 'try/catch'.
    const handleCreate = async (data: any) => {
     await createPaciente(data)
   }
@@ -92,10 +102,11 @@ useEffect(() => {
     await deletePaciente(selectedPatient.mascota.id)
   }
 
-  // --- 5. Renderizado (Layout del Ejemplo) ---
+  // 👇 permisos por rol
+  const puedeCRUD = usuario?.nombre_rol === "Recepcionista"
+
    return (
       <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-serif font-bold text-2xl">Registros de Pacientes</h1>
@@ -107,21 +118,12 @@ useEffect(() => {
       {/* Barra de Busqueda y Filtros */}
        <Card className="mb-6">
   <CardHeader>
-    {/* --- CONTENEDOR PRINCIPAL ---
-      - sm:justify-between: Esta es la clase clave. En pantallas 'sm' o más grandes,
-        empuja a sus hijos a los extremos opuestos (izquierda y derecha).
-      - gap-4: Sigue siendo útil para la vista móvil (flex-col)
-    */}
+
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       
-      {/* --- GRUPO IZQUIERDO (NUEVO) ---
-        - Este div agrupa la búsqueda y el filtro.
-        - También es flex para que sus hijos (búsqueda y filtro) se
-          alineen bien en móvil (col) y desktop (row).
-      */}
+      {/* GRUPO IZQUIERDO  */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto">
         
-        {/* 1. Input de Búsqueda */}
         <div className="relative flex-1 max-w-sm w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -132,33 +134,15 @@ useEffect(() => {
             className="pl-10"
               />
             </div>
-            
-            {/* 2. Filtro (Select) */}
-            <Select defaultValue="all">
-              {/* - w-full sm:w-[180px]: Hace que ocupe todo el ancho en móvil 
-                  y un ancho fijo en desktop.
-              */}
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
-              </SelectContent>
-            </Select>
+
           </div>
 
-          {/* --- GRUPO DERECHO ---
-            - Este es el botón, ahora es el segundo hijo del contenedor principal.
-            - w-full sm:w-auto: Ocupa todo el ancho en móvil y ancho automático en desktop.
-          */}
-          <Button 
-            onClick={() => setIsAddDialogOpen(true)} 
-            className="w-full sm:w-auto"
-          >
+          {/* --- GRUPO DERECHO --- */}
+          {puedeCRUD && (
+          <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" /> Añadir Paciente
           </Button>
+        )}
 
         </div>
       </CardHeader>
@@ -212,11 +196,13 @@ useEffect(() => {
               </CardContent>
             </Card>
           ) : selectedPatient ? (
-                  <DetallesPaciente 
-              paciente={selectedPatient}
-              onEditClick={() => setIsEditDialogOpen(true)}
-              onDeleteClick={() => setIsDeleteDialogOpen(true)}
-            />
+              
+                <DetallesPaciente
+                  paciente={selectedPatient}
+                  onEditClick={() => setIsEditDialogOpen(true)}
+                  onDeleteClick={() => setIsDeleteDialogOpen(true)}
+                  puedeCRUD={puedeCRUD}
+                />
                ) : (
                   <div className="flex flex-col items-center justify-center h-[410px] w-full bg-card rounded-xl border shadow">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
@@ -227,10 +213,8 @@ useEffect(() => {
             </div>
          </div>
 
-      {/* --- 6. Modales (Renderizado) --- */}
 
       {/* Modal de Añadir Paciente */}
-{/* Modal de Añadir Paciente */}
       <PacienteModal
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
@@ -243,14 +227,13 @@ useEffect(() => {
               correo: data.ownerCorreo,
               direccion: data.ownerDireccion,
             })
-            data.id_dueño = newOwner.id_dueño
+            data.id_dueño = newOwner.id
           }
           return handleCreate(data) // crea paciente con dueño ya asignado
         }}
-        onSuccess={fetchPacientes} // refresca la lista
+        onSuccess={fetchPacientes} 
         title="Añadir Nuevo Paciente"
         description="Ingresa la información del paciente y dueño."
-        //idClinica={usuario?.id_clinica!}
       />
 
       {/* Modal de Editar Paciente */}
@@ -267,14 +250,13 @@ useEffect(() => {
             setSelectedPatient(await getPacienteDetalle(selectedPatient.mascota.id))
           }
         }}
-        initialData={selectedPatient || undefined} // paciente + dueño
+        initialData={selectedPatient ?? null} // paciente + dueño
         isEdit
         title="Editar Paciente"
         description="Actualiza la información del paciente o del dueño."
-        //idClinica={usuario?.id_clinica!}
       />
 
-      {/* Modal de Confirmar Eliminaci  n */}
+      {/* Modal de Confirmar Eliminacion */}
       {selectedPatient && (
         <DeleteConfirmModal
           isOpen={isDeleteDialogOpen}
@@ -291,20 +273,19 @@ useEffect(() => {
    )
 }
 
-
-// --- 7. Componente de Detalles (Sub-componente) ---
-
 function DetallesPaciente({ 
-  paciente, 
+  paciente,
   onEditClick,
-  onDeleteClick 
+  onDeleteClick,
+  puedeCRUD,
 }: { 
-  paciente: PacienteDetallado,
-  onEditClick: () => void,
+  paciente: PacienteDetallado
+  onEditClick: () => void
   onDeleteClick: () => void
+  puedeCRUD: boolean
 }) {
 
-  // Derivamos el tipo de historial desde el diagn  stico
+  // Derivamos el tipo de historial desde el diagnOstico
   const getRecordType = (diagnostico: string): TipoHistorial => {
     const diag = diagnostico.toLowerCase()
     if (diag.includes("vacuna")) return "Vacunacion"
@@ -340,14 +321,18 @@ function DetallesPaciente({
                   </CardDescription>
                </div>
           <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={onEditClick}>
-                   <Edit className="h-4 w-4 mr-2" />
-                   Editar
-                </Button>
-            <Button variant="destructive" size="sm" onClick={onDeleteClick}>
-                   <Trash2 className="h-4 w-4 mr-2" />
-                   Eliminar
-                </Button>
+                {puedeCRUD && (
+              <Button variant="outline" size="sm" onClick={onEditClick}>
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )}
+            {puedeCRUD && (
+              <Button variant="destructive" size="sm" onClick={onDeleteClick}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Eliminar
+              </Button>
+            )}
           </div>
             </div>
          </CardHeader>
@@ -410,13 +395,13 @@ function DetallesPaciente({
                   </div>
                </TabsContent>
 
-          {/* Tab de Historial M  dico */}
+          {/* Tab de Historial Medico */}
                <TabsContent value="medical" className="space-y-4">
                   <div className="flex items-center justify-between">
                      <h4 className="font-serif font-semibold">Historial Medico</h4>
                      <Button size="sm">
                         <Plus className="h-4 w-4 mr-2" />
-                        A  adir Registro
+                        Añadir Registro
                      </Button>
                   </div>
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-2">

@@ -57,18 +57,30 @@ export function usePacienteService() {
 
     // ✅ Listar pacientes
     const getPacientes = async (q = "") => {
-      const res = await fetch(`${baseUrl}/buscar?q=${encodeURIComponent(q)}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        const res = await fetch(`${baseUrl}/buscar?q=${encodeURIComponent(q)}`, {
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
+        },
         cache: "no-store",
       })
-      if (!res.ok) throw new Error("Error al obtener pacientes.")
+
+      if (!res.ok) {
+        const errText = await res.text()
+        console.error("❌ Error en GET pacientes:", errText)
+        throw new Error(`Error al obtener pacientes: ${res.status}`)
+      }
+
       return res.json()
     }
 
     // ✅ Obtener detalles de un paciente
     const getPacienteDetalle = async (id: number): Promise<PacienteDetallado> => {
       const res = await fetch(`${baseUrl}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
+        },
       })
       if (!res.ok) throw new Error("Error al cargar detalles del paciente.")
       return res.json()
@@ -78,9 +90,9 @@ export function usePacienteService() {
     const createPaciente = async (data: any): Promise<PacienteDetallado> => {
       const res = await fetch(baseUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
         },
         body: JSON.stringify(data),
       })
@@ -95,9 +107,9 @@ export function usePacienteService() {
     const updatePaciente = async (id: number, data: any): Promise<PacienteDetallado> => {
       const res = await fetch(`${baseUrl}/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
         },
         body: JSON.stringify(data),
       })
@@ -112,7 +124,10 @@ export function usePacienteService() {
     const deletePaciente = async (id: number): Promise<void> => {
       const res = await fetch(`${baseUrl}/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
+        },
       })
       if (!res.ok) {
         const err = await res.json()
@@ -122,9 +137,12 @@ export function usePacienteService() {
 
     // ✅ Crear dueño
     const createOwner = async (data: Partial<Dueño>) => {
-      const res = await fetch(`http://localhost:3001/api/${idClinica}/duenos`, {
+      const res = await fetch(`${ROUTES.base}/${idClinica}/duenos`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
+        },
         body: JSON.stringify(data),
       })
       if (!res.ok) throw new Error("No se pudo crear dueño")
@@ -133,9 +151,12 @@ export function usePacienteService() {
 
     // ✅ Actualizar dueño
     const updateOwner = async (idDueño: number, data: Partial<Dueño>) => {
-      const res = await fetch(`http://localhost:3001/api/${idClinica}/duenos/${idDueño}`, {
+      const res = await fetch(`${ROUTES.base}/${idClinica}/duenos/${idDueño}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
+        },
         body: JSON.stringify(data),
       })
       if (!res.ok) throw new Error("No se pudo actualizar dueño")
@@ -144,8 +165,11 @@ export function usePacienteService() {
 
     const getOwners = async () => {
         if (!idClinica || !token) throw new Error("Faltan credenciales.")
-        const res = await fetch(`http://localhost:3001/api/${idClinica}/duenos`, {
-            headers: { Authorization: `Bearer ${token}` },
+        const res = await fetch(`${ROUTES.base}/${idClinica}/duenos`, {
+            headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
+        },
         })
         if (!res.ok) throw new Error("Error al obtener la lista de dueños.")
         return res.json()
