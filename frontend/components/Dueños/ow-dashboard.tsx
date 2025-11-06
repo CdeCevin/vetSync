@@ -107,7 +107,7 @@ export function OwnerManagementDashboard() {
             }}
             onConfirm={handleDeleteOwner}
             onSuccess={fetchOwners}
-            userName={`dueño ${selectedOwner?.nombre} y sus pacientes asociados`}
+            userName={<>dueño <strong>{selectedOwner?.nombre} y todos sus pacientes asociados</strong></>}
         />
         </main>
       </div>

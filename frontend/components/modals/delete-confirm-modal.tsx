@@ -11,7 +11,7 @@ interface DeleteConfirmModalProps {
   onClose: () => void
   onConfirm: () => Promise<any> // 3. onConfirm ahora es una promesa
    onSuccess: () => void       // 4. Añadir onSuccess (para refrescar la lista)
-   userName?: string
+   userName?: React.ReactNode
 }
 
 export function DeleteConfirmModal({ 
@@ -57,7 +57,7 @@ export function DeleteConfirmModal({
   			<DialogTitle>Confirmar Eliminación</DialogTitle>
   		  </div>
   		  <DialogDescription>
-     			¿Estás seguro de que deseas eliminar al <strong>{userName || ""}</strong>? Esta acción no se puede
+     			¿Estás seguro de que deseas eliminar al {userName || ""}? Esta acción no se puede
    			deshacer.
    		  </DialogDescription>
    		</DialogHeader>

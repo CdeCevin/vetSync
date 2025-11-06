@@ -266,7 +266,7 @@ useEffect(() => {
             fetchPacientes()
             setSelectedPatient(null)
           }}
-          userName={`paciente ${selectedPatient.mascota.nombre}`}
+          userName={<>paciente <strong>{selectedPatient.mascota.nombre}</strong></>}
         />
       )}
     </div>
