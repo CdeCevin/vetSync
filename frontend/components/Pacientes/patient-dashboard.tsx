@@ -152,11 +152,11 @@ useEffect(() => {
          <div className="w-full grid gap-6 grid-cols-3 ">
         {/* Columna de la Lista (Izquierda) */}
             <div className="lg:col-span-1 ">
-               <div className="rounded-xl shadow border bg-card">
+               <div className="rounded-xl shadow border bg-card  min-h-97">
             <div className="px-6 pt-6 pb-2">
               <span className="font-semibold ">Pacientes ({pacientes.length})</span>
             </div>
-            <div className="max-h-96 overflow-y-auto bg-card">
+            <div className=" max-h-96 overflow-y-auto bg-card">
                 {isLoadingList ? (
                   <div className="flex items-center justify-center h-64">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -307,9 +307,6 @@ function DetallesPaciente({
       }
    }
 
-  const estadoPaciente = paciente.mascota.activo === 1 ? "Activo" : "Inactivo";
-  const estadoColor = estadoPaciente === "Activo" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-
    return (
       <Card>
          <CardHeader>
@@ -349,7 +346,7 @@ function DetallesPaciente({
                   <div className="grid gap-4 md:grid-cols-2">
                      <div className="space-y-3">
                         <h4 className="font-serif font-semibold">Informacion Basica</h4>
-                        <div className="space-y-2 text-sm">
+                        <div className="space-y-2 text-sm ">
                            <div className="flex justify-between">
                               <span className="text-muted-foreground">Especie:</span>
                               <span>{paciente.mascota.especie}</span>
@@ -372,12 +369,6 @@ function DetallesPaciente({
                                  <span className="font-mono text-xs">{paciente.mascota.numero_microchip}</span>
                               </div>
                            )}
-                        </div>
-                     </div>
-
-                     <div className="space-y-3">
-                        <h4 className="font-serif font-semibold">Informacion de Visita</h4>
-                        <div className="space-y-2 text-sm">
                            <div className="flex justify-between">
                               <span className="text-muted-foreground"> Ultima Visita:</span>
                               <span>
@@ -386,12 +377,9 @@ function DetallesPaciente({
                         "N/A"}
                     </span>
                            </div>
-                           <div className="flex justify-between">
-                              <span className="text-muted-foreground">Estado:</span>
-                              <Badge className={estadoColor}>{estadoPaciente}</Badge>
-                           </div>
                         </div>
                      </div>
+
                   </div>
                </TabsContent>
 

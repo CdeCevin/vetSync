@@ -10,8 +10,7 @@ import { Loader2 } from "lucide-react"
 import { usePacienteService } from "@/hooks/usePacienteService"
 import { Dueño } from "@/hooks/usePacienteService"
 import { useAuth } from "@/components/user-context"  // ajusta esta línea según tu estructura real
-
-
+import { Combobox,ComboboxInput, ComboboxOption , ComboboxOptions } from "@headlessui/react"
 interface Mascota {
   id: number
   nombre: string
@@ -75,7 +74,20 @@ export function PacienteModal({
   const formRef = useRef<HTMLFormElement>(null)
   const { getOwners, createOwner, updateOwner } = usePacienteService()
   const { usuario } = useAuth()
+  const comboRef = useRef(null);
 
+ const [query, setQuery] = useState("")
+
+  // Filtra los dueños según lo escrito
+  const filteredOwners =
+    query === ""
+      ? ownersList
+      : ownersList.filter(
+          (o) =>
+            o.nombre.toLowerCase().includes(query.toLowerCase()) ||
+            o.correo?.toLowerCase().includes(query.toLowerCase())
+        )
+  
   useEffect(() => {
     if (isOpen) {
       getOwners().then(setOwnersList).catch(console.error)
@@ -213,6 +225,14 @@ export function PacienteModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
+          <div className="flex justify-end gap-2">
+          {!isOwnerEdit && (
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={() => handleSelectOwner(Number(0))}>
+                Crear Dueño
+              </Button>
+            </div>
+          )}
           {isEdit && !isOwnerEdit && (
             <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={() => { setIsOwnerEdit(true); setIsCreatingOwner(false) }}>
@@ -220,6 +240,7 @@ export function PacienteModal({
               </Button>
             </div>
           )}
+          </div>
         </DialogHeader>
          
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 pt-4">
@@ -267,30 +288,46 @@ export function PacienteModal({
                   <Input id="numero_microchip" value={formData.numero_microchip} onChange={(e) => setFormData({ ...formData, numero_microchip: e.target.value })} />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="id">Dueño</Label>
-                  <select
-                    value={formData.id_dueño}
-                    onChange={(e) => handleSelectOwner(Number(e.target.value))}
-                    className="w-full border p-2 rounded"
-                  >
-                  <option value={-1} disabled>
-                    Seleccionar dueño...
-                  </option>
-                  <option value={0}>Crear nuevo dueño</option>
-                   {ownersList.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.nombre}
-                    </option>
-                  ))}
-                  {formData.id_dueño > 0 &&
-                    !ownersList.some((o) => o.id == formData.id_dueño) && ( 
-                      <option value={formData.id_dueño} disabled>
-                        Nuevo Dueño Creado
-                      </option>
-                    )}
-                  </select>
-                </div>
+                <div className="w-full space-y-2 relative">
+                      <Label htmlFor="owner">Dueño</Label>
+                      <Combobox
+                        value={formData.id_dueño}
+                        onChange={(value: number | null) => {
+                          if (value !== null) {
+                            setFormData({ ...formData, id_dueño: value })
+                          }
+                        }}
+                      >
+                        <div className="relative mt-1">
+                          {/* Input controlado */}
+                          <ComboboxInput
+                          id="owner"
+                          className="input-like"                          
+                          onChange={(event) => setQuery(event.target.value)}
+                          displayValue={(id: number) => ownersList.find((o) => o.id === id)?.nombre || ""}
+                          placeholder="Seleccionar dueño..."
+                          />
+
+                          {/* Opciones */}
+                            <ComboboxOptions className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded border border-gray-200 bg-white shadow-lg">
+                            {filteredOwners.length === 0 && (
+                              <div className="px-2.5 py-2 text-sm text-gray-500">Sin coincidencias</div>
+                            )}
+                            {filteredOwners.map((o) => (
+                              <ComboboxOption 
+                                key={o.id}
+                                value={o.id}
+                                className={({ active }) =>
+                                  `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""}`
+                                }
+                              >
+                                {o.nombre} — {o.correo}
+                              </ComboboxOption>
+                            ))}
+                          </ComboboxOptions>
+                        </div>
+                      </Combobox>
+                    </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
