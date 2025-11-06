@@ -41,6 +41,7 @@ export default function RootLayout({
           <AlertModal />
           {children}
         </AuthProvider>
+        <script src="./node_modules/preline/dist/preline.js"></script>
       </body>
     </html>
   )
