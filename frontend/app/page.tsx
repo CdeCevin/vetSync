@@ -112,6 +112,7 @@ export default function VetManagementHome() {
               <CardTitle className="font-serif font-bold text-primary">Inicio de Sesión</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
@@ -125,7 +126,7 @@ export default function VetManagementHome() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="mt-5 space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">
                   Contraseña
                 </Label>
@@ -140,12 +141,14 @@ export default function VetManagementHome() {
               </div>
               {loginError && <p className="text-red-600 text-center">{loginError}</p>}
               <Button
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                type="submit"
+                className="mt-5 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 onClick={handleLogin}
                 disabled={!email || !password}
               >
                 Ingresar
               </Button>
+              
             </CardContent>
           </Card>
         </div>
