@@ -16,6 +16,9 @@ import { UserManagementDashboard } from "../components/Usuarios/user-dashboard"
 import { OwnerManagementDashboard } from "../components/Dueños/ow-dashboard"
 import { useAuth } from '@/components/user-context'
 
+import { CitasPage } from "@/components/Citas/cita-main"
+
+
 export default function VetManagementHome() {
   const { usuario, token, setAuthInfo, clearAuthInfo } = useAuth()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -198,7 +201,7 @@ export default function VetManagementHome() {
 
           {activeSection === "patients" && <PatientDashboard  />}
 
-          {activeSection === "appointments" && <AppointmentScheduling />}
+          {activeSection === "appointments" && <CitasPage />}
 
           {activeSection === "inventory" && <InventoryManagement />}
 
