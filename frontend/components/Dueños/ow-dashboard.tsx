@@ -65,7 +65,7 @@ export function OwnerManagementDashboard() {
         {/* Main Content */}
         <main className="flex-1 p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Gestión de Dueños</h2>
+            <h1 className="font-serif font-bold text-2xl">Gestión de Dueños</h1>
             <p className="text-gray-600">Administra los dueños de los pacientes de tu clínica</p>
           </div>
           <OwnerFilters

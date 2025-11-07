@@ -76,7 +76,7 @@ export function UserManagementDashboard() {
         {/* Main Content */}
         <main className="flex-1 p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Gestión de Usuarios</h2>
+            <h1 className="font-serif font-bold text-2xl">Gestión de Usuarios</h1>
             <p className="text-gray-600">Administra los usuarios de tu clínica</p>
           </div>
           <UserFilters

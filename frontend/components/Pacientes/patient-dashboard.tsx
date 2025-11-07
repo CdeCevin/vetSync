@@ -119,19 +119,19 @@ useEffect(() => {
        <Card className="mb-6">
   <CardHeader>
 
-    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
       
       {/* GRUPO IZQUIERDO  */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-4 flex-1">
         
-        <div className="relative flex-1 max-w-sm w-full sm:w-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <div className="relative flex-1 max-w-sm">
+          <Search className=" absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Buscar pacientes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && fetchPacientes(searchTerm)}
-            className="pl-10"
+            className="pl-10 border-gray/80"
               />
             </div>
 
