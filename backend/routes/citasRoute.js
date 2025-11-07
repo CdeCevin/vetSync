@@ -11,12 +11,14 @@ const  editarCita  = require('../controllers/Citas/editarCita.js');
 const  eliminarCita  = require('../controllers/Citas/eliminarCita.js');
 const listadoCita  = require('../controllers/Citas/listadoCita.js');
 const estadisticasCitasDelDia = require('../controllers/Citas/statsHoy.js');
+const estadoCita = require('../controllers/Citas/estadoCita.js');
 
 router.get('/Citas', listadoCita);
 router.get('/Citas/statsHoy', estadisticasCitasDelDia);
 router.get('/Citas/:identificador', verCita);
 router.post('/Citas', agendarCita);
 router.put('/Citas/:id', editarCita);
+router.patch('/Citas/:id', estadoCita);
 router.delete('/Citas/:id', eliminarCita);
 
 
