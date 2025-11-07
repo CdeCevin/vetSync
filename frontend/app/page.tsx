@@ -92,6 +92,7 @@ export default function VetManagementHome() {
     setEmail("")
     setPassword("")
     setLoginError(null)
+    localStorage.clear();
   }
 
   // El resto de tu componente no necesita cambios...
