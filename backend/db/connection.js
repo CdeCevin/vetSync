@@ -33,8 +33,7 @@ function crearPool() {
     pool.query('SELECT 1', (err) => {
       if (err) {
         console.error('Error en ping DB:', err);
-      } else {
-        //console.log('Ping DB exitoso');
+      } else {       
       }
     });
   }, 30000);

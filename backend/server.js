@@ -16,6 +16,7 @@ const pacientesRoutes = require('./routes/pacientesRoute');
 const citasRoutes = require('./routes/citasRoute');
 const tratamientosRoutes = require('./routes/TratamientosRoute');
 const inventarioRoutes = require('./routes/inventarioRoute');
+const dashboardRoutes = require('./routes/dashboardRoute');
 
 
 const PORT = 3001;
@@ -58,6 +59,11 @@ app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
   next();
 }, tratamientosRoutes);
+
+app.use('/api/:idClinica', (req, res, next) => {
+  req.clinicaId = req.params.idClinica;
+  next();
+}, dashboardRoutes);
 
 // Ruta raíz para verificar que el servidor está funcionando
 app.get('/', (req, res) => {

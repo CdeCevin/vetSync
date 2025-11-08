@@ -36,7 +36,7 @@ const login = (req, res) => {
         return res.status(401).json({ error: 'Credenciales inválidas' });
       }
 
-      // Datos que quieres incluir en el token
+
       const payload = {
         id: usuario.id,
         nombre_completo: usuario.nombre_completo,
@@ -45,8 +45,6 @@ const login = (req, res) => {
         id_clinica: usuario.id_clinica,
         nombre_clinica: usuario.nombre_clinica,
       };
-
-      console.log('JWT_SECRET:', process.env.JWT_SECRET);
 
 
       // Firmar token
