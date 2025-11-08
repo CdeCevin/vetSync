@@ -12,6 +12,9 @@ import { useCitaService, Cita } from "@/hooks/useCitaService"
 import { CitaModal } from "./cita-modal"
 import { DayView, WeekView, MonthView } from "./cita-vistas"
 import { DialogTitle } from "@radix-ui/react-dialog"
+import { CitaDetallesDialog } from "./cita-modal-det"
+
+
 
 export function CitasPage() {
   const { getCitas, getStatsHoy } = useCitaService()
@@ -20,6 +23,21 @@ export function CitasPage() {
   const [viewMode, setViewMode] = useState<"day" | "week" | "month">("day")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [stats, setStats] = useState<{ total: number; completadas: string; pendientes: string }>({ total: 0, completadas: "0", pendientes: "0" })
+  const [selectedCita, setSelectedCita] = useState<Cita | null>(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+
+const handleSelectCita = (cita: Cita) => {
+  setSelectedCita(cita)
+  setIsDetailsOpen(true)
+}
+
+const loadData = async () => {
+  const [citasData, statsData] = await Promise.all([getCitas(), getStatsHoy()])
+  setCitas(citasData)
+  setStats(statsData)
+}
+
+useEffect(() => { loadData() }, [])
 
   useEffect(() => {
     const loadData = async () => {
@@ -99,11 +117,19 @@ export function CitasPage() {
           </Card>
         </div>
         <div className="lg:col-span-3">
-          {viewMode === "day" && <DayView citas={citasDelDia} />}
-          {viewMode === "week" && <WeekView selectedDate={selectedDate} citas={citas} />}
-          {viewMode === "month" && <MonthView selectedDate={selectedDate} citas={citas} />}
+          {viewMode === "day" && <DayView citas={citasDelDia} onSelect={handleSelectCita} />}
+          {viewMode === "week" && <WeekView selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} />}
+          {viewMode === "month" && <MonthView selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} />}
+
         </div>
+        <CitaDetallesDialog
+            open={isDetailsOpen}
+            cita={selectedCita}
+            onClose={() => setIsDetailsOpen(false)}
+            onUpdate={loadData}
+          />
         </div>
+          
         </main>
       </div>
     </div>

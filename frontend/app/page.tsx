@@ -95,8 +95,6 @@ export default function VetManagementHome() {
     localStorage.clear();
   }
 
-  // El resto de tu componente no necesita cambios...
-  // ...
   if (!hydrated) {
     // Evita el render hasta hidratación para evitar error hidrato React
     return null
@@ -104,7 +102,7 @@ export default function VetManagementHome() {
 
   if (!token || !usuario) {
     return (
-      // ... Tu formulario de Login
+      //formulario de Login
       <div className="min-h-screen h-full bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center space-y-2">
