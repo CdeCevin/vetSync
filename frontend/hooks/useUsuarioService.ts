@@ -28,7 +28,7 @@ export function useUserService() {
     if (!res.ok) throw new Error("Error al obtener los usuarios.")
     return res.json()
   }
-
+  
   // 🟢 Crear usuario
   const createUser = async (userData: Partial<User>): Promise<User> => {
     if (!idClinica || !token) throw new Error("Faltan credenciales o clínica.")
