@@ -13,6 +13,7 @@ import { useUserService } from "@/hooks/useUsuarioService"
 import { CitaModal } from "./cita-modal"
 import { CitaDetallesDialog } from "./cita-modal-det"
 import { Combobox, ComboboxInput, ComboboxOptions, ComboboxOption } from "@headlessui/react"
+import { addMinutes, setHours, setMinutes } from "date-fns"
 
 
 // 🎨 Paleta de colores por veterinario
@@ -34,8 +35,14 @@ const ESTADO_COLOR: Record<Cita["estado"], string> = {
 }
 
 function parseCitaDate(dateStr: string): Date {
-  // parseISO mantiene la hora correcta
-  return new Date(dateStr)
+  const hasZulu = dateStr.endsWith("Z")
+  const d = new Date(dateStr)
+  if (hasZulu) {
+    // Si la hora viene en UTC (con "Z"), la pasamos a local
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+  }
+  // Si ya es local, no tocamos nada
+  return d
 }
 
 
@@ -48,6 +55,7 @@ function toLocal(dateStr: string): Date {
 function isSameDay(a: Date, b: Date) {
   return a.toDateString() === b.toDateString()
 }
+
 
 
 export function CitasRecepcionistaPage() {
@@ -74,7 +82,15 @@ export function CitasRecepcionistaPage() {
 
   // displayDate: día usado para renderizar la grilla horaria.
   // Si no hay fechaInicio, por defecto hoy.
-  const [displayDate, setDisplayDate] = useState<Date>(() => new Date())
+  const [displayDate, setDisplayDate] = useState<Date>(() => {
+    const now = new Date()
+    now.setHours(0, 0, 0, 0)
+    return now
+  })
+  const handleSelectCita = (cita: Cita) => {
+    setSelectedCita(cita)
+    setIsDetailsOpen(true)
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -108,19 +124,23 @@ export function CitasRecepcionistaPage() {
         }, [citas, filtros, selectedEstado])
 
   // 🕘 Horas del día basadas en displayDate (9 a 18)
-  const horas = useMemo(() => {
-    const start = new Date(displayDate)
-    start.setHours(0, 0, 0, 0)
-    const end = new Date(displayDate)
-    end.setHours(23, 0, 0, 0)
+  const generarHoras = () => {
+    const base = new Date(displayDate)
+    const inicio = setHours(setMinutes(base, 0), 8) // 08:00
+    const fin = setHours(setMinutes(base, 0), 20)   // 20:00
+    const intervalos: Date[] = []
+    let current = new Date(inicio)
 
-    return eachHourOfInterval({ start, end }).map((h) => new Date(h))
-  }, [displayDate])
+    while (current <= fin) {
+      intervalos.push(new Date(current))
+      current = addMinutes(current, 15)
+    }
 
-  const handleSelectCita = (cita: Cita) => {
-    setSelectedCita(cita)
-    setIsDetailsOpen(true)
-  }
+  return intervalos
+}
+
+
+  const horas = generarHoras()
 
   // Aplicar filtros: recarga datos y actualiza displayDate si hay fechaInicio
     useEffect(() => {
@@ -130,10 +150,11 @@ export function CitasRecepcionistaPage() {
 
         // Si el usuario seleccionó fechaInicio, actualiza displayDate
         if (filtros.fechaInicio) {
-        setDisplayDate(new Date(filtros.fechaInicio))
-        } else {
-        setDisplayDate(new Date())
-        }
+          const newDate = new Date(filtros.fechaInicio)
+          newDate.setHours(0, 0, 0, 0)
+          setDisplayDate(newDate)
+        } 
+
     }
     filtrar()
     }, [filtros, selectedEstado])
@@ -286,12 +307,13 @@ export function CitasRecepcionistaPage() {
 
       {/* indicador del día mostrado */}
       <div className="mb-2 text-sm text-gray-600">
-        Día mostrado: <strong>{format(displayDate, "EEEE, d 'de' MMMM yyyy", { locale: es })}</strong>
+        <strong>{format(displayDate, "EEEE, d 'de' MMMM yyyy", { locale: es })}</strong>
       </div>
 
       {/* 🗓️ Vista Multi-Veterinario */}
       <div className="overflow-x-auto">
         <table className="min-w-full border text-sm">
+          
           <thead className="bg-gray-100">
             <tr>
               <th className="border p-2 text-left w-24">Hora</th>
@@ -310,52 +332,83 @@ export function CitasRecepcionistaPage() {
           </thead>
           <tbody>
             {horas.map((hora, hIdx) => (
-              <tr key={hIdx} className="h-16">
+              <tr key={hIdx} className="h-12">
                 <td className="border p-2 font-medium text-gray-700">
                   {format(hora, "HH:mm")}
                 </td>
 
                 {veterinariosToShow.map((v, idx) => {
-                  // buscamos una cita que ocurra EXACTAMENTE en ese día y hora
+                  // buscamos cita que comience en este horario
                   const cita = citasFiltradas.find((c) => {
                     const cDate = parseCitaDate(c.fecha_cita)
                     return (
-                        c.id_usuario === v.id &&
-                        cDate.getHours() === hora.getHours() &&
-                        isSameDay(cDate, displayDate)
+                      c.id_usuario === v.id &&
+                      cDate.getHours() === hora.getHours() &&
+                      cDate.getMinutes() === hora.getMinutes() &&
+                      isSameDay(cDate, displayDate)
                     )
-                    })
+                  })
 
-                  return (
-                    <td
-                      key={`${v.id}-${hIdx}`}
-                      className={`border text-center cursor-pointer transition-all ${
-                        cita
-                          ? `${VET_COLORS[idx % VET_COLORS.length]} ${ESTADO_COLOR[cita.estado]}`
-                          : "hover:bg-gray-50"
-                      }`}
-                      onClick={() => {
-                        if (cita) {
-                            handleSelectCita(cita)
-                        } else {
-                            const nuevaFecha = new Date(displayDate)
-                            nuevaFecha.setHours(hora.getHours(), 0, 0, 0)
-                            setSelectedCita({
-                            id_usuario: v.id,
-                            fecha_cita: nuevaFecha.toISOString(),
-                            } as any)
-                            setIsAddDialogOpen(true)
-                        }
-                        }}
-                    >
-                      {cita ? (
+
+                  // evitar duplicar celdas en intervalos ocupados
+                  const citaEnCurso = citasFiltradas.find((c) => {
+                    const start = parseCitaDate(c.fecha_cita)
+                    const end = addMinutes(start, c.duracion_minutos)
+
+                    const horaNum = hora.getTime()
+                    return (
+                      c.id_usuario === v.id &&
+                      isSameDay(start, displayDate) &&
+                      horaNum > start.getTime() &&
+                      horaNum < end.getTime()
+                    )
+                  })
+
+                  if (citaEnCurso) return null // salto filas ocupadas
+
+                  if (cita) {
+                    const rowsToSpan = Math.ceil(cita.duracion_minutos / 15)
+
+                    return (
+                      <td
+                        key={`${v.id}-${hIdx}`}
+                        rowSpan={rowsToSpan}
+                        className={`border text-center align-middle cursor-pointer transition-all ${
+                          `${VET_COLORS[idx % VET_COLORS.length]} ${ESTADO_COLOR[cita.estado]}`
+                        }`}
+                        onClick={() => handleSelectCita(cita)}
+                      >
                         <div className="p-2">
                           <strong>{cita.tipo_cita}</strong>
                           <p className="text-xs">{cita.motivo}</p>
+                          <p className="text-[10px] text-gray-600">
+                            {format(parseCitaDate(cita.fecha_cita), "HH:mm")} -{" "}
+                            {format(
+                              addMinutes(parseCitaDate(cita.fecha_cita), cita.duracion_minutos),
+                              "HH:mm"
+                            )}
+                          </p>
                         </div>
-                      ) : (
-                        <span className="text-xs text-gray-400">Libre</span>
-                      )}
+                      </td>
+                    )
+                  }
+
+                  // si no hay cita, celda normal
+                  return (
+                    <td
+                      key={`${v.id}-${hIdx}`}
+                      className="border text-center cursor-pointer hover:bg-gray-50 transition-all"
+                      onClick={() => {
+                        const nuevaFecha = new Date(displayDate)
+                        nuevaFecha.setHours(hora.getHours(), hora.getMinutes(), 0, 0)
+                        setSelectedCita({
+                          id_usuario: v.id,
+                          fecha_cita: nuevaFecha.toISOString(),
+                        } as any)
+                        setIsAddDialogOpen(true)
+                      }}
+                    >
+                      <span className="text-xs text-gray-400">Libre</span>
                     </td>
                   )
                 })}

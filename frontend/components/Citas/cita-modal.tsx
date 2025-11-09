@@ -12,6 +12,7 @@ import { useUserService } from "@/hooks/useUsuarioService"
 import { useDueñoService } from "@/hooks/useDueñoService" // importamos el hook de dueños
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { useAuth } from "@/components/user-context"
+import DatePicker from "react-datepicker"
 
 // Combobox (Headless UI)
 import {
@@ -156,9 +157,7 @@ useEffect(() => {
                       `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""}`
                     }
                   >
-                    {p.nombre} — Dueño: {p.dueno.nombre}
-                    
-                    {console.log(p)}
+                    {p.nombre} — Dueño: {p.dueno.nombre}                  
                   </ComboboxOption>
                 ))}
               </ComboboxOptions>
@@ -210,12 +209,18 @@ useEffect(() => {
         {/* Campos restantes */}
         <div className="space-y-2">
           <Label>Fecha y hora</Label>
-          <Input
-            type="datetime-local"
-            value={form.fecha_cita}
-            onChange={e => handleChange("fecha_cita", e.target.value)}
-            step={900} // 15 min
-            min={new Date().toISOString().slice(0,16)} // no permitir fechas pasadas
+          <DatePicker
+            selected={form.fecha_cita ? new Date(form.fecha_cita) : null}
+            onChange={(date) => {
+              if (date) handleChange("fecha_cita", date.toISOString())
+            }}
+            showTimeSelect
+            timeIntervals={15} // 🔹 Intervalos de 15 minutos
+            timeCaption="Hora"
+            dateFormat="yyyy-MM-dd HH:mm"
+            minDate={new Date()} // 🔹 No permite fechas pasadas
+            className="input-like w-full"
+            placeholderText="Seleccionar fecha y hora..."
           />
         </div>
         <div className="space-y-2">

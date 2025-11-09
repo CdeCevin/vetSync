@@ -227,6 +227,8 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
               </div>
 
               {/* Otros campos */}
+              <div className="space-y-2">
+              <Label>Fecha y Hora</Label>
               <Input
                 type="datetime-local"
                 value={format(new Date(form.fecha_cita), "yyyy-MM-dd'T'HH:mm")}
@@ -234,7 +236,10 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
                 step={900} // 15 min
                 min={new Date().toISOString().slice(0,16)} // no permitir pasadas
               />
+              </div>
 
+              <div className="space-y-2">
+              <Label>Duración</Label>
               <Select value={String(form.duracion_minutos)} onValueChange={(v) => handleChange("duracion_minutos", Number(v))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -244,7 +249,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
                   <SelectItem value="90">90</SelectItem>
                 </SelectContent>
               </Select>
-
+                </div>
               <div className="space-y-2">
                 <Label>Motivo</Label>
                 <Input value={form.motivo} minLength={10} onChange={(e) => handleChange("motivo", e.target.value)} />
