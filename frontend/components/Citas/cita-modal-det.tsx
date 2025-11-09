@@ -11,7 +11,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { Cita, useCitaService } from "@/hooks/useCitaService"
-import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/components/user-context"
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { usePacienteService } from "@/hooks/usePacienteService"
@@ -47,7 +47,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
   const { onOpen: openAlert } = useAlertStore()
   const [pacientesList, setPacientesList] = useState<any[]>([])
   const [veterinariosList, setVeterinariosList] = useState<any[]>([])
-
+  const { usuario} = useAuth()
   const [queryPaciente, setQueryPaciente] = useState("")
   const [queryVet, setQueryVet] = useState("")
 
@@ -201,62 +201,53 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
                 <Label>Veterinario</Label>
                 <Combobox
                   value={form.id_usuario}
-                  onChange={(value: number | null) => {
-                    if (value !== null) handleChange("id_usuario", value)
-                  }}
+                  onChange={(value: number | null) => { if (value !== null) handleChange("id_usuario", value) }}
+                  disabled={usuario?.id_rol === 2} // veterinario fijo
                 >
-                  <div className="relative mt-1">
-                    <ComboboxInput
-                      className="input-like w-full"
-                      onChange={(e) => setQueryVet(e.target.value)}
-                      displayValue={(id: number) =>
-                        veterinariosList.find((v) => v.id === id)?.nombre_completo || ""
-                      }
-                      placeholder="Seleccionar veterinario..."
-                    />
+                  <ComboboxInput
+                    className="input-like w-full"
+                    onChange={(e) => setQueryVet(e.target.value)}
+                    displayValue={(id: number) =>
+                      veterinariosList.find((v) => v.id === id)?.nombre_completo || ""
+                    }
+                    disabled={usuario?.id_rol === 2}
+                  />
+                  {usuario?.id_rol !== 2 && (
                     <ComboboxOptions className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded border border-gray-200 bg-white shadow-lg">
-                      {filteredVets.length === 0 && (
-                        <div className="px-2.5 py-2 text-sm text-gray-500">Sin coincidencias</div>
-                      )}
                       {filteredVets.map((v) => (
-                        <ComboboxOption
-                          key={v.id}
-                          value={v.id}
-                          className={({ active }) =>
-                            `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""}`
-                          }
-                        >
+                        <ComboboxOption key={v.id} value={v.id} className={({ active }) =>
+                          `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""}`
+                        }>
                           {v.nombre_completo} — {v.correo_electronico}
                         </ComboboxOption>
                       ))}
                     </ComboboxOptions>
-                  </div>
+                  )}
                 </Combobox>
               </div>
 
               {/* Otros campos */}
-              <div className="space-y-2">
-                <Label>Fecha y hora</Label>
-                <Input
-                  type="datetime-local"
-                  value={format(new Date(form.fecha_cita), "yyyy-MM-dd'T'HH:mm")}
-                  onChange={(e) => handleChange("fecha_cita", e.target.value)}
-                />
-              </div>
+              <Input
+                type="datetime-local"
+                value={format(new Date(form.fecha_cita), "yyyy-MM-dd'T'HH:mm")}
+                onChange={(e) => handleChange("fecha_cita", e.target.value)}
+                step={900} // 15 min
+                min={new Date().toISOString().slice(0,16)} // no permitir pasadas
+              />
 
-              <div className="space-y-2">
-                <Label>Duración (min)</Label>
-                <Input
-                  value={form.duracion_minutos}
-                  maxLength={3}
-                  type="number" 
-                  onChange={(e) => handleChange("duracion_minutos", Number(e.target.value))}
-                />
-              </div>
+              <Select value={String(form.duracion_minutos)} onValueChange={(v) => handleChange("duracion_minutos", Number(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15">15</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="60">60</SelectItem>
+                  <SelectItem value="90">90</SelectItem>
+                </SelectContent>
+              </Select>
 
               <div className="space-y-2">
                 <Label>Motivo</Label>
-                <Input value={form.motivo} onChange={(e) => handleChange("motivo", e.target.value)} />
+                <Input value={form.motivo} minLength={10} onChange={(e) => handleChange("motivo", e.target.value)} />
               </div>
 
             <div className="space-y-2">

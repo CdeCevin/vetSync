@@ -9,13 +9,13 @@ import { Label } from "@/components/ui/label"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { PatientDashboard  } from "@/components/Pacientes/patient-dashboard"
-import { AppointmentScheduling } from "@/components/appointment-scheduling"
+//import { AppointmentScheduling } from "@/components/appointment-scheduling"
 import { InventoryManagement } from "@/components/inventory-management"
 import { BillingModule } from "../components/billing-module"
 import { UserManagementDashboard } from "../components/Usuarios/user-dashboard"
 import { OwnerManagementDashboard } from "../components/Dueños/ow-dashboard"
 import { useAuth } from '@/components/user-context'
-
+import { CitasRecepcionistaPage } from "@/components/Citas/cita-main-res"
 import { CitasPage } from "@/components/Citas/cita-main"
 
 
@@ -200,8 +200,11 @@ export default function VetManagementHome() {
 
           {activeSection === "patients" && <PatientDashboard  />}
 
-          {activeSection === "appointments" && <CitasPage />}
-
+          {activeSection === "appointments" && (
+            userRole === "Recepcionista"
+              ? <CitasRecepcionistaPage />
+              : <CitasPage />
+          )}
           {activeSection === "inventory" && <InventoryManagement />}
 
           {activeSection === "billing" && <BillingModule />}

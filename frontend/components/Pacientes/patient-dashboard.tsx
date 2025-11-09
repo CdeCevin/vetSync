@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Plus, Edit, FileText, Phone, Mail, MapPin, Trash2, Loader2 } from "lucide-react"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { PacienteModal } from "@/components/Pacientes/PacienteModal" 

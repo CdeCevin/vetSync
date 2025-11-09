@@ -11,6 +11,7 @@ import { usePacienteService } from "@/hooks/usePacienteService"
 import { useUserService } from "@/hooks/useUsuarioService"
 import { useDueñoService } from "@/hooks/useDueñoService" // importamos el hook de dueños
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { useAuth } from "@/components/user-context"
 
 // Combobox (Headless UI)
 import {
@@ -20,7 +21,13 @@ import {
   ComboboxOptions
 } from "@headlessui/react"
 
-export function CitaModal({ onClose }: { onClose: () => void }) {
+export function CitaModal({
+  onClose,
+  citaInicial}: {
+  onClose: () => void
+  citaInicial?: { id_usuario?: number; fecha_cita?: string }
+}) {
+  const { usuario} = useAuth()
   const { createCita } = useCitaService()
   const { getPacientes } = usePacienteService()
   const { getUsers } = useUserService()
@@ -65,6 +72,27 @@ export function CitaModal({ onClose }: { onClose: () => void }) {
     loadData()
   }, [])
 
+    useEffect(() => {
+    if (usuario?.id_rol === 2) {
+      setForm(prev => ({ ...prev, id_usuario: usuario.id }))
+    }
+  }, [usuario])
+
+  const formatForInput = (dateStr: string) => {
+  const d = new Date(dateStr)
+  const pad = (n: number) => n.toString().padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+useEffect(() => {
+  if (citaInicial) {
+    setForm(prev => ({
+      ...prev,
+      id_usuario: citaInicial.id_usuario ?? prev.id_usuario,
+      fecha_cita: citaInicial.fecha_cita ? formatForInput(citaInicial.fecha_cita) : prev.fecha_cita
+    }))
+  }
+}, [citaInicial])
   const handleChange = (key: string, value: any) => setForm(prev => ({ ...prev, [key]: value }))
 
   const handleSubmit = async () => {
@@ -139,6 +167,7 @@ export function CitaModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* 🩺 Veterinario */}
+        
         <div className="space-y-2">
           <Label>Veterinario</Label>
           <Combobox
@@ -146,40 +175,62 @@ export function CitaModal({ onClose }: { onClose: () => void }) {
             onChange={(value: number | null) => {
               if (value !== null) handleChange("id_usuario", value)
             }}
+            disabled={usuario?.id_rol === 2} // deshabilitado si es veterinario
           >
             <div className="relative mt-1">
               <ComboboxInput
                 className="input-like w-full"
                 onChange={(e) => setQueryVet(e.target.value)}
                 displayValue={(id: number) =>
-                  veterinariosList.find(v => v.id === id)?.nombre_completo || ""
+                  veterinariosList.find((v) => v.id === id)?.nombre_completo || ""
                 }
-                placeholder="Seleccionar veterinario..."
+                placeholder={usuario?.id_rol === 2 ? "Veterinario fijo" : "Seleccionar veterinario..."}
+                disabled={usuario?.id_rol === 2} // input deshabilitado
               />
-              <ComboboxOptions className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded border border-gray-200 bg-white shadow-lg">
-                {filteredVets.length === 0 && (
-                  <div className="px-2.5 py-2 text-sm text-gray-500">Sin coincidencias</div>
-                )}
-                {filteredVets.map((v) => (
-                  <ComboboxOption
-                    key={v.id}
-                    value={v.id}
-                    className={({ active }) =>
-                      `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""}`
-                    }
-                  >
-                    {v.nombre_completo} — {v.correo_electronico}
-                  </ComboboxOption>
-                ))}
-              </ComboboxOptions>
+              {usuario?.id_rol !== 2 && (
+                <ComboboxOptions className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded border border-gray-200 bg-white shadow-lg">
+                  {filteredVets.length === 0 && <div className="px-2.5 py-2 text-sm text-gray-500">Sin coincidencias</div>}
+                  {filteredVets.map((v) => (
+                    <ComboboxOption
+                      key={v.id}
+                      value={v.id}
+                      className={({ active }) =>
+                        `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""}`
+                      }
+                    >
+                      {v.nombre_completo} — {v.correo_electronico}
+                    </ComboboxOption>
+                  ))}
+                </ComboboxOptions>
+              )}
             </div>
           </Combobox>
         </div>
 
         {/* Campos restantes */}
-        <div className="space-y-2"><Label>Fecha y hora</Label><Input type="datetime-local" onChange={e => handleChange("fecha_cita", e.target.value)} /></div>
-        <div className="space-y-2"><Label>Duración (minutos)</Label><Input maxLength={3} type="number" onChange={e => handleChange("duracion_minutos", e.target.value)} /></div>
-        <div className="space-y-2 md:col-span-2"><Label>Motivo</Label><Input onChange={e => handleChange("motivo", e.target.value)} /></div>
+        <div className="space-y-2">
+          <Label>Fecha y hora</Label>
+          <Input
+            type="datetime-local"
+            value={form.fecha_cita}
+            onChange={e => handleChange("fecha_cita", e.target.value)}
+            step={900} // 15 min
+            min={new Date().toISOString().slice(0,16)} // no permitir fechas pasadas
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Duración (min)</Label>
+          <Select value={String(form.duracion_minutos)} onValueChange={(v) => handleChange("duracion_minutos", Number(v))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="15">15</SelectItem>
+              <SelectItem value="30">30</SelectItem>
+              <SelectItem value="60">60</SelectItem>
+              <SelectItem value="90">90</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>        
+        <div className="space-y-2 md:col-span-2"><Label>Motivo</Label><Input minLength={10} onChange={e => handleChange("motivo", e.target.value)} /></div>
         <div className="space-y-2">
               <Label>Tipo de cita</Label>
               <Select value={form.tipo_cita} onValueChange={(v) => handleChange("tipo_cita", v)}>
