@@ -1,18 +1,35 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useCitaService } from "@/hooks/useCitaService"
+import { useAlertStore } from "@/hooks/use-alert-store"
+import { usePacienteService } from "@/hooks/usePacienteService"
+import { useUserService } from "@/hooks/useUsuarioService"
+import { useDueñoService } from "@/hooks/useDueñoService" // importamos el hook de dueños
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+
+// Combobox (Headless UI)
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions
+} from "@headlessui/react"
 
 export function CitaModal({ onClose }: { onClose: () => void }) {
   const { createCita } = useCitaService()
+  const { getPacientes } = usePacienteService()
+  const { getUsers } = useUserService()
+  const { getOwners } = useDueñoService()
+  const { onOpen: openAlert } = useAlertStore()
+
   const [form, setForm] = useState({
-    id_paciente: "",
-    id_usuario: "",
+    id_paciente: 0,
+    id_usuario: 0,
     fecha_cita: "",
     duracion_minutos: "",
     motivo: "",
@@ -20,7 +37,35 @@ export function CitaModal({ onClose }: { onClose: () => void }) {
     notas: "",
   })
 
-  const handleChange = (key: string, value: string) => setForm(prev => ({ ...prev, [key]: value }))
+  const [pacientesList, setPacientesList] = useState<any[]>([])
+  const [veterinariosList, setVeterinariosList] = useState<any[]>([])
+  const [ownersList, setOwnersList] = useState<any[]>([])
+
+  const [queryPaciente, setQueryPaciente] = useState("")
+  const [queryVet, setQueryVet] = useState("")
+
+  // 🔹 Cargar pacientes, veterinarios y dueños
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [pacientesData, usersData, ownersData] = await Promise.all([
+          getPacientes(""),
+          getUsers(),
+          getOwners()
+        ])
+
+        setPacientesList(pacientesData || [])
+        setOwnersList(ownersData || [])
+        // Solo veterinarios (id_rol = 3)
+        setVeterinariosList(usersData.filter(u => u.id_rol === 2))
+      } catch (err) {
+        console.error("Error cargando datos:", err)
+      }
+    }
+    loadData()
+  }, [])
+
+  const handleChange = (key: string, value: any) => setForm(prev => ({ ...prev, [key]: value }))
 
   const handleSubmit = async () => {
     try {
@@ -34,34 +79,123 @@ export function CitaModal({ onClose }: { onClose: () => void }) {
         notas: form.notas,
       })
       onClose()
+      openAlert("Éxito", `La cita se ha creado exitosamente.`, "success")
     } catch (err) {
-      console.error("Error al crear cita:", err)
+      console.error(err)
+      openAlert("Error", "Ha ocurrido un error al crear la cita.", "error")
     }
   }
+
+  // 🔍 Filtrado dinámico
+  const filteredPacientes = pacientesList.filter(p =>
+    p.nombre.toLowerCase().includes(queryPaciente.toLowerCase())
+  )
+
+  const filteredVets = veterinariosList.filter(v =>
+    v.nombre_completo.toLowerCase().includes(queryVet.toLowerCase())
+  )
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
-        <div><Label>Paciente</Label><Input onChange={e => handleChange("id_paciente", e.target.value)} /></div>
-        <div><Label>Veterinario</Label><Input onChange={e => handleChange("id_usuario", e.target.value)} /></div>
-        <div><Label>Fecha y hora</Label><Input type="datetime-local" onChange={e => handleChange("fecha_cita", e.target.value)} /></div>
-        <div><Label>Duración (minutos)</Label><Input onChange={e => handleChange("duracion_minutos", e.target.value)} /></div>
-        <div className="md:col-span-2"><Label>Motivo</Label><Input onChange={e => handleChange("motivo", e.target.value)} /></div>
-        <div><Label>Tipo</Label>
-          <Select onValueChange={(v) => handleChange("tipo_cita", v)}>
-            <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="consulta">Consulta</SelectItem>
-              <SelectItem value="vacunación">Vacunación</SelectItem>
-              <SelectItem value="cirugía">Cirugía</SelectItem>
-              <SelectItem value="emergencia">Emergencia</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* 🐾 Paciente */}
+        <div className="space-y-2">
+          <Label>Paciente</Label>
+          <Combobox
+            value={form.id_paciente}
+            onChange={(value: number | null) => {
+              if (value !== null) handleChange("id_paciente", value)
+            }}
+          >
+            <div className="relative mt-1">
+              <ComboboxInput
+                className="input-like w-full"
+                onChange={(e) => setQueryPaciente(e.target.value)}
+                displayValue={(id: number) =>
+                  pacientesList.find(p => p.id === id)?.nombre || ""
+                }
+                placeholder="Seleccionar paciente..."
+              />
+              <ComboboxOptions className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded border border-gray-200 bg-white shadow-lg">
+                {filteredPacientes.length === 0 && (
+                  <div className="px-2.5 py-2 text-sm text-gray-500">Sin coincidencias</div>
+                )}
+                {filteredPacientes.map((p) => (
+                  <ComboboxOption
+                    key={p.id}
+                    value={p.id}
+                    className={({ active }) =>
+                      `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""}`
+                    }
+                  >
+                    {p.nombre} — Dueño: {p.dueno.nombre}
+                    
+                    {console.log(p)}
+                  </ComboboxOption>
+                ))}
+              </ComboboxOptions>
+            </div>
+          </Combobox>
         </div>
-        <div className="md:col-span-2"><Label>Notas</Label><Textarea onChange={e => handleChange("notas", e.target.value)} /></div>
+
+        {/* 🩺 Veterinario */}
+        <div className="space-y-2">
+          <Label>Veterinario</Label>
+          <Combobox
+            value={form.id_usuario}
+            onChange={(value: number | null) => {
+              if (value !== null) handleChange("id_usuario", value)
+            }}
+          >
+            <div className="relative mt-1">
+              <ComboboxInput
+                className="input-like w-full"
+                onChange={(e) => setQueryVet(e.target.value)}
+                displayValue={(id: number) =>
+                  veterinariosList.find(v => v.id === id)?.nombre_completo || ""
+                }
+                placeholder="Seleccionar veterinario..."
+              />
+              <ComboboxOptions className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded border border-gray-200 bg-white shadow-lg">
+                {filteredVets.length === 0 && (
+                  <div className="px-2.5 py-2 text-sm text-gray-500">Sin coincidencias</div>
+                )}
+                {filteredVets.map((v) => (
+                  <ComboboxOption
+                    key={v.id}
+                    value={v.id}
+                    className={({ active }) =>
+                      `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""}`
+                    }
+                  >
+                    {v.nombre_completo} — {v.correo_electronico}
+                  </ComboboxOption>
+                ))}
+              </ComboboxOptions>
+            </div>
+          </Combobox>
+        </div>
+
+        {/* Campos restantes */}
+        <div className="space-y-2"><Label>Fecha y hora</Label><Input type="datetime-local" onChange={e => handleChange("fecha_cita", e.target.value)} /></div>
+        <div className="space-y-2"><Label>Duración (minutos)</Label><Input maxLength={3} type="number" onChange={e => handleChange("duracion_minutos", e.target.value)} /></div>
+        <div className="space-y-2 md:col-span-2"><Label>Motivo</Label><Input onChange={e => handleChange("motivo", e.target.value)} /></div>
+        <div className="space-y-2">
+              <Label>Tipo de cita</Label>
+              <Select value={form.tipo_cita} onValueChange={(v) => handleChange("tipo_cita", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="consulta">Consulta</SelectItem>
+                    <SelectItem value="vacunación">Vacunación</SelectItem>
+                    <SelectItem value="cirugía">Cirugía</SelectItem>
+                    <SelectItem value="emergencia">Emergencia</SelectItem>
+                  </SelectContent>
+                </Select>
+                </div>
+        <div className="md:col-span-2 space-y-2"><Label>Notas</Label><Textarea onChange={e => handleChange("notas", e.target.value)} /></div>
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end space-x-2 space-y-2">
         <Button variant="outline" onClick={onClose}>Cancelar</Button>
         <Button onClick={handleSubmit}>Agendar</Button>
       </div>

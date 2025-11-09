@@ -4,16 +4,15 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Plus } from "lucide-react"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog,DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Calendar } from "@/components/ui/calendar"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { useCitaService, Cita } from "@/hooks/useCitaService"
 import { CitaModal } from "./cita-modal"
 import { DayView, WeekView, MonthView } from "./cita-vistas"
-import { DialogTitle } from "@radix-ui/react-dialog"
 import { CitaDetallesDialog } from "./cita-modal-det"
-
+import { es } from "date-fns/locale"
 
 
 export function CitasPage() {
@@ -27,8 +26,15 @@ export function CitasPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
 const handleSelectCita = (cita: Cita) => {
-  setSelectedCita(cita)
-  setIsDetailsOpen(true)
+  // Forzar reset antes de abrir el modal
+  setIsDetailsOpen(false)
+  setSelectedCita(null)
+
+  // Pequeño retraso para asegurar desmontaje del diálogo anterior
+  setTimeout(() => {
+    setSelectedCita({ ...cita }) 
+    setIsDetailsOpen(true)
+  }, 0)
 }
 
 const loadData = async () => {
@@ -83,13 +89,14 @@ useEffect(() => { loadData() }, [])
                         <Button><Plus className="h-4 w-4 mr-2" />Nueva Cita</Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
-                        <DialogTitle>Ingrese los datos de la nueva cita </DialogTitle>
+                      <DialogHeader>
+                      <DialogTitle>Crear nueva cita </DialogTitle>
+                      <DialogDescription>Ingrese los datos de la nueva cita </DialogDescription>
+                    </DialogHeader>
                         <CitaModal onClose={() => setIsAddDialogOpen(false)} />
                     </DialogContent>
                     </Dialog>
-
-                
-            </div>
+              </div>
             </div>
             </CardHeader>
             </Card>
@@ -104,6 +111,7 @@ useEffect(() => { loadData() }, [])
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
                 className="rounded-md border"
+                locale={es}
               />
             </CardContent>
           </Card>
@@ -123,14 +131,14 @@ useEffect(() => { loadData() }, [])
 
         </div>
         <CitaDetallesDialog
+            key={selectedCita?.id || "new"}
             open={isDetailsOpen}
             cita={selectedCita}
             onClose={() => setIsDetailsOpen(false)}
             onUpdate={loadData}
           />
         </div>
-          
-        </main>
+           </main>
       </div>
     </div>
   )
