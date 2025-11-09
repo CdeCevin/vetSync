@@ -118,7 +118,7 @@ export function UserManagementDashboard() {
             }}
             onConfirm={handleDeleteUser}
             onSuccess={fetchUsers}
-            userName={<>usuario <strong>{selectedUser?.nombre_completo}</strong></>}
+            userName={<>el usuario <strong>{selectedUser?.nombre_completo}</strong></>}
 
             
         />

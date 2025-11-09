@@ -36,13 +36,13 @@ export function DeleteConfirmModal({
       onSuccess() // Refresca la lista (ej. fetchUsers())
 
       // Muestra alerta de éxito
-      openAlert("Éxito", `El ${userName} ha sido eliminado.`, "success")
+      openAlert("Éxito", `${userName} se ha eliminado.`, "success")
       
       onClose() // Cierra este modal
 
     } catch (error: any) {
       // Muestra alerta de error
-      openAlert("Error", error.message || "No se pudo eliminar al usuario.", "error")
+      openAlert("Error", "Ha ocurrido un error al eliminar.", "error")
     } finally {
       setIsLoading(false) // Termina la carga
     }
@@ -57,7 +57,7 @@ export function DeleteConfirmModal({
   			<DialogTitle>Confirmar Eliminación</DialogTitle>
   		  </div>
   		  <DialogDescription>
-     			¿Estás seguro de que deseas eliminar al {userName || ""}? Esta acción no se puede
+     			¿Estás seguro de que deseas eliminar {userName || ""}? Esta acción no se puede
    			deshacer.
    		  </DialogDescription>
    		</DialogHeader>
@@ -74,7 +74,7 @@ export function DeleteConfirmModal({
         onClick={handleConfirm} // 8. Llamar a la nueva función
         disabled={isLoading}  // 7. Deshabilitar botones
       >
-        {isLoading ? "Eliminando..." : "Eliminar Usuario"} {/* 9. Texto de carga */}
+        {isLoading ? "Eliminando..." : "Eliminar"} {/* 9. Texto de carga */}
    		  </Button>
    		</div>
    	  </DialogContent>
