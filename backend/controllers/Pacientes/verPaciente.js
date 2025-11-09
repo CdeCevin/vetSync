@@ -4,7 +4,7 @@ const verPaciente = (req, res) => {
   const idClinica = req.clinicaId;
   const idPaciente = req.params.idPaciente;
 
-  console.log('Ver paciente - idClinica:', idClinica, 'idPaciente:', idPaciente);
+  //console.log('Ver paciente - idClinica:', idClinica, 'idPaciente:', idPaciente);
 
   // Consulta paciente + dueño
   const queryPacienteDueno = `
