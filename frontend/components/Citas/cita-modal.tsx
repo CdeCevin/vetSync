@@ -24,10 +24,13 @@ import {
 
 export function CitaModal({
   onClose,
-  citaInicial}: {
-  onClose: () => void
-  citaInicial?: { id_usuario?: number; fecha_cita?: string }
-}) {
+  citaInicial,
+  onSave
+  }: {
+    onClose: () => void
+    citaInicial?: { id_usuario?: number; fecha_cita?: string }
+    onSave?: () => void
+  }) {
   const { usuario} = useAuth()
   const { createCita } = useCitaService()
   const { getPacientes } = usePacienteService()
@@ -107,7 +110,11 @@ useEffect(() => {
         tipo_cita: form.tipo_cita,
         notas: form.notas,
       })
-      onClose()
+      
+      // Llamar al callback para recargar la grilla en el padre
+      if (onSave) await onSave()
+      
+      onClose() // cerrar el modal
       openAlert("Éxito", `La cita se ha creado exitosamente.`, "success")
     } catch (err) {
       console.error(err)

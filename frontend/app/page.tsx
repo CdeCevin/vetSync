@@ -169,17 +169,17 @@ export default function VetManagementHome() {
             <div className="flex items-center space-x-4">
               <h2 className="font-serif font-semibold text-lg capitalize">
                 {activeSection === "dashboard"
-                  ? "Panel Principal"
+                  ? `Panel Principal - ${usuario.nombre_clinica}`
                   : activeSection === "appointments"
-                  ? "Citas"
+                  ? `Citas - ${usuario.nombre_clinica}`
                   : activeSection === "patients"
-                  ? "Pacientes"
+                  ? `Pacientes - ${usuario.nombre_clinica}`
                   : activeSection === "inventory"
-                  ? "Inventario"
+                  ? `Inventario - ${usuario.nombre_clinica}`
                   : activeSection === "users"
-                  ? "Usuarios"
+                  ? `Usuarios - ${usuario.nombre_clinica}`
                   : activeSection === "owners"
-                  ? "Dueños"
+                  ? `Dueños - ${usuario.nombre_clinica}`
                   : activeSection}
               </h2>
             </div>
