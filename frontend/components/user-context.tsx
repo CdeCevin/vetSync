@@ -31,19 +31,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return storedUser ? JSON.parse(storedUser) : null
   })
 
-  // 🔹 Sincronizar token con localStorage
+  useEffect(() => {
+  if (usuario) {
+    document.body.classList.add("with-sidebar")
+  } else {
+    document.body.classList.remove("with-sidebar")
+  }
+}, [usuario])
+  
+  // Sincronizar token con localStorage
   useEffect(() => {
     if (token) localStorage.setItem("token", token)
     else localStorage.removeItem("token")
   }, [token])
 
-  // 🔹 Sincronizar usuario con localStorage
+  // Sincronizar usuario con localStorage
   useEffect(() => {
     if (usuario) localStorage.setItem("usuario", JSON.stringify(usuario))
     else localStorage.removeItem("usuario")
   }, [usuario])
 
-  // 🔹 Logout automático entre pestañas
+  // Logout automático entre pestañas
   useEffect(() => {
     const syncLogout = (event: StorageEvent) => {
       if (event.key === "token" && !event.newValue) {
@@ -67,7 +75,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.clear()
   }
 
-  // 🔹 Función fetch con manejo automático de errores y token
+  // Función fetch con manejo automático de errores y token
   const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     const headers = {
       "Content-Type": "application/json",
@@ -77,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const response = await fetch(url, { ...options, headers })
 
-    // 🛑 Detectar errores de autenticación o servidor
+    // Detectar errores de autenticación o servidor
     if (response.status === 401 || response.status === 403 || response.status >= 500) {
       console.warn("Token inválido o sesión expirada. Cerrando sesión automáticamente...")
       clearAuthInfo()
