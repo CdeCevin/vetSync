@@ -162,7 +162,7 @@ export function OwnerModal({
                 id="direccion"
                 value={formData.direccion}
                 onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-                required={!isEdit}
+                //required={!isEdit}
                 maxLength={60}
                 />
             </div>

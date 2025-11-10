@@ -42,7 +42,6 @@ export function PatientDashboard() {
   const [isLoadingList, setIsLoadingList] = useState(false)
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
-
    const fetchPacientes = useCallback(async (q = "") => {
   setIsLoadingList(true)
   try {
@@ -101,10 +100,10 @@ useEffect(() => {
     await deletePaciente(selectedPatient.mascota.id)
   }
 
-  // 👇 permisos por rol
+  // permisos por rol
   const puedeCRUD = usuario?.nombre_rol === "Recepcionista"
 
-   return (
+  return (
       <div className="p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -129,7 +128,7 @@ useEffect(() => {
             placeholder="Buscar pacientes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && fetchPacientes(searchTerm)}
+            //onKeyDown={(e) => e.key === "Enter" && fetchPacientes(searchTerm)}
             className="pl-10 border-gray/80"
               />
             </div>

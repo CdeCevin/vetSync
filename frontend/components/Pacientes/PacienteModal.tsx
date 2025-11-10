@@ -252,7 +252,7 @@ export function PacienteModal({
                 <div className="space-y-2">
                   
                   <Label htmlFor="nombre">Nombre</Label>
-                  <Input id="nombre" required value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
+                  <Input id="nombre" minLength={2} required value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="especie">Especie</Label>
@@ -263,22 +263,22 @@ export function PacienteModal({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="raza">Raza</Label>
-                  <Input id="raza" required value={formData.raza} onChange={(e) => setFormData({ ...formData, raza: e.target.value })} />
+                  <Input id="raza" value={formData.raza} onChange={(e) => setFormData({ ...formData, raza: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="color">Color</Label>
-                  <Input id="color" required value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} />
+                  <Input id="color" value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edad">Edad</Label>
-                  <Input id="edad" type="number" min={0} required value={formData.edad} onChange={(e) => setFormData({ ...formData, edad: Number(e.target.value) })} />
+                  <Input id="edad" type="number" min={0} value={formData.edad} onChange={(e) => setFormData({ ...formData, edad: Number(e.target.value) })} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="peso">Peso (kg)</Label>
-                  <Input id="peso" type="number" min={0} step={0.1} required value={formData.peso} onChange={(e) => setFormData({ ...formData, peso: Number(e.target.value) })} />
+                  <Input id="peso" type="number" min={0} step={0.1} value={formData.peso} onChange={(e) => setFormData({ ...formData, peso: Number(e.target.value) })} />
                 </div>
               </div>
 

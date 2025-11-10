@@ -42,6 +42,7 @@ export function UserManagementDashboard() {
     const matchesSearch =
       user.nombre_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.correo_electronico.toLowerCase().includes(searchTerm.toLowerCase())
+      
     const matchesRole =
       selectedRole === "all" || rolMap[user.id_rol] === selectedRole
     return matchesSearch && matchesRole

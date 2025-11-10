@@ -145,6 +145,7 @@ useEffect(() => {
           >
             <div className="relative mt-1">
               <ComboboxInput
+                required
                 className="input-like w-full"
                 onChange={(e) => setQueryPaciente(e.target.value)}
                 displayValue={(id: number) =>
@@ -185,6 +186,7 @@ useEffect(() => {
           >
             <div className="relative mt-1">
               <ComboboxInput
+                required
                 className="input-like w-full"
                 onChange={(e) => setQueryVet(e.target.value)}
                 displayValue={(id: number) =>
@@ -217,6 +219,7 @@ useEffect(() => {
         <div className="space-y-2">
           <Label>Fecha y hora</Label>
           <DatePicker
+            required
             selected={form.fecha_cita ? new Date(form.fecha_cita) : null}
             onChange={(date) => {
               if (date) handleChange("fecha_cita", date.toISOString())
@@ -245,7 +248,7 @@ useEffect(() => {
         <div className="space-y-2 md:col-span-2"><Label>Motivo</Label><Input minLength={10} onChange={e => handleChange("motivo", e.target.value)} /></div>
         <div className="space-y-2">
               <Label>Tipo de cita</Label>
-              <Select value={form.tipo_cita} onValueChange={(v) => handleChange("tipo_cita", v)}>
+              <Select required value={form.tipo_cita} onValueChange={(v) => handleChange("tipo_cita", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="consulta">Consulta</SelectItem>
