@@ -96,7 +96,6 @@ export function useCitaService() {
       return res.json()
     }
 
-<<<<<<< HEAD
     const patchEstadoCita = async (id: number, estado: Cita["estado"]) => {
   const res = await fetch(`${baseUrl}/${id}`, {
     method: "PATCH",
@@ -111,20 +110,5 @@ export function useCitaService() {
 }
 
 return { getCitas, createCita, updateCita, deleteCita, getStatsHoy, patchEstadoCita }
-=======
-    const upEstado = async (id: number, data: Partial<Cita>) => { 
-        const res = await fetch(`${baseUrl}/${id}`, {
-        method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json", 
-          "Authorization": `Bearer ${token}` 
-        },
-        body: JSON.stringify(data),
-      })
-      if (!res.ok) throw new Error("Error al cambiar el estado.")
-      return res.json()
-    }
-    return { getCitas, createCita, updateCita, deleteCita, getStatsHoy }
->>>>>>> 35d6128ea6534acaf9de100517e1116a90f5f59f
   
 }
