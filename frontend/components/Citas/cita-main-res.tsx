@@ -31,6 +31,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
+import { CaseUpper } from "lucide-react"
 
 // Colores por veterinario
 const VET_COLORS = [
@@ -352,8 +353,8 @@ export function CitasRecepcionistaPage() {
                           onClick={() => handleSelectCita(cita)}
                         >
                           <div className="p-2">
-                            <strong>{cita.tipo_cita}</strong>
-                            <p className="text-xs">{cita.motivo}</p>
+                            <strong>{(cita.tipo_cita).charAt(0).toUpperCase() + (cita.tipo_cita).slice(1)}</strong>
+                            <p className="text-xs">{(cita.motivo)}</p>
                             <p className="text-[10px] text-gray-600">
                               {format(parseCitaDate(cita.fecha_cita), "HH:mm")} -{" "}
                               {format(
