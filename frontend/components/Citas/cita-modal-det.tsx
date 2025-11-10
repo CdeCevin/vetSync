@@ -17,7 +17,6 @@ import { useAlertStore } from "@/hooks/use-alert-store"
 import { usePacienteService } from "@/hooks/usePacienteService"
 import { useUserService } from "@/hooks/useUsuarioService"
 
-// Headless UI Combobox
 import {
   Combobox,
   ComboboxInput,
@@ -121,7 +120,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg z-50">
         <DialogHeader>
           <DialogTitle>Detalles de la Cita</DialogTitle>
         </DialogHeader>
@@ -158,7 +157,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
           ) : (
               <div>
             <div className="grid gap-4 md:grid-cols-2">
-              {/* 🐾 Paciente */}
+              {/* Paciente */}
               <div className="space-y-2">
                 <Label>Paciente</Label>
                 <Combobox
@@ -196,7 +195,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
                 </Combobox>
               </div>
 
-              {/* 🩺 Veterinario */}
+              {/* Veterinario */}
               <div className="space-y-2">
                 <Label>Veterinario</Label>
                 <Combobox

@@ -1,8 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
@@ -17,7 +16,7 @@ export function OwnerTable({ owners, onEditOwner, onDeleteOwner }: OwnerTablePro
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Lista de Usuarios ({owners.length})</CardTitle>
+        <CardTitle>Lista de Dueños ({owners.length})</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

@@ -42,7 +42,6 @@ export function PatientDashboard() {
   const [isLoadingList, setIsLoadingList] = useState(false)
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
-
    const fetchPacientes = useCallback(async (q = "") => {
   setIsLoadingList(true)
   try {
@@ -101,10 +100,10 @@ useEffect(() => {
     await deletePaciente(selectedPatient.mascota.id)
   }
 
-  // 👇 permisos por rol
+  // permisos por rol
   const puedeCRUD = usuario?.nombre_rol === "Recepcionista"
 
-   return (
+  return (
       <div className="p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -129,7 +128,7 @@ useEffect(() => {
             placeholder="Buscar pacientes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && fetchPacientes(searchTerm)}
+            //onKeyDown={(e) => e.key === "Enter" && fetchPacientes(searchTerm)}
             className="pl-10 border-gray/80"
               />
             </div>
@@ -218,7 +217,7 @@ useEffect(() => {
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
         onSubmit={async (data) => {
-          // Si se está creando un nuevo dueño primero lo creamos
+          // Si se está creando un nuevo dueño primero se crea
           if (data.id_dueño === 0) {
             const newOwner = await createOwner({
               nombre: data.ownerNombre,
@@ -228,7 +227,7 @@ useEffect(() => {
             })
             data.id_dueño = newOwner.id
           }
-          return handleCreate(data) // crea paciente con dueño ya asignado
+          return handleCreate(data)
         }}
         onSuccess={fetchPacientes} 
         title="Añadir Nuevo Paciente"
@@ -284,7 +283,7 @@ function DetallesPaciente({
   puedeCRUD: boolean
 }) {
 
-  // Derivamos el tipo de historial desde el diagnOstico
+  // Se deriva el tipo de historial desde el diagnostico
   const getRecordType = (diagnostico: string): TipoHistorial => {
     const diag = diagnostico.toLowerCase()
     if (diag.includes("vacuna")) return "Vacunacion"

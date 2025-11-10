@@ -3,6 +3,10 @@ const mysql = require('mysql2');
 let pool;
 
 function crearPool() {
+  if (pool) {
+    return pool;
+  }
+
   pool = mysql.createPool({
     host: 'www.teillier.cl',
     user: 'teillier_vetsync',
@@ -12,33 +16,25 @@ function crearPool() {
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    enableKeepAlive: true,
-    dateStrings: true,
-    keepAliveInitialDelay: 0
+    enableKeepAlive: true,      
+    keepAliveInitialDelay: 0,   
+    dateStrings: true
   });
 
-  // Escuchar errores del pool
   pool.on('error', (err) => {
-    console.error('MySQL Pool error:', err);
-    if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
-      console.log('Reconectando pool...');
-      // Recrear pool para intentar reconexión
-      crearPool();
-    } else {
-      throw err;
-    }
+    console.error('Error inesperado en el Pool de MySQL:', err.code, err.message);
   });
 
-  // Ping cada 30 seg para mantener vivo el pool
+  // Ping a la base de datos cada 30 segundos para mantener la conexión activa
   setInterval(() => {
     pool.query('SELECT 1', (err) => {
       if (err) {
-        console.error('Error en ping DB:', err);
-      } else {       
+        console.error('Error en el heartbeat de la DB:', err.message);
       }
     });
-  }, 30000);
+  }, 30000); 
 
+  console.log("Pool de MySQL creado y listo (con heartbeat activo).");
   return pool;
 }
 

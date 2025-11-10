@@ -6,9 +6,6 @@ import { DeleteConfirmModal } from "../modals/delete-confirm-modal"
 import { UserTable } from "./user-table"
 import { UserModal } from "./user-modal"
 import { useUserService, User } from "@/hooks/useUsuarioService"
-import { Contrail_One } from 'next/font/google';
-
-
 
 // Función para mapear id_rol a rol en texto para frontend
 const rolMap: Record<number, string> = {
@@ -37,11 +34,12 @@ export function UserManagementDashboard() {
     fetchUsers()
   }, [])
 
-  // Filtro adaptado para propiedades reales
+  // Filtro 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.nombre_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.correo_electronico.toLowerCase().includes(searchTerm.toLowerCase())
+      
     const matchesRole =
       selectedRole === "all" || rolMap[user.id_rol] === selectedRole
     return matchesSearch && matchesRole
@@ -118,9 +116,7 @@ export function UserManagementDashboard() {
             }}
             onConfirm={handleDeleteUser}
             onSuccess={fetchUsers}
-            userName={<>el usuario <strong>{selectedUser?.nombre_completo}</strong></>}
-
-            
+            userName={<>el usuario <strong>{selectedUser?.nombre_completo}</strong></>}          
         />
         </main>
       </div>

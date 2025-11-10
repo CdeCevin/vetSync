@@ -1,16 +1,16 @@
 "use client"
 
-import { useState } from "react" // 1. Importar useState
+import { useState } from "react" 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle } from "lucide-react"
-import { useAlertStore } from "@/hooks/use-alert-store" // 2. Importar el store de alerta
+import { useAlertStore } from "@/hooks/use-alert-store"
 
 interface DeleteConfirmModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: () => Promise<any> // 3. onConfirm ahora es una promesa
-   onSuccess: () => void       // 4. Añadir onSuccess (para refrescar la lista)
+  onConfirm: () => Promise<any>
+   onSuccess: () => void       
    userName?: React.ReactNode
 }
 
@@ -18,33 +18,27 @@ export function DeleteConfirmModal({
   isOpen, 
   onClose, 
   onConfirm, 
-  onSuccess, // Recibir prop
+  onSuccess, 
   userName 
 }: DeleteConfirmModalProps) {
 
-  // 5. Añadir estado de carga y el hook de alerta
+  
   const [isLoading, setIsLoading] = useState(false)
   const { onOpen: openAlert } = useAlertStore()
 
-  // 6. Crear el manejador de confirmación
+  
   const handleConfirm = async () => {
     try {
-      setIsLoading(true) // Inicia la carga
-
-      await onConfirm() // Llama a la API de borrado
-
-      onSuccess() // Refresca la lista (ej. fetchUsers())
-
-      // Muestra alerta de éxito
+      setIsLoading(true) 
+      await onConfirm() 
+      onSuccess() 
       openAlert("Éxito", `${userName} se ha eliminado.`, "success")
-      
-      onClose() // Cierra este modal
+      onClose()
 
     } catch (error: any) {
-      // Muestra alerta de error
       openAlert("Error", "Ha ocurrido un error al eliminar.", "error")
     } finally {
-      setIsLoading(false) // Termina la carga
+      setIsLoading(false)
     }
   }
 
@@ -65,16 +59,16 @@ export function DeleteConfirmModal({
    		  <Button 
         variant="outline" 
         onClick={onClose}
-        disabled={isLoading} // 7. Deshabilitar botones
+        disabled={isLoading}
       >
    			Cancelar
    		  </Button>
    		  <Button 
         variant="destructive" 
-        onClick={handleConfirm} // 8. Llamar a la nueva función
-        disabled={isLoading}  // 7. Deshabilitar botones
+        onClick={handleConfirm}
+        disabled={isLoading}
       >
-        {isLoading ? "Eliminando..." : "Eliminar"} {/* 9. Texto de carga */}
+        {isLoading ? "Eliminando..." : "Eliminar"}
    		  </Button>
    		</div>
    	  </DialogContent>

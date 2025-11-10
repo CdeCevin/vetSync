@@ -23,7 +23,7 @@ interface MonthViewProps {
   onSelect?: (cita: Cita) => void
 }
 
-// --- DAY VIEW ---
+// Vista diaria
 export function DayView({ citas, onSelect }: DayViewProps) {
   const citasOrdenadas = [...citas].sort(
     (a, b) => new Date(a.fecha_cita).getTime() - new Date(b.fecha_cita).getTime()
@@ -44,7 +44,7 @@ export function DayView({ citas, onSelect }: DayViewProps) {
   )
 }
 
-// --- WEEK VIEW ---
+// Vista semanal
 export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
   const inicioSemana = startOfWeek(selectedDate, { weekStartsOn: 1 })
   const finSemana = endOfWeek(selectedDate, { weekStartsOn: 1 })
@@ -88,7 +88,7 @@ export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
   )
 }
 
-// --- MONTH VIEW ---
+// Vista mensual
 export function MonthView({ citas, selectedDate, onSelect }: MonthViewProps) {
   const mesActual = selectedDate.getMonth()
   const añoActual = selectedDate.getFullYear()

@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { PatientDashboard  } from "@/components/Pacientes/patient-dashboard"
-//import { AppointmentScheduling } from "@/components/appointment-scheduling"
 import { InventoryManagement } from "@/components/inventory-management"
 import { BillingModule } from "../components/billing-module"
 import { UserManagementDashboard } from "../components/Usuarios/user-dashboard"
@@ -39,6 +38,17 @@ export default function VetManagementHome() {
     setHydrated(true)
   }, [])
   // Hook para verificar la sesión al cargar el componente
+
+  const handleSignOut = () => {
+    clearAuthInfo()
+    setUserRole(null)
+    setActiveSection("dashboard")
+    setEmail("")
+    setPassword("")
+    setLoginError(null)
+    localStorage.clear();
+  }
+
   useEffect(() => {
     if (usuario) {
       setUserName(usuario.nombre_completo)
@@ -49,6 +59,7 @@ export default function VetManagementHome() {
         default: setUserRole(null)
       }
     } else {
+      handleSignOut
       setUserRole(null)
       setUserName("")
     }
@@ -82,17 +93,6 @@ export default function VetManagementHome() {
     } catch (error) {
       setLoginError("Error de conexión con el servidor")
     }
-  }
-
-  // Función de logout mejorada
-  const handleSignOut = () => {
-    clearAuthInfo()
-    setUserRole(null)
-    setActiveSection("dashboard")
-    setEmail("")
-    setPassword("")
-    setLoginError(null)
-    localStorage.clear();
   }
 
   if (!hydrated) {
@@ -163,7 +163,6 @@ export default function VetManagementHome() {
       <SidebarNav userRole={userRole!} activeSection={activeSection} onSectionChange={setActiveSection} />
 
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Header */}
         <div className="border-b bg-card">
           <div className="flex h-16 items-center px-6">
             <div className="flex items-center space-x-4">
@@ -193,8 +192,7 @@ export default function VetManagementHome() {
             </div>
           </div>
         </div>
-
-        {/* Main Content */}
+       
         <main className="flex-1 min-h-0 p-6">
           {activeSection === "dashboard" && userRole && <DashboardOverview userRole={userRole} />}
 
