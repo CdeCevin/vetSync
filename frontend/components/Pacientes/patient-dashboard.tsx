@@ -217,7 +217,7 @@ useEffect(() => {
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
         onSubmit={async (data) => {
-          // Si se está creando un nuevo dueño primero lo creamos
+          // Si se está creando un nuevo dueño primero se crea
           if (data.id_dueño === 0) {
             const newOwner = await createOwner({
               nombre: data.ownerNombre,
@@ -227,7 +227,7 @@ useEffect(() => {
             })
             data.id_dueño = newOwner.id
           }
-          return handleCreate(data) // crea paciente con dueño ya asignado
+          return handleCreate(data)
         }}
         onSuccess={fetchPacientes} 
         title="Añadir Nuevo Paciente"
@@ -283,7 +283,7 @@ function DetallesPaciente({
   puedeCRUD: boolean
 }) {
 
-  // Derivamos el tipo de historial desde el diagnOstico
+  // Se deriva el tipo de historial desde el diagnostico
   const getRecordType = (diagnostico: string): TipoHistorial => {
     const diag = diagnostico.toLowerCase()
     if (diag.includes("vacuna")) return "Vacunacion"

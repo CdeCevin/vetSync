@@ -79,7 +79,7 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
   const filteredItems = navigationItems.filter((item) => item.roles.includes(userRole))
 
   return (
-    <aside className="h-screen sticky top-0 w-64 flex flex-col bg-card border-r">
+    <aside className="h-screen sticky fixed top-0 w-64 flex flex-col bg-card border-r">
       <div className="p-6">
         <img src="/LOGO_T.png" alt="VetSync Logo" className="h-10 w-auto" />
         <p className="text-sm text-muted-foreground mt-1">Gestión veterinaria profesional</p>

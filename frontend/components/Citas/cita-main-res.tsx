@@ -50,7 +50,7 @@ const ESTADO_COLOR: Record<Cita["estado"], string> = {
   no_asistio: "border-gray-400",
 }
 
-// Parsear fecha directamente (ya viene local)
+// Parsear fecha
 function parseCitaDate(dateStr: string): Date {
   return dateStr ? new Date(dateStr) : new Date()
 }
@@ -324,7 +324,7 @@ export function CitasRecepcionistaPage() {
                   </td>
 
                   {veterinariosToShow.map((v, idx) => {
-                    // Si este veterinario está ocupado hasta cierta hora, y todavía no pasó, no renderizamos nada (la celda ya está “rowSpaneada”)
+                    // Si este veterinario está ocupado hasta cierta hora, y todavía no pasó, no se renderiza nada (la celda usa rowSpan)
                     if (ocupados[v.id] && hora < ocupados[v.id]!) {
                       return null
                     }
@@ -341,7 +341,7 @@ export function CitasRecepcionistaPage() {
 
                     if (cita) {
                       const rowsToSpan = Math.ceil(cita.duracion_minutos / 15)
-                      // Marcamos que este veterinario estará ocupado hasta esta hora
+                      // Marcar que este veterinario estará ocupado hasta esta hora
                       ocupados[v.id] = addMinutes(parseCitaDate(cita.fecha_cita), cita.duracion_minutos)
 
                       return (

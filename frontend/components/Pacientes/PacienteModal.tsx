@@ -9,7 +9,7 @@ import { useAlertStore } from "@/hooks/use-alert-store"
 import { Loader2 } from "lucide-react"
 import { usePacienteService } from "@/hooks/usePacienteService"
 import { Dueño } from "@/hooks/usePacienteService"
-import { useAuth } from "@/components/user-context"  // ajusta esta línea según tu estructura real
+import { useAuth } from "@/components/user-context" 
 import { Combobox,ComboboxInput, ComboboxOption , ComboboxOptions } from "@headlessui/react"
 interface Mascota {
   id: number
@@ -121,7 +121,7 @@ export function PacienteModal({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Validación básica de campos (ej. 'required' de HTML)
+    // Validación forzada de campos incorrectos de HTML
     if (!formRef.current?.checkValidity()) {
       formRef.current?.reportValidity()
       return
@@ -164,20 +164,20 @@ export function PacienteModal({
           openAlert("Éxito", "Dueño actualizado", "success")
         }
 
-        // Al terminar, volvemos al formulario de Paciente
+        // Al terminar de crear/editar un dueño volver al formulario de Paciente
         setIsOwnerEdit(false)
         setIsCreatingOwner(false)
         setIsLoading(false) 
         return 
       }
-      // *** VALIDACIÓN MANUAL para el placeholder -1 ***
+      // VALIDACIÓN MANUAL para el placeholder -1
       if (formData.id_dueño < 1) { 
         openAlert("Error", "Debes seleccionar un dueño válido.", "error")
         setIsLoading(false) 
         return 
       }
 
-      // Lógica para CREAR/ACTUALIZAR PACIENTE
+      // Lógica para crear/actualizar paciente
       await onSubmit(formData)
       await onSuccess()
       
@@ -220,8 +220,8 @@ export function PacienteModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={isOpen} onOpenChange={onClose} >
+      <DialogContent className="sm:max-w-[600px] z-50">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

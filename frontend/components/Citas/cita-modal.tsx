@@ -225,10 +225,10 @@ useEffect(() => {
               if (date) handleChange("fecha_cita", date.toISOString())
             }}
             showTimeSelect
-            timeIntervals={15} // 🔹 Intervalos de 15 minutos
+            timeIntervals={15} //Intervalos de 15 minutos
             timeCaption="Hora"
             dateFormat="yyyy-MM-dd HH:mm"
-            minDate={new Date()} // 🔹 No permite fechas pasadas
+            minDate={new Date()} //No permite fechas pasadas
             className="input-like w-full"
             placeholderText="Seleccionar fecha y hora..."
           />

@@ -24,7 +24,7 @@ interface MonthViewProps {
   onSelect?: (cita: Cita) => void
 }
 
-// --- DAY VIEW ---
+// Vista diaria
 export function DayView({ citas, onSelect }: DayViewProps) {
   return (
     <div className="space-y-3">
@@ -47,7 +47,7 @@ export function DayView({ citas, onSelect }: DayViewProps) {
   )
 }
 
-// --- WEEK VIEW ---
+// Vista semanal
 export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
   const inicioSemana = startOfWeek(selectedDate, { weekStartsOn: 1 })
   const finSemana = endOfWeek(selectedDate, { weekStartsOn: 1 })
@@ -88,7 +88,7 @@ export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
   )
 }
 
-// --- MONTH VIEW ---
+// Vista mensual
 export function MonthView({ citas, selectedDate, onSelect }: MonthViewProps) {
   const mes = format(selectedDate, "MMMM yyyy", { locale: es })
   const citasPorDia: Record<string, Cita[]> = {}

@@ -10,7 +10,7 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-montserrat",
-  weight: ["400", "600", "700", "900"], // Including Black weight for headlines
+  weight: ["400", "600", "700", "900"],
 })
 
 const openSans = Open_Sans({

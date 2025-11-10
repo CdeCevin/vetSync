@@ -30,7 +30,7 @@ const handleSelectCita = (cita: Cita) => {
   setIsDetailsOpen(false)
   setSelectedCita(null)
 
-  // Pequeño retraso para asegurar desmontaje del diálogo anterior
+  // Pequeño retraso para asegurar desmontaje del modal anterior
   setTimeout(() => {
     setSelectedCita({ ...cita }) 
     setIsDetailsOpen(true)

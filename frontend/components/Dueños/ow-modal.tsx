@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAlertStore } from "@/hooks/use-alert-store"
 
 interface Dueño {
@@ -73,9 +72,8 @@ export function OwnerModal({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (formRef.current && !formRef.current.checkValidity()) {
-      // Si no es válido, checkValidity() FORZARÁ que aparezca el
-      // mensaje nativo del navegador en el campo incorrecto.
-      // Detenemos la función aquí.
+      // Si un campo no es válido, checkValidity() obliga a que aparezca el
+      // mensaje nativo del navegador en el campo incorrecto
       return
     }
     try {
@@ -91,7 +89,7 @@ export function OwnerModal({
       const successMessage = isEdit ? "Usuario actualizado" : "Usuario creado"  
       openAlert("¡Éxito!", `${successMessage} correctamente.`, "success")
     
-    // En edición, si contraseña está vacía no la mandes para no actualizarla
+    // En edición, si contraseña está vacía no se envia para no actualizarla
     if (!isEdit) {
       setFormData({
         id: 2,
@@ -103,12 +101,8 @@ export function OwnerModal({
     }
     onClose()
     } catch (error: any) {
-      // 10. Si 'onSubmit' lanzó un error:
-      // Muestra el modal de error
       openAlert("Error", error.message || "Ocurrió un error inesperado.", "error")
     } finally {
-      // 11. Se ejecuta siempre (después de 'try' o 'catch')
-      // Desactiva el estado de "cargando"
      setIsLoading(false) 
      }
     
