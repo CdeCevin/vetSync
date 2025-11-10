@@ -265,7 +265,7 @@ export function CitasRecepcionistaPage() {
                   + Nueva Cita
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
                 <DialogHeader>
                   <DialogTitle>Crear nueva cita</DialogTitle>
                   <DialogDescription>

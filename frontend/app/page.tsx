@@ -162,7 +162,7 @@ export default function VetManagementHome() {
     <div className="min-h-screen h-full bg-background flex">
       <SidebarNav userRole={userRole!} activeSection={activeSection} onSectionChange={setActiveSection} />
 
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 ">
         <div className="border-b bg-card">
           <div className="flex h-16 items-center px-6">
             <div className="flex items-center space-x-4">

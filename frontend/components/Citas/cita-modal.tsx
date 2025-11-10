@@ -54,6 +54,7 @@ export function CitaModal({
 
   const [queryPaciente, setQueryPaciente] = useState("")
   const [queryVet, setQueryVet] = useState("")
+  
 
   // 🔹 Cargar pacientes, veterinarios y dueños
   useEffect(() => {
@@ -145,7 +146,6 @@ useEffect(() => {
           >
             <div className="relative mt-1">
               <ComboboxInput
-                required
                 className="input-like w-full"
                 onChange={(e) => setQueryPaciente(e.target.value)}
                 displayValue={(id: number) =>
@@ -186,7 +186,6 @@ useEffect(() => {
           >
             <div className="relative mt-1">
               <ComboboxInput
-                required
                 className="input-like w-full"
                 onChange={(e) => setQueryVet(e.target.value)}
                 displayValue={(id: number) =>
@@ -219,16 +218,15 @@ useEffect(() => {
         <div className="space-y-2">
           <Label>Fecha y hora</Label>
           <DatePicker
-            required
             selected={form.fecha_cita ? new Date(form.fecha_cita) : null}
             onChange={(date) => {
               if (date) handleChange("fecha_cita", date.toISOString())
             }}
             showTimeSelect
-            timeIntervals={15} //Intervalos de 15 minutos
+            timeIntervals={15} // 🔹 Intervalos de 15 minutos
             timeCaption="Hora"
             dateFormat="yyyy-MM-dd HH:mm"
-            minDate={new Date()} //No permite fechas pasadas
+            minDate={new Date()} // 🔹 No permite fechas pasadas
             className="input-like w-full"
             placeholderText="Seleccionar fecha y hora..."
           />
@@ -248,7 +246,7 @@ useEffect(() => {
         <div className="space-y-2 md:col-span-2"><Label>Motivo</Label><Input minLength={10} onChange={e => handleChange("motivo", e.target.value)} /></div>
         <div className="space-y-2">
               <Label>Tipo de cita</Label>
-              <Select required value={form.tipo_cita} onValueChange={(v) => handleChange("tipo_cita", v)}>
+              <Select value={form.tipo_cita} onValueChange={(v) => handleChange("tipo_cita", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="consulta">Consulta</SelectItem>

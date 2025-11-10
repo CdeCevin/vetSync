@@ -138,3 +138,15 @@
     md:text-sm;
 }
 
+body {
+  padding-left: 16rem; /* igual al ancho del sidebar */
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body[data-scroll-locked] {
+  padding-left: 16rem !important;
+}
+

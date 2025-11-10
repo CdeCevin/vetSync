@@ -54,7 +54,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
   const [form, setForm] = useState<Cita | null>(cita)
   const [loading, setLoading] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-
+  
   // Cargar pacientes y veterinarios al abrir el modal
   useEffect(() => {
     const loadData = async () => {
@@ -120,7 +120,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg z-50">
+      <DialogContent className="max-w-lg fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
         <DialogHeader>
           <DialogTitle>Detalles de la Cita</DialogTitle>
         </DialogHeader>

@@ -30,7 +30,7 @@ const handleSelectCita = (cita: Cita) => {
   setIsDetailsOpen(false)
   setSelectedCita(null)
 
-  // Pequeño retraso para asegurar desmontaje del modal anterior
+  // Pequeño retraso para asegurar desmontaje del diálogo anterior
   setTimeout(() => {
     setSelectedCita({ ...cita }) 
     setIsDetailsOpen(true)
@@ -85,10 +85,11 @@ useEffect(() => { loadData() }, [])
             </div>
             <div className="flex items-center space-x-4">
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+
                     <DialogTrigger asChild>
                         <Button><Plus className="h-4 w-4 mr-2" />Nueva Cita</Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-2xl fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
                       <DialogHeader>
                       <DialogTitle>Crear nueva cita </DialogTitle>
                       <DialogDescription>Ingrese los datos de la nueva cita </DialogDescription>
