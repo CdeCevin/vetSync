@@ -1,4 +1,3 @@
-// cita-vistas.tsx
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,22 +25,20 @@ interface MonthViewProps {
 
 // --- DAY VIEW ---
 export function DayView({ citas, onSelect }: DayViewProps) {
+  const citasOrdenadas = [...citas].sort(
+    (a, b) => new Date(a.fecha_cita).getTime() - new Date(b.fecha_cita).getTime()
+  )
+
   return (
     <div className="space-y-3">
-      {citas.length === 0 ? (
+      {citasOrdenadas.length === 0 ? (
         <p className="text-muted-foreground text-center py-6">
           No hay citas para este día.
         </p>
       ) : (
-        citas
-          .sort((a, b) => new Date(a.fecha_cita).getTime() - new Date(b.fecha_cita).getTime())
-          .map((cita) => (
-            <CitaCard
-              key={cita.id}
-              cita={cita}
-              onSelect={() => onSelect?.(cita)} 
-            />
-          ))
+        citasOrdenadas.map((cita) => (
+          <CitaCard key={cita.id} cita={cita} onSelect={() => onSelect?.(cita)} />
+        ))
       )}
     </div>
   )
@@ -53,10 +50,19 @@ export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
   const finSemana = endOfWeek(selectedDate, { weekStartsOn: 1 })
   const diasSemana = eachDayOfInterval({ start: inicioSemana, end: finSemana })
 
+  // 🔹 Filtrar citas solo dentro del rango de la semana seleccionada
+  const citasSemana = citas.filter((c) => {
+    const fecha = new Date(c.fecha_cita)
+    return fecha >= inicioSemana && fecha <= finSemana
+  })
+
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
       {diasSemana.map((dia) => {
-        const citasDia = citas.filter((c) => isSameDay(new Date(c.fecha_cita), dia))
+        const citasDia = citasSemana
+          .filter((c) => isSameDay(new Date(c.fecha_cita), dia))
+          .sort((a, b) => new Date(a.fecha_cita).getTime() - new Date(b.fecha_cita).getTime())
+
         return (
           <Card key={dia.toISOString()}>
             <CardHeader>
@@ -66,17 +72,11 @@ export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
             </CardHeader>
             <CardContent>
               {citasDia.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center">
-                  Sin citas
-                </p>
+                <p className="text-sm text-muted-foreground text-center">Sin citas</p>
               ) : (
                 <div className="space-y-2">
                   {citasDia.map((cita) => (
-                    <CitaCard
-                      key={cita.id}
-                      cita={cita}
-                     onSelect={() => onSelect?.(cita)} 
-                    />
+                    <CitaCard key={cita.id} cita={cita} onSelect={() => onSelect?.(cita)} />
                   ))}
                 </div>
               )}
@@ -90,15 +90,28 @@ export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
 
 // --- MONTH VIEW ---
 export function MonthView({ citas, selectedDate, onSelect }: MonthViewProps) {
+  const mesActual = selectedDate.getMonth()
+  const añoActual = selectedDate.getFullYear()
+
+  // 🔹 Filtrar solo citas del mes/año seleccionados
+  const citasFiltradas = citas.filter((cita) => {
+    const fecha = new Date(cita.fecha_cita)
+    return (
+      fecha.getMonth() === mesActual &&
+      fecha.getFullYear() === añoActual
+    )
+  })
+
   const mes = format(selectedDate, "MMMM yyyy", { locale: es })
   const citasPorDia: Record<string, Cita[]> = {}
 
-  citas.forEach((cita) => {
+  citasFiltradas.forEach((cita) => {
     const dia = format(new Date(cita.fecha_cita), "yyyy-MM-dd")
     if (!citasPorDia[dia]) citasPorDia[dia] = []
     citasPorDia[dia].push(cita)
   })
 
+  // 🔹 Ordenar días y citas dentro de cada día
   const diasOrdenados = Object.keys(citasPorDia).sort(
     (a, b) => new Date(a).getTime() - new Date(b).getTime()
   )
@@ -112,22 +125,24 @@ export function MonthView({ citas, selectedDate, onSelect }: MonthViewProps) {
         </p>
       ) : (
         <div className="space-y-4">
-          {diasOrdenados.map((dia) => (
-            <div key={dia} className="border rounded-lg p-4">
-              <h3 className="font-medium mb-3 text-lg">
-                {format(new Date(dia), "EEEE d 'de' MMMM", { locale: es })}
-              </h3>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {citasPorDia[dia].map((cita) => (
-                  <CitaCard
-                    key={cita.id}
-                    cita={cita}
-                    onSelect={() => onSelect?.(cita)} 
-                  />
-                ))}
+          {diasOrdenados.map((dia) => {
+            const citasOrdenadas = citasPorDia[dia].sort(
+              (a, b) => new Date(a.fecha_cita).getTime() - new Date(b.fecha_cita).getTime()
+            )
+
+            return (
+              <div key={dia} className="border rounded-lg p-4">
+                <h3 className="font-medium mb-3 text-lg">
+                  {format(new Date(dia), "EEEE d 'de' MMMM", { locale: es })}
+                </h3>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {citasOrdenadas.map((cita) => (
+                    <CitaCard key={cita.id} cita={cita} onSelect={() => onSelect?.(cita)} />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

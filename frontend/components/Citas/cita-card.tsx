@@ -8,10 +8,14 @@ import { es } from "date-fns/locale"
 import { Cita } from "@/hooks/useCitaService"
 import { usePacienteService } from "@/hooks/usePacienteService"
 import { useUserService } from "@/hooks/useUsuarioService"
+import { useCitaService } from "@/hooks/useCitaService"
+import { useAlertStore } from "@/hooks/use-alert-store"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 
 interface CitaCardProps {
   cita: Cita
   onSelect?: (cita: Cita) => void
+  onEstadoChange?: () => void
 }
 
 const ESTADOS_COLORES: Record<Cita["estado"], string> = {
@@ -22,23 +26,22 @@ const ESTADOS_COLORES: Record<Cita["estado"], string> = {
   no_asistio: "bg-gray-200 text-gray-700",
 }
 
-export function CitaCard({ cita, onSelect }: CitaCardProps) {
+export function CitaCard({ cita, onSelect, onEstadoChange }: CitaCardProps) {
   const { getPacientes } = usePacienteService()
   const { getUsers } = useUserService()
+  const { patchEstadoCita } = useCitaService()
+  const { onOpen: openAlert } = useAlertStore()
 
   const [pacienteNombre, setPacienteNombre] = useState("Cargando...")
   const [veterinarioNombre, setVeterinarioNombre] = useState("Cargando...")
+  const [estado, setEstado] = useState<Cita["estado"]>(cita.estado)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Obtener listas
         const [pacientes, usuarios] = await Promise.all([getPacientes(""), getUsers()])
-
-        // Buscar nombres
         const paciente = pacientes.find((p: any) => p.id === cita.id_paciente)
         const vet = usuarios.find((u: any) => u.id === cita.id_usuario)
-
         setPacienteNombre(paciente ? paciente.nombre : "Desconocido")
         setVeterinarioNombre(vet ? vet.nombre_completo : "Desconocido")
       } catch (err) {
@@ -48,18 +51,47 @@ export function CitaCard({ cita, onSelect }: CitaCardProps) {
     fetchData()
   }, [cita.id_paciente, cita.id_usuario])
 
+  const handleEstadoChange = async (nuevoEstado: Cita["estado"]) => {
+    try {
+      setEstado(nuevoEstado)
+      await patchEstadoCita(cita.id, nuevoEstado)
+      openAlert("Éxito", `Estado actualizado a "${nuevoEstado}".`, "success")
+      if (onEstadoChange) onEstadoChange()
+    } catch (err) {
+      console.error(err)
+      openAlert("Error", "No se pudo actualizar el estado de la cita.", "error")
+    }
+  }
+
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-shadow duration-150"
+      className="hover:shadow-md transition-shadow duration-150"
       onClick={() => onSelect && onSelect(cita)}
     >
       <CardHeader className="flex justify-between items-center">
         <CardTitle className="text-sm">
           {format(new Date(cita.fecha_cita), "HH:mm", { locale: es })}
         </CardTitle>
-        <Badge className={ESTADOS_COLORES[cita.estado]}>
-          {cita.estado}
-        </Badge>
+
+        {/* 🔹 Select de estado */}
+        <Select
+          value={estado}
+          onValueChange={handleEstadoChange}
+        >
+          <SelectTrigger
+            className={`w-[150px] ${ESTADOS_COLORES[estado]}`}
+            onClick={(e) => e.stopPropagation()} // 👈 mover aquí
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="programada">Programada</SelectItem>
+            <SelectItem value="en_progreso">En progreso</SelectItem>
+            <SelectItem value="completada">Completada</SelectItem>
+            <SelectItem value="cancelada">Cancelada</SelectItem>
+            <SelectItem value="no_asistio">No asistió</SelectItem>
+          </SelectContent>
+        </Select>
       </CardHeader>
 
       <CardContent className="text-sm space-y-1">
