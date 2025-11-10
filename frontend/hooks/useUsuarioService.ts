@@ -1,6 +1,6 @@
 // services/userService.ts
 import { ROUTES } from "@/apiRoutes"
-import { useAuth } from "@/components/user-context" // ajusta la ruta según tu estructura
+import { useAuth } from "@/components/user-context"
 
 export interface User {
   id: number
@@ -10,28 +10,23 @@ export interface User {
   contraseña?: string
 }
 
-// Hook de servicio que usa el contexto
 export function useUserService() {
-  const { usuario, token } = useAuth()
+  const { usuario, token, fetchWithAuth } = useAuth()
   const idClinica = usuario?.id_clinica
 
-  // 🟢 Obtener todos los usuarios
+  if (!idClinica || !token) throw new Error("Faltan credenciales o clínica.")
+
+  // Obtener todos los usuarios
   const getUsers = async (): Promise<User[]> => {
-    if (!idClinica || !token) throw new Error("Faltan credenciales o clínica.")
-    const res = await fetch(`${ROUTES.base}/${idClinica}/usuarios`, {
+    const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/usuarios`, {
       cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
     })
     if (!res.ok) throw new Error("Error al obtener los usuarios.")
     return res.json()
   }
-  
-  // 🟢 Crear usuario
+
+  // Crear usuario
   const createUser = async (userData: Partial<User>): Promise<User> => {
-    if (!idClinica || !token) throw new Error("Faltan credenciales o clínica.")
     const body = {
       nombre_completo: userData.nombre_completo,
       correo_electronico: userData.correo_electronico,
@@ -39,12 +34,8 @@ export function useUserService() {
       contraseña: userData.contraseña,
     }
 
-    const res = await fetch(`${ROUTES.base}/${idClinica}/usuarios/`, {
+    const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/usuarios/`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
       body: JSON.stringify(body),
     })
 
@@ -56,15 +47,10 @@ export function useUserService() {
     return res.json()
   }
 
-  // 🟢 Actualizar usuario
+  // Actualizar usuario
   const updateUser = async (userData: Partial<User>): Promise<User> => {
-    if (!idClinica || !token) throw new Error("Faltan credenciales o clínica.")
-    const res = await fetch(`${ROUTES.base}/${idClinica}/usuarios/${userData.id}`, {
+    const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/usuarios/${userData.id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
       body: JSON.stringify(userData),
     })
 
@@ -76,12 +62,10 @@ export function useUserService() {
     return res.json()
   }
 
-  // 🟢 Eliminar usuario
+  // Eliminar usuario
   const deleteUser = async (userId: number): Promise<any> => {
-    if (!idClinica || !token) throw new Error("Faltan credenciales o clínica.")
-    const res = await fetch(`${ROUTES.base}/${idClinica}/usuarios/${userId}`, {
+    const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/usuarios/${userId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) {
       const errorData = await res.json()

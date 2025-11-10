@@ -1,6 +1,6 @@
-// services/userService.ts
+// services/userService.ts 
 import { ROUTES } from "@/apiRoutes"
-import { useAuth } from "@/components/user-context" // ajusta la ruta según tu estructura
+import { useAuth } from "@/components/user-context"
 
 export interface Dueño {
   id: number
@@ -10,55 +10,45 @@ export interface Dueño {
   direccion?: string
 }
 
-// Hook de servicio que usa el contexto
 export function useDueñoService() {
-  const { usuario, token } = useAuth()
+  const { usuario, fetchWithAuth } = useAuth()
   const idClinica = usuario?.id_clinica
 
+  // Crear dueño
   const createOwner = async (data: Partial<Dueño>) => {
-    const res = await fetch(`${ROUTES.base}/${idClinica}/duenos`, {
+    if (!idClinica) throw new Error("Falta ID de clínica.")
+    const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/duenos`, {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json", 
-        "Authorization": `Bearer ${token}` 
-      },
       body: JSON.stringify(data),
     })
     if (!res.ok) throw new Error("No se pudo crear dueño")
     return res.json()
   }
 
-  // ✅ Actualizar dueño
+  // Actualizar dueño
   const updateOwner = async (data: Partial<Dueño>) => {
-    const res = await fetch(`${ROUTES.base}/${idClinica}/duenos/${data.id}`, {
+    if (!idClinica || !data.id) throw new Error("Datos insuficientes para actualizar dueño.")
+    const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/duenos/${data.id}`, {
       method: "PUT",
-      headers: { 
-        "Content-Type": "application/json", 
-        "Authorization": `Bearer ${token}` 
-      },
       body: JSON.stringify(data),
     })
     if (!res.ok) throw new Error("No se pudo actualizar dueño")
     return res.json()
   }
 
+  // Get todos los dueños
   const getOwners = async () => {
-      if (!idClinica || !token) throw new Error("Faltan credenciales.")
-      const res = await fetch(`${ROUTES.base}/${idClinica}/duenos`, {
-          headers: { 
-        "Content-Type": "application/json", 
-        "Authorization": `Bearer ${token}` 
-      },
-      })
-      if (!res.ok) throw new Error("Error al obtener la lista de dueños.")
-      return res.json()
-      }
-    
-  const deleteOwner = async (userId: number): Promise<any> => {
-    if (!idClinica || !token) throw new Error("Faltan credenciales o clínica.")
-    const res = await fetch(`${ROUTES.base}/${idClinica}/duenos/${userId}`, {
+    if (!idClinica) throw new Error("Falta ID de clínica.")
+    const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/duenos`)
+    if (!res.ok) throw new Error("Error al obtener la lista de dueños.")
+    return res.json()
+  }
+
+  // Eliminar dueño
+  const deleteOwner = async (userId: number) => {
+    if (!idClinica) throw new Error("Falta ID de clínica.")
+    const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/duenos/${userId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) {
       const errorData = await res.json()
@@ -66,6 +56,6 @@ export function useDueñoService() {
     }
     return res.json()
   }
-  
+
   return { createOwner, updateOwner, getOwners, deleteOwner }
 }
