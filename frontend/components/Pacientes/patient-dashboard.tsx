@@ -33,6 +33,7 @@ export function PatientDashboard() {
   } = usePacienteService()
   const { usuario } = useAuth()
   const { onOpen: openAlert } = useAlertStore()
+  const [pacientesBase, setPacientesBase] = useState<PacienteEnLista[]>([])
   const [pacientes, setPacientes] = useState<PacienteEnLista[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedPatient, setSelectedPatient] = useState<PacienteDetallado | null>(null)
@@ -42,17 +43,31 @@ export function PatientDashboard() {
   const [isLoadingList, setIsLoadingList] = useState(false)
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
-   const fetchPacientes = useCallback(async (q = "") => {
-  setIsLoadingList(true)
-  try {
-    const data = await getPacientes(q)
-    setPacientes(data)
-  } catch (err: any) {
-    openAlert("Error", err.message, "error")
-  } finally {
-    setIsLoadingList(false)
-  }
-}, [getPacientes, openAlert])
+  // Búsqueda automática con debounce
+  const fetchPacientes = useCallback(async () => {
+    setIsLoadingList(true)
+    try {
+      const data = await getPacientes()
+      setPacientesBase(data)
+      setPacientes(data)
+    } catch (err: any) {
+      openAlert("Error", err.message, "error")
+    } finally {
+      setIsLoadingList(false)
+    }
+  }, [getPacientes, openAlert])
+
+  useEffect(() => {
+  const term = searchTerm.toLowerCase()
+  const filtrados = pacientesBase.filter(
+    (p) =>
+      p.nombre.toLowerCase().includes(term) ||
+      p.raza.toLowerCase().includes(term) ||
+      p.dueño?.nombre?.toLowerCase().includes(term)
+  )
+  setPacientes(filtrados)
+}, [searchTerm, pacientesBase])
+
 
   const handleSelectPatient = async (paciente: PacienteEnLista) => {
   setIsLoadingDetails(true)
@@ -83,9 +98,9 @@ useEffect(() => {
   fetchPacientes()
 }, [fetchPacientes])
 
-  const handleSearch = async () => {
-    await fetchPacientes(searchTerm)
-  }
+  //const handleSearch = async () => {
+    //await fetchPacientes(searchTerm)
+  //}
    const handleCreate = async (data: any) => {
     await createPaciente(data)
   }
@@ -122,18 +137,16 @@ useEffect(() => {
       {/* GRUPO IZQUIERDO  */}
           <div className="flex flex-col sm:flex-row gap-4 flex-1">
         
-        <div className="relative flex-1 max-w-sm">
-          <Search className=" absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Buscar pacientes..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            //onKeyDown={(e) => e.key === "Enter" && fetchPacientes(searchTerm)}
-            className="pl-10 border-gray/80"
+            <div className="relative flex-1 max-w-sm">
+              <Search className=" absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar pacientes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-gray/80"
               />
-            </div>
-
-          </div>
+            </div>  
+        </div>
 
           {/* --- GRUPO DERECHO --- */}
           {puedeCRUD && (
