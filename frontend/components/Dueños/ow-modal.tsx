@@ -167,7 +167,7 @@ export function OwnerModal({
               Cancelar
             </Button>
             <Button type="submit" className="bg-green-600 hover:bg-green-700">
-              {isEdit ? "Actualizar Usuario" : "Crear Usuario"}
+              {isEdit ? "Actualizar Dueño" : "Crear Dueño"}
             </Button>
           </div>
         </form>
