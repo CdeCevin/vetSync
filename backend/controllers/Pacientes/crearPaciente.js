@@ -1,51 +1,46 @@
-const connection = require('../../db/connection');
+const { queryConReintento } = require('../../db/queryHelper');
 
-const crearPaciente = (req, res) => {
-  const idClinica = req.clinicaId;
-  const {
-    nombre,
-    especie,
-    raza,
-    color,
-    edad,
-    peso,
-    numero_microchip,
-    id_dueño
-  } = req.body;
+const crearPaciente = async (req, res) => {
+  try {
+    const idClinica = req.clinicaId;
+    const {
+      nombre,
+      especie,
+      raza,
+      color,
+      edad,
+      peso,
+      numero_microchip,
+      id_dueño
+    } = req.body;
 
-  if (!nombre || !id_dueño || !idClinica) {
-    return res.status(400).json({ error: 'Faltan datos obligatorios (nombre, id_dueño, id_clinica)' });
-  }
-
-  // Verificar si el dueño existe y está activo
-  const queryDueno = `
-    SELECT id FROM Dueños WHERE id = ? AND id_clinica = ? AND activo = TRUE
-  `;
-  connection.query(queryDueno, [id_dueño, idClinica], (err, results) => {
-    if (err) {
-      console.error('Error verificando dueño:', err);
-      return res.status(500).json({ error: 'Error verificando dueño' });
+    if (!nombre || !id_dueño || !idClinica) {
+      return res.status(400).json({ error: 'Faltan datos obligatorios (nombre, id_dueño, id_clinica)' });
     }
+
+    const queryDueno = `
+      SELECT id FROM Dueños WHERE id = ? AND id_clinica = ? AND activo = TRUE
+    `;
+    const results = await queryConReintento(queryDueno, [id_dueño, idClinica]);
+
     if (results.length === 0) {
       return res.status(404).json({ error: 'El dueño indicado no existe o no está activo' });
     }
-    // Si existe el dueño, crear el paciente
+
     const queryPaciente = `
       INSERT INTO Pacientes (nombre, especie, raza, color, edad, peso, numero_microchip, id_dueño, id_clinica)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    connection.query(
+    const insertResults = await queryConReintento(
       queryPaciente,
-      [nombre, especie, raza, color, edad, peso, numero_microchip, id_dueño, idClinica],
-      (error, results) => {
-        if (error) {
-          console.error('Error creando paciente:', error);
-          return res.status(500).json({ error: 'Error al crear paciente' });
-        }
-        res.status(201).json({ message: 'Paciente creado correctamente', id: results.insertId });
-      }
+      [nombre, especie, raza, color, edad, peso, numero_microchip, id_dueño, idClinica]
     );
-  });
+
+    res.status(201).json({ message: 'Paciente creado correctamente', id: insertResults.insertId });
+  } catch (error) {
+    console.error('Error creando paciente:', error);
+    res.status(500).json({ error: 'Error al crear paciente' });
+  }
 };
 
 module.exports = crearPaciente;
