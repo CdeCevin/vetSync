@@ -11,7 +11,7 @@ const login = (req, res) => {
     FROM Usuarios u
     JOIN Roles r ON u.id_rol = r.id
     JOIN Clinicas c ON u.id_clinica = c.id
-    WHERE u.correo_electronico = ?
+    WHERE u.correo_electronico = ? AND u.activo = 1
   `;
 
   connection.query(query, [correo_electronico], (error, results) => {
