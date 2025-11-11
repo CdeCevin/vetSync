@@ -55,8 +55,10 @@ useEffect(() => { loadData() }, [])
   }, [])
 
   const citasDelDia = citas.filter(c => 
-    new Date(c.fecha_cita).toISOString().split("T")[0] === selectedDate.toISOString().split("T")[0]
-  )
+  new Date(c.fecha_cita).toDateString() === selectedDate.toDateString()
+)
+
+
 
   return (
     <div className="min-h-screen">
