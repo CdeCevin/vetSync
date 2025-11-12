@@ -6,8 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { Cita } from "@/hooks/useCitaService"
-import { usePacienteService } from "@/hooks/usePacienteService"
-import { useUserService } from "@/hooks/useUsuarioService"
 import { useCitaService } from "@/hooks/useCitaService"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
@@ -16,6 +14,8 @@ interface CitaCardProps {
   cita: Cita
   onSelect?: (cita: Cita) => void
   onEstadoChange?: () => void
+  pacienteNombre: string
+  veterinarioNombre: string
 }
 
 const ESTADOS_COLORES: Record<Cita["estado"], string> = {
@@ -26,37 +26,18 @@ const ESTADOS_COLORES: Record<Cita["estado"], string> = {
   no_asistio: "bg-gray-200 text-gray-700",
 }
 
-export function CitaCard({ cita, onSelect, onEstadoChange }: CitaCardProps) {
-  const { getPacientes } = usePacienteService()
-  const { getUsers } = useUserService()
+export function CitaCard({ cita, onSelect, onEstadoChange, pacienteNombre, veterinarioNombre}: CitaCardProps) {
   const { patchEstadoCita } = useCitaService()
   const { onOpen: openAlert } = useAlertStore()
-
-  const [pacienteNombre, setPacienteNombre] = useState("Cargando...")
-  const [veterinarioNombre, setVeterinarioNombre] = useState("Cargando...")
   const [estado, setEstado] = useState<Cita["estado"]>(cita.estado)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [pacientes, usuarios] = await Promise.all([getPacientes(""), getUsers()])
-        const paciente = pacientes.find((p: any) => p.id === cita.id_paciente)
-        const vet = usuarios.find((u: any) => u.id === cita.id_usuario)
-        setPacienteNombre(paciente ? paciente.nombre : "Desconocido")
-        setVeterinarioNombre(vet ? vet.nombre_completo : "Desconocido")
-      } catch (err) {
-        console.error("Error cargando nombres:", err)
-      }
-    }
-    fetchData()
-  }, [cita.id_paciente, cita.id_usuario])
-
+  
   const handleEstadoChange = async (nuevoEstado: Cita["estado"]) => {
     try {
       setEstado(nuevoEstado)
       await patchEstadoCita(cita.id, nuevoEstado)
       openAlert("Éxito", `Estado actualizado a "${nuevoEstado}".`, "success")
-      if (onEstadoChange) onEstadoChange()
+      if (onEstadoChange) onEstadoChange() // Llama a la recarga del padre
     } catch (err) {
       console.error(err)
       openAlert("Error", "No se pudo actualizar el estado de la cita.", "error")
