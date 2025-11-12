@@ -6,6 +6,9 @@ import { DeleteConfirmModal } from "../modals/delete-confirm-modal"
 import { UserTable } from "./user-table"
 import { UserModal } from "./user-modal"
 import { useUserService, User } from "@/hooks/useUsuarioService"
+import { useAuth } from "@/components/user-context"
+import { useAlertStore } from "@/hooks/use-alert-store"
+
 
 // Función para mapear id_rol a rol en texto para frontend
 const rolMap: Record<number, string> = {
@@ -24,6 +27,8 @@ export function UserManagementDashboard() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const { usuario } = useAuth()
+  const { onOpen: openAlert } = useAlertStore()
 
   const fetchUsers = async () => {
     const data = await getUsers()
@@ -58,6 +63,15 @@ export function UserManagementDashboard() {
     await deleteUser(selectedUser.id)
   }
 
+  const handleAttemptDelete = (user: User) => {
+  if (user.id === usuario?.id) {
+    openAlert("Error","No es posible eliminar el usuario activo.", "error")
+  } else {
+    setSelectedUser(user);
+    setIsDeleteModalOpen(true);
+  }
+};
+
   const openEditModal = (user: User) => {
     setSelectedUser(user)
     setIsEditModalOpen(true)
@@ -86,7 +100,7 @@ export function UserManagementDashboard() {
             setSelectedStatus={setSelectedStatus}
             onCreateUser={() => setIsCreateModalOpen(true)}
           />
-          <UserTable users={filteredUsers} onEditUser={openEditModal} onDeleteUser={openDeleteModal} />
+          <UserTable users={filteredUsers} onEditUser={openEditModal} onDeleteUser={handleAttemptDelete} />
           <UserModal
             isOpen={isCreateModalOpen}
             onClose={() => setIsCreateModalOpen(false)}

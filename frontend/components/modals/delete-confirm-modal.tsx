@@ -41,7 +41,7 @@ export function DeleteConfirmModal({
       onClose()
 
     } catch (error: any) {
-      openAlert("Error", "Ha ocurrido un error al eliminar.", "error")
+      openAlert("Error","Ha ocurrido un error al eliminar.", "error")
     } finally {
       setIsLoading(false)
     }

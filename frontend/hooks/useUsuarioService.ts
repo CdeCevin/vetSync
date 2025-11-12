@@ -64,6 +64,7 @@ export function useUserService() {
 
   // Eliminar usuario
   const deleteUser = async (userId: number): Promise<any> => {
+
     const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/usuarios/${userId}`, {
       method: "DELETE",
     })
