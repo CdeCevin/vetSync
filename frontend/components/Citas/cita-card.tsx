@@ -53,15 +53,13 @@ export function CitaCard({ cita, onSelect, onEstadoChange, pacienteNombre, veter
         <CardTitle className="text-sm">
           {format(new Date(cita.fecha_cita), "HH:mm", { locale: es })}
         </CardTitle>
-
-        {/* 🔹 Select de estado */}
         <Select
           value={estado}
           onValueChange={handleEstadoChange}
         >
           <SelectTrigger
             className={`w-[150px] ${ESTADOS_COLORES[estado]}`}
-            onClick={(e) => e.stopPropagation()} // 👈 mover aquí
+            onClick={(e) => e.stopPropagation()}
           >
             <SelectValue />
           </SelectTrigger>
