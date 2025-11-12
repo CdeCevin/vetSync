@@ -279,7 +279,7 @@ useEffect(() => {
           }}
           mensajeEx={`El paciente ${selectedPatient.mascota.nombre} se ha eliminado.`}
           mensajeConf={<>¿Estás seguro de que deseas eliminar al paciente <b>{selectedPatient.mascota.nombre}</b>? Esta acción no se puede deshacer.</>}
-          userName={<>el paciente <strong>{selectedPatient.mascota.nombre}</strong></>}
+          //userName={<>el paciente <strong>{selectedPatient.mascota.nombre}</strong></>}
         />
       )}
     </div>

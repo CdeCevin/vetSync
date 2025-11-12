@@ -11,7 +11,6 @@ interface DeleteConfirmModalProps {
   onClose: () => void
   onConfirm: () => Promise<any>
    onSuccess: () => void       
-   userName?: React.ReactNode
    mensajeConf: React.ReactNode 
    mensajeEx: String
 
@@ -24,7 +23,6 @@ export function DeleteConfirmModal({
   onSuccess, 
   mensajeConf,
   mensajeEx,
-  userName 
 }: DeleteConfirmModalProps) {
 
   

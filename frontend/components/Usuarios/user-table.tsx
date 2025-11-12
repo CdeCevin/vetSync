@@ -1,17 +1,10 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
-
-const roleColors = {
-  Veterinario: "bg-blue-100 text-blue-800",
-  Administrador: "bg-purple-100 text-purple-800",
-  Recepcionista: "bg-orange-100 text-orange-800",
-}
 
 const rolMap: Record<number, string> = {
   1: "Administrador",

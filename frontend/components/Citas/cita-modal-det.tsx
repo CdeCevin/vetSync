@@ -284,7 +284,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate,veterinarios 
         onSuccess={() => setShowDeleteModal(false)}
         mensajeEx={"La cita seleccionada se ha eliminado."}
         mensajeConf ={"¿Estás seguro de que deseas eliminar la cita seleccionada? Esta acción no se puede deshacer."}
-        userName="la cita seleccionada"
+        //userName="la cita seleccionada"
       />
     </Dialog>
   )

@@ -132,7 +132,7 @@ export function UserManagementDashboard() {
             onSuccess={fetchUsers}
             mensajeEx={`El usuario ${selectedUser?.nombre_completo} se ha eliminado.`}
             mensajeConf={<>¿Estás seguro de que deseas eliminar al usuario <b>{selectedUser?.nombre_completo}</b>? Esta acción no se puede deshacer.</>}
-            userName={<>el usuario <strong>{selectedUser?.nombre_completo}</strong></>}          
+            //userName={<>el usuario <strong>{selectedUser?.nombre_completo}</strong></>}          
         />
         </main>
       </div>

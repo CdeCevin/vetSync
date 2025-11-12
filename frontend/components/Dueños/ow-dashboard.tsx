@@ -109,7 +109,7 @@ export function OwnerManagementDashboard() {
             onSuccess={fetchOwners}
             mensajeEx={`El dueño ${selectedOwner?.nombre} se ha eliminado.`}
             mensajeConf={<>¿Estás seguro de que deseas eliminar al dueño <b>{selectedOwner?.nombre} y todos sus pacientes asociados</b>? Esta acción no se puede deshacer.</>}
-            userName={<>el dueño <strong>{selectedOwner?.nombre} y todos sus pacientes asociados</strong></>}
+            //userName={<>el dueño <strong>{selectedOwner?.nombre} y todos sus pacientes asociados</strong></>}
         />
         </main>
       </div>
