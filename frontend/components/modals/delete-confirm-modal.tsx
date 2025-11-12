@@ -12,6 +12,9 @@ interface DeleteConfirmModalProps {
   onConfirm: () => Promise<any>
    onSuccess: () => void       
    userName?: React.ReactNode
+   mensajeConf: React.ReactNode 
+   mensajeEx: String
+
 }
 
 export function DeleteConfirmModal({ 
@@ -19,6 +22,8 @@ export function DeleteConfirmModal({
   onClose, 
   onConfirm, 
   onSuccess, 
+  mensajeConf,
+  mensajeEx,
   userName 
 }: DeleteConfirmModalProps) {
 
@@ -32,7 +37,7 @@ export function DeleteConfirmModal({
       setIsLoading(true) 
       await onConfirm() 
       onSuccess() 
-      openAlert("Éxito", `${userName} se ha eliminado.`, "success")
+      openAlert("Éxito", `${mensajeEx}`, "success")
       onClose()
 
     } catch (error: any) {
@@ -51,8 +56,7 @@ export function DeleteConfirmModal({
   			<DialogTitle>Confirmar Eliminación</DialogTitle>
   		  </div>
   		  <DialogDescription>
-     			¿Estás seguro de que deseas eliminar {userName || ""}? Esta acción no se puede
-   			deshacer.
+     			{mensajeConf}
    		  </DialogDescription>
    		</DialogHeader>
    		<div className="flex justify-end space-x-2 pt-4">
