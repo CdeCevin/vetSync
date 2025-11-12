@@ -31,7 +31,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-import { CaseUpper } from "lucide-react"
 
 // Colores por veterinario
 const VET_COLORS = [
@@ -107,7 +106,7 @@ export function CitasRecepcionistaPage() {
       setVeterinarios(usersData.filter((u) => u.id_rol === 2))
     }
     loadData()
-  }, [getCitas, getUsers])
+  }, [])
 
   const citasFiltradas = useMemo(() => {
     const desde = filtros.fechaInicio
@@ -144,14 +143,16 @@ export function CitasRecepcionistaPage() {
   const horas = generarHoras()
 
   useEffect(() => {
-    const filtrar = async () => {
-      const data = await getCitas()
-      setCitas(data)
-      if (filtros.fechaInicio)
-        setDisplayDate(parseDateInputAsLocal(filtros.fechaInicio))
+    if (filtros.fechaInicio) {
+      setDisplayDate(parseDateInputAsLocal(filtros.fechaInicio))
+    } else {
+      // Opcional: si limpia el filtro, vuelve al día de hoy
+      const now = new Date()
+      now.setHours(0, 0, 0, 0)
+      setDisplayDate(now)
     }
-    filtrar()
-  }, [filtros, selectedEstado])
+    // Solo depende del filtro de fecha, no del estado
+  }, [filtros.fechaInicio])
 
   const limpiarFiltros = () => {
     setFiltros({ fechaInicio: "", fechaFin: "", veterinarioId: null })
@@ -280,6 +281,7 @@ export function CitasRecepcionistaPage() {
                     const citasData = await getCitas()
                     setCitas(citasData)
                   }}
+                  veterinarios = {veterinarios}
                 />
               </DialogContent>
             </Dialog>

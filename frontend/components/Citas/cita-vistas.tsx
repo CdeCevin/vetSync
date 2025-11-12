@@ -6,25 +6,44 @@ import { es } from "date-fns/locale"
 import { Cita } from "@/hooks/useCitaService"
 import { CitaCard } from "./cita-card"
 
+type Paciente = {
+  id: number
+  nombre: string
+}
+
+type Veterinario = {
+  id: number
+  nombre_completo: string
+}
+
 interface DayViewProps {
   citas: Cita[]
   onSelect?: (cita: Cita) => void
+  pacientes: Paciente[]         
+  veterinarios: Veterinario[] 
+  onEstadoChange: () => void
 }
 
 interface WeekViewProps {
   citas: Cita[]
   selectedDate: Date
   onSelect?: (cita: Cita) => void
+  pacientes: Paciente[]      
+  veterinarios: Veterinario[] 
+  onEstadoChange: () => void
 }
 
 interface MonthViewProps {
   citas: Cita[]
   selectedDate: Date
   onSelect?: (cita: Cita) => void
+  pacientes: Paciente[]
+  veterinarios: Veterinario[]
+  onEstadoChange: () => void
 }
 
 // Vista diaria
-export function DayView({ citas, onSelect }: DayViewProps) {
+export function DayView({ citas, onSelect,pacientes,veterinarios,onEstadoChange }: DayViewProps) {
   const citasOrdenadas = [...citas].sort(
     (a, b) => new Date(a.fecha_cita).getTime() - new Date(b.fecha_cita).getTime()
   )
@@ -36,21 +55,33 @@ export function DayView({ citas, onSelect }: DayViewProps) {
           No hay citas para este día.
         </p>
       ) : (
-        citasOrdenadas.map((cita) => (
-          <CitaCard key={cita.id} cita={cita} onSelect={() => onSelect?.(cita)} />
-        ))
+        citasOrdenadas.map((cita) => {
+          const paciente = pacientes.find(p => p.id === cita.id_paciente)
+          const vet = veterinarios.find(v => v.id === cita.id_usuario)
+
+          return (
+            <CitaCard 
+              key={cita.id} 
+              cita={cita} 
+              onSelect={() => onSelect?.(cita)}
+              pacienteNombre={paciente ? paciente.nombre : "Desconocido"}
+              veterinarioNombre={vet ? vet.nombre_completo : "Desconocido"}
+              onEstadoChange={onEstadoChange}
+            />
+          )
+        })
       )}
     </div>
   )
 }
 
 // Vista semanal
-export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
+export function WeekView({ citas, selectedDate, onSelect,pacientes,veterinarios,onEstadoChange }: WeekViewProps) {
   const inicioSemana = startOfWeek(selectedDate, { weekStartsOn: 1 })
   const finSemana = endOfWeek(selectedDate, { weekStartsOn: 1 })
   const diasSemana = eachDayOfInterval({ start: inicioSemana, end: finSemana })
 
-  // 🔹 Filtrar citas solo dentro del rango de la semana seleccionada
+  // Filtrar citas solo dentro del rango de la semana seleccionada
   const citasSemana = citas.filter((c) => {
     const fecha = new Date(c.fecha_cita)
     return fecha >= inicioSemana && fecha <= finSemana
@@ -75,9 +106,21 @@ export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
                 <p className="text-sm text-muted-foreground text-center">Sin citas</p>
               ) : (
                 <div className="space-y-2">
-                  {citasDia.map((cita) => (
-                    <CitaCard key={cita.id} cita={cita} onSelect={() => onSelect?.(cita)} />
-                  ))}
+                  {citasDia.map((cita) => {
+                    const paciente = pacientes.find(p => p.id === cita.id_paciente)
+                    const vet = veterinarios.find(v => v.id === cita.id_usuario)
+                    
+                    return (
+                      <CitaCard 
+                        key={cita.id} 
+                        cita={cita} 
+                        onSelect={() => onSelect?.(cita)} 
+                        pacienteNombre={paciente ? paciente.nombre : "Desconocido"}
+                        veterinarioNombre={vet ? vet.nombre_completo : "Desconocido"}
+                        onEstadoChange={onEstadoChange}
+                      />
+                    )
+                  })}
                 </div>
               )}
             </CardContent>
@@ -89,11 +132,11 @@ export function WeekView({ citas, selectedDate, onSelect }: WeekViewProps) {
 }
 
 // Vista mensual
-export function MonthView({ citas, selectedDate, onSelect }: MonthViewProps) {
+export function MonthView({ citas, selectedDate, onSelect,pacientes,veterinarios,onEstadoChange  }: MonthViewProps) {
   const mesActual = selectedDate.getMonth()
   const añoActual = selectedDate.getFullYear()
 
-  // 🔹 Filtrar solo citas del mes/año seleccionados
+  // Filtrar solo citas del mes/año seleccionados
   const citasFiltradas = citas.filter((cita) => {
     const fecha = new Date(cita.fecha_cita)
     return (
@@ -111,7 +154,7 @@ export function MonthView({ citas, selectedDate, onSelect }: MonthViewProps) {
     citasPorDia[dia].push(cita)
   })
 
-  // 🔹 Ordenar días y citas dentro de cada día
+  // Ordenar días y citas dentro de cada día
   const diasOrdenados = Object.keys(citasPorDia).sort(
     (a, b) => new Date(a).getTime() - new Date(b).getTime()
   )
@@ -136,9 +179,21 @@ export function MonthView({ citas, selectedDate, onSelect }: MonthViewProps) {
                   {format(new Date(dia), "EEEE d 'de' MMMM", { locale: es })}
                 </h3>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {citasOrdenadas.map((cita) => (
-                    <CitaCard key={cita.id} cita={cita} onSelect={() => onSelect?.(cita)} />
-                  ))}
+                  {citasOrdenadas.map((cita) => {
+                    const paciente = pacientes.find(p => p.id === cita.id_paciente)
+                    const vet = veterinarios.find(v => v.id === cita.id_usuario)
+
+                    return (
+                      <CitaCard 
+                        key={cita.id} 
+                        cita={cita} 
+                        onSelect={() => onSelect?.(cita)} 
+                        pacienteNombre={paciente ? paciente.nombre : "Desconocido"}
+                        veterinarioNombre={vet ? vet.nombre_completo : "Desconocido"}
+                        onEstadoChange={onEstadoChange}
+                      />
+                    )
+                  })}
                 </div>
               </div>
             )
