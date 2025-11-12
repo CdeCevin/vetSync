@@ -15,7 +15,7 @@ import { useAuth } from "@/components/user-context"
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { usePacienteService } from "@/hooks/usePacienteService"
-import { useUserService } from "@/hooks/useUsuarioService"
+import { useUserService, User } from "@/hooks/useUsuarioService"
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/react"
 import DatePicker from "react-datepicker"
 
@@ -24,6 +24,7 @@ interface CitaDetallesDialogProps {
   onClose: () => void
   cita: Cita | null
   onUpdate?: () => void
+  veterinarios?: User[]
 }
 
 const ESTADOS_COLORES: Record<Cita["estado"], string> = {
@@ -34,7 +35,7 @@ const ESTADOS_COLORES: Record<Cita["estado"], string> = {
   no_asistio: "bg-gray-200 text-gray-700",
 }
 
-export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetallesDialogProps) {
+export function CitaDetallesDialog({ open, onClose, cita, onUpdate,veterinarios }: CitaDetallesDialogProps) {
   const { updateCita, deleteCita } = useCitaService()
   const { getPacientes } = usePacienteService()
   const { getUsers } = useUserService()
@@ -53,15 +54,25 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate }: CitaDetall
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [pacientesData, usersData] = await Promise.all([getPacientes(""), getUsers()])
+        const pacientesData = await getPacientes("")
         setPacientesList(pacientesData || [])
-        setVeterinariosList(usersData.filter((u) => u.id_rol === 2))
+        // Carga veterinarios solo si vienen 
+        if (veterinarios) {
+          // Usamos la prop
+          setVeterinariosList(veterinarios.filter((u: User) => u.id_rol === 2))
+        } else {
+          // Hacemos el fetch
+          const usersData = await getUsers()
+          setVeterinariosList(usersData.filter((u: User) => u.id_rol === 2))
+        }
       } catch (error) {
         console.error("Error cargando datos:", error)
       }
     }
+
     if (open) loadData()
-  }, [open])
+
+  }, [open, veterinarios, getPacientes, getUsers])
 
   useEffect(() => {
     setForm(cita)

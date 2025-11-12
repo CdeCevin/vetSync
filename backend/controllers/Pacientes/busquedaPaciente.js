@@ -1,42 +1,38 @@
-const connection = require('../../db/connection');
+const { queryConReintento } = require('../../db/queryHelper');
 
-const busquedaPacientes = (req, res) => {
-  const idClinica = req.clinicaId;
-  const filtro = req.query.q || '';  // parámetro de búsqueda opcional
+const busquedaPacientes = async (req, res) => {
+  try {
+    const idClinica = req.clinicaId;
+    const filtro = req.query.q || '';
 
-  let query = `
-    SELECT 
-      Pacientes.*,
-      Dueños.nombre AS dueno_nombre,
-      Dueños.telefono AS dueno_telefono,
-      Dueños.correo AS dueno_correo,
-      Dueños.direccion AS dueno_direccion
-    FROM Pacientes
-    INNER JOIN Dueños ON Pacientes.id_dueño = Dueños.id
-    WHERE Pacientes.id_clinica = ? 
-      AND Pacientes.activo = TRUE 
-      AND Dueños.activo = TRUE
-  `;
+    let query = `
+      SELECT 
+        Pacientes.*,
+        Dueños.nombre AS dueno_nombre,
+        Dueños.telefono AS dueno_telefono,
+        Dueños.correo AS dueno_correo,
+        Dueños.direccion AS dueno_direccion
+      FROM Pacientes
+      INNER JOIN Dueños ON Pacientes.id_dueño = Dueños.id
+      WHERE Pacientes.id_clinica = ? 
+        AND Pacientes.activo = TRUE 
+        AND Dueños.activo = TRUE
+    `;
 
-  const params = [idClinica];
+    const params = [idClinica];
 
-  if (filtro.trim() !== '') {
-    query += ` AND (
-      Pacientes.nombre LIKE ? OR
-      Dueños.nombre LIKE ? OR
-      Pacientes.raza LIKE ?
-    )`;
-    const filtroLike = `%${filtro}%`;
-    params.push(filtroLike, filtroLike, filtroLike);
-  }
-
-  connection.query(query, params, (error, results) => {
-    if (error) {
-      console.error('Error obteniendo pacientes:', error);
-      return res.status(500).json({ error: 'Error al obtener pacientes' });
+    if (filtro.trim() !== '') {
+      query += ` AND (
+        Pacientes.nombre LIKE ? OR
+        Dueños.nombre LIKE ? OR
+        Pacientes.raza LIKE ?
+      )`;
+      const filtroLike = `%${filtro}%`;
+      params.push(filtroLike, filtroLike, filtroLike);
     }
 
-    // Transformar resultados para anidar dueño dentro de paciente
+    const results = await queryConReintento(query, params);
+
     const pacientesConDueño = results.map(row => ({
       id: row.id,
       nombre: row.nombre,
@@ -47,7 +43,10 @@ const busquedaPacientes = (req, res) => {
     }));
 
     res.json(pacientesConDueño);
-  });
+  } catch (error) {
+    console.error('Error obteniendo pacientes:', error);
+    res.status(500).json({ error: 'Error al obtener pacientes' });
+  }
 };
 
 module.exports = busquedaPacientes;

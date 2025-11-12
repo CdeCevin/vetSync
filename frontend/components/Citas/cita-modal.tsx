@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useCitaService } from "@/hooks/useCitaService"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { usePacienteService } from "@/hooks/usePacienteService"
-import { useUserService } from "@/hooks/useUsuarioService"
+import { useUserService , User } from "@/hooks/useUsuarioService"
 import { useDueñoService } from "@/hooks/useDueñoService"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { useAuth } from "@/components/user-context"
@@ -24,11 +24,13 @@ import {
 export function CitaModal({
   onClose,
   citaInicial,
-  onSave
+  onSave,
+  veterinarios
 }: {
   onClose: () => void
   citaInicial?: { id_usuario?: number; fecha_cita?: string }
   onSave?: () => void
+  veterinarios?: any[]
 }) {
   const { usuario } = useAuth()
   const { createCita } = useCitaService()
@@ -56,23 +58,37 @@ export function CitaModal({
 
   const formRef = useRef<HTMLFormElement>(null)
 
-  // 🔹 Cargar pacientes, veterinarios y dueños
+  // Cargar pacientes, veterinarios y dueños
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [pacientesData, usersData, ownersData] = await Promise.all([
+        // Promesas que siempre se ejecutan
+        const promises: Promise<any>[] = [
           getPacientes(""),
-          getUsers(),
           getOwners()
-        ])
+        ];
+        
+        // Lógica condicional para listado de veterinarios
+        if (veterinarios) {
+          setVeterinariosList(veterinarios.filter(u => u.id_rol === 2));
+          const [pacientesData, ownersData] = await Promise.all(promises);
+          setPacientesList(pacientesData || []);
+          setOwnersList(ownersData || []);
 
-        setPacientesList(pacientesData || [])
-        setOwnersList(ownersData || [])
-        setVeterinariosList(usersData.filter(u => u.id_rol === 2)) // Solo veterinarios
+        } else {
+          // Agrega getUsers() a la lista
+          promises.push(getUsers());
+          const [pacientesData, ownersData, usersData] = await Promise.all(promises);
+          setPacientesList(pacientesData || []);
+          setOwnersList(ownersData || []);
+          setVeterinariosList((usersData as User[]).filter((u: User) => u.id_rol === 2)); // Setea desde el fetch
+        }
+
       } catch (err) {
         console.error("Error cargando datos:", err)
       }
     }
+    
     loadData()
   }, [])
 
@@ -104,21 +120,20 @@ export function CitaModal({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    // ✅ Validación nativa del navegador
+    // Validación nativa del navegador
     if (formRef.current && !formRef.current.checkValidity()) {
       formRef.current.reportValidity()
       return
     }
     if (!form.tipo_cita) {
-    // Podés usar reportValidity-like UX: enfocá el control visual o mostrar alerta
-    // enfoque: buscá el trigger y focus
+      //Muestra la alerta porque el select no es nativo, no lo toma el checkValidity 
     alert("Debes seleccionar el tipo de cita.")
     return
   }
     try {
-      // 🕒 Corregir hora local → UTC antes de enviar
+      // Corregir hora local 
       const fechaLocal = new Date(form.fecha_cita)
-      const offset = fechaLocal.getTimezoneOffset() // minutos de diferencia local vs UTC
+      const offset = fechaLocal.getTimezoneOffset() 
       const fechaUTC = new Date(fechaLocal.getTime() - offset * 60000)
 
       await createCita({
@@ -151,7 +166,7 @@ export function CitaModal({
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
-        {/* 🐾 Paciente */}
+        {/* Paciente */}
         <div className="space-y-2">
           <Label>Paciente</Label>
           <Combobox
@@ -188,7 +203,7 @@ export function CitaModal({
           </Combobox>
         </div>
 
-        {/* 🩺 Veterinario */}
+        {/* Veterinario */}
         <div className="space-y-2">
           <Label>Veterinario</Label>
           <Combobox
@@ -229,7 +244,7 @@ export function CitaModal({
           </Combobox>
         </div>
 
-        {/* 📅 Fecha y hora */}
+        {/* Fecha y hora */}
         <div className="space-y-2">
           <Label>Fecha y hora</Label>
           <DatePicker
@@ -246,7 +261,7 @@ export function CitaModal({
           />
         </div>
 
-        {/* ⏱ Duración */}
+        {/* Duración */}
         <div className="space-y-2">
           <Label>Duración (min)</Label>
           <Select
