@@ -17,6 +17,9 @@ export function OwnerTable({ owners, onEditOwner, onDeleteOwner }: OwnerTablePro
     <Card>
       <CardHeader>
         <CardTitle>Lista de Dueños ({owners.length})</CardTitle>
+        {owners.length === 0 && (
+          <p className="text-sm text-gray-500 mt-1">Sin resultados</p>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

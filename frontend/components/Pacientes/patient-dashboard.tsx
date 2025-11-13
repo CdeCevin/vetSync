@@ -151,7 +151,7 @@ useEffect(() => {
           {/* --- GRUPO DERECHO --- */}
           {puedeCRUD && (
           <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" /> Añadir Paciente
+            <Plus className="h-4 w-4 mr-2" /> Registrar Paciente
           </Button>
         )}
 
@@ -166,6 +166,9 @@ useEffect(() => {
                <div className="rounded-xl shadow border bg-card  min-h-97">
             <div className="px-6 pt-6 pb-2">
               <span className="font-semibold ">Pacientes ({pacientes.length})</span>
+              {pacientes.length === 0 && (
+                <p className="text-sm text-gray-500 mt-1">Sin resultados</p>
+              )}
             </div>
             <div className=" max-h-96 overflow-y-auto bg-card">
                 {isLoadingList ? (

@@ -22,11 +22,17 @@ export function UserTable({ users, onEditUser, onDeleteUser }: UserTableProps) {
     <Card>
       <CardHeader>
         <CardTitle>Lista de Usuarios ({users.length})</CardTitle>
+        {users.length === 0 && (
+          <p className="text-sm text-gray-500 mt-1">Sin resultados</p>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {users.map((user) => (
-            <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-secondary/10">
+            <div
+              key={user.id}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-secondary/10"
+            >
               <div className="flex items-center space-x-4">
                 <Avatar>
                   <AvatarFallback>
@@ -54,7 +60,10 @@ export function UserTable({ users, onEditUser, onDeleteUser }: UserTableProps) {
                       <Edit className="mr-2 h-4 w-4" />
                       Editar
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDeleteUser(user)} className="text-red-600">
+                    <DropdownMenuItem
+                      onClick={() => onDeleteUser(user)}
+                      className="text-red-600"
+                    >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Eliminar
                     </DropdownMenuItem>
