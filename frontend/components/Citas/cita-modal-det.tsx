@@ -52,27 +52,28 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate,veterinarios 
 
   // Cargar pacientes y veterinarios
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const pacientesData = await getPacientes("")
-        setPacientesList(pacientesData || [])
-        // Carga veterinarios solo si vienen 
-        if (veterinarios) {
-          // Usamos la prop
-          setVeterinariosList(veterinarios.filter((u: User) => u.id_rol === 2))
-        } else {
-          // Hacemos el fetch
-          const usersData = await getUsers()
-          setVeterinariosList(usersData.filter((u: User) => u.id_rol === 2))
-        }
-      } catch (error) {
-        console.error("Error cargando datos:", error)
+  const loadData = async () => {
+    try {
+      const pacientesData = await getPacientes("")
+      setPacientesList(pacientesData || [])
+
+      // Si el padre YA entregó los veterinarios
+      if (veterinarios && veterinarios.length > 0) {
+        setVeterinariosList(veterinarios)
+      } else {
+        // Cargar desde API solo si no vienen del padre
+        const usersData = await getUsers()
+        setVeterinariosList(usersData.filter((u: User) => u.id_rol === 2))
       }
+      
+    } catch (error) {
+      console.error("Error cargando datos:", error)
     }
+  }
 
-    if (open) loadData()
+  if (open) loadData()
 
-  }, [open, veterinarios, getPacientes, getUsers])
+}, [open])
 
   useEffect(() => {
     setForm(cita)

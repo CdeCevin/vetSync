@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Plus } from "lucide-react"
@@ -30,35 +30,34 @@ export function CitasPage() {
   const [stats, setStats] = useState<{ total: number; completadas: string; pendientes: string }>({ total: 0, completadas: "0", pendientes: "0" })
   const [selectedCita, setSelectedCita] = useState<Cita | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-const handleSelectCita = (cita: Cita) => {
-  // Forzar reset antes de abrir el modal
-  setIsDetailsOpen(false)
-  setSelectedCita(null)
-
-  // Pequeño retraso para asegurar desmontaje del diálogo anterior
-  setTimeout(() => {
-    setSelectedCita({ ...cita }) 
-    setIsDetailsOpen(true)
-  }, 0)
-}
-
-const loadData = async () => {
-  const [citasData, statsData, pacientesData, usersData] = await Promise.all([getCitas(), getStatsHoy(),getPacientes(),getUsers()])
+const loadData = useCallback(async () => {
+  setIsLoading(true)
+  const [citasData, statsData, pacientesData, usersData] = await Promise.all([
+    getCitas(),
+    getStatsHoy(),
+    getPacientes(),
+    getUsers()
+  ])
   setCitas(citasData)
   setStats(statsData)
   setPacientes(pacientesData || [])
-    setVeterinarios(usersData.filter((u: any) => u.id_rol === 2) || [])
-}
+  setVeterinarios(usersData.filter((u: any) => u.id_rol === 2) || [])
+  setIsLoading(false)
+}, [getCitas, getStatsHoy, getPacientes, getUsers])
 
 // Un solo useEffect para la carga inicial
-useEffect(() => { 
-  loadData() 
+useEffect(() => {
+  loadData()
 }, [])
 
+const handleSelectCita = (cita: Cita) => {
+  setSelectedCita({ ...cita })
+  setIsDetailsOpen(true)
+}
   const citasDelDia = citas.filter(c => 
-  new Date(c.fecha_cita).toDateString() === selectedDate.toDateString()
-)
+  new Date(c.fecha_cita).toDateString() === selectedDate.toDateString())
   return (
     <div className="min-h-screen">
       <div className="flex">
@@ -133,18 +132,18 @@ useEffect(() => {
           </Card>
         </div>
         <div className="lg:col-span-3  space-y-4">
-          {viewMode === "day" && <DayView citas={citasDelDia} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData}/>}
-          {viewMode === "week" && <WeekView selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData}/>}
-          {viewMode === "month" && <MonthView selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData}/>}
+          {viewMode === "day" && <DayView isLoading={isLoading} citas={citasDelDia} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData}/>}
+          {viewMode === "week" && <WeekView isLoading={isLoading} selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData}/>}
+          {viewMode === "month" && <MonthView isLoading={isLoading} selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData}/>}
 
         </div>
         <CitaDetallesDialog
-            key={selectedCita?.id || "new"}
-            open={isDetailsOpen}
-            cita={selectedCita}
-            onClose={() => setIsDetailsOpen(false)}
-            onUpdate={loadData}
-          />
+          open={isDetailsOpen}
+          cita={selectedCita}
+          onClose={() => setIsDetailsOpen(false)}
+          onUpdate={loadData}
+        />
+
         </div>
            </main>
       </div>

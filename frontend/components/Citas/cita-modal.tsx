@@ -55,40 +55,45 @@ export function CitaModal({
 
   const [queryPaciente, setQueryPaciente] = useState("")
   const [queryVet, setQueryVet] = useState("")
-
+  const hasLoadedRef = useRef(false)
   const formRef = useRef<HTMLFormElement>(null)
+
+  
 
   // Cargar pacientes, veterinarios y dueños
   useEffect(() => {
+    if (hasLoadedRef.current) return
+    hasLoadedRef.current = true
+
     const loadData = async () => {
       try {
-        // Promesas que siempre se ejecutan
-        const promises: Promise<any>[] = [
-          getPacientes(""),
-          getOwners()
-        ];
-        
-        // Lógica condicional para listado de veterinarios
-        if (veterinarios) {
-          setVeterinariosList(veterinarios.filter(u => u.id_rol === 2));
-          const [pacientesData, ownersData] = await Promise.all(promises);
-          setPacientesList(pacientesData || []);
-          setOwnersList(ownersData || []);
+        const basePromises = [getPacientes(""), getOwners()]
 
-        } else {
-          // Agrega getUsers() a la lista
-          promises.push(getUsers());
-          const [pacientesData, ownersData, usersData] = await Promise.all(promises);
-          setPacientesList(pacientesData || []);
-          setOwnersList(ownersData || []);
-          setVeterinariosList((usersData as User[]).filter((u: User) => u.id_rol === 2)); // Setea desde el fetch
+        // Si vienen veterinarios desde el padre → NO llamar getUsers()
+        if (veterinarios && veterinarios.length > 0) {
+          setVeterinariosList(veterinarios.filter(u => u.id_rol === 2))
+
+          const [pacientesData, ownersData] = await Promise.all(basePromises)
+          setPacientesList(pacientesData || [])
+          setOwnersList(ownersData || [])
+        } 
+        else {
+          // Si no vienen desde el padre → cargar desde el backend
+          const [pacientesData, ownersData, usersData] = await Promise.all([
+            ...basePromises,
+            getUsers()
+          ])
+
+          setPacientesList(pacientesData || [])
+          setOwnersList(ownersData || [])
+          setVeterinariosList(usersData.filter((u: User) => u.id_rol === 2))
         }
-
+        
       } catch (err) {
         console.error("Error cargando datos:", err)
       }
     }
-    
+
     loadData()
   }, [])
 

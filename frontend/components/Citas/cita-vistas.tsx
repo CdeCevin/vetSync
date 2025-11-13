@@ -18,6 +18,7 @@ type Veterinario = {
 
 interface DayViewProps {
   citas: Cita[]
+  isLoading: boolean
   onSelect?: (cita: Cita) => void
   pacientes: Paciente[]         
   veterinarios: Veterinario[] 
@@ -26,6 +27,7 @@ interface DayViewProps {
 
 interface WeekViewProps {
   citas: Cita[]
+  isLoading: boolean
   selectedDate: Date
   onSelect?: (cita: Cita) => void
   pacientes: Paciente[]      
@@ -35,6 +37,7 @@ interface WeekViewProps {
 
 interface MonthViewProps {
   citas: Cita[]
+  isLoading: boolean
   selectedDate: Date
   onSelect?: (cita: Cita) => void
   pacientes: Paciente[]
@@ -43,11 +46,17 @@ interface MonthViewProps {
 }
 
 // Vista diaria
-export function DayView({ citas, onSelect,pacientes,veterinarios,onEstadoChange }: DayViewProps) {
+export function DayView({ citas, onSelect, isLoading,pacientes,veterinarios,onEstadoChange }: DayViewProps) {
   const citasOrdenadas = [...citas].sort(
     (a, b) => new Date(a.fecha_cita).getTime() - new Date(b.fecha_cita).getTime()
   )
-
+  if (isLoading) {
+    return (
+      <p className="text-muted-foreground text-center py-6">
+        Cargando datos...
+      </p>
+    )
+  }
   return (
     <div className="space-y-3">
       {citasOrdenadas.length === 0 ? (
@@ -76,10 +85,18 @@ export function DayView({ citas, onSelect,pacientes,veterinarios,onEstadoChange 
 }
 
 // Vista semanal
-export function WeekView({ citas, selectedDate, onSelect,pacientes,veterinarios,onEstadoChange }: WeekViewProps) {
+export function WeekView({ citas, selectedDate, onSelect, isLoading,pacientes,veterinarios,onEstadoChange }: WeekViewProps) {
   const inicioSemana = startOfWeek(selectedDate, { weekStartsOn: 1 })
   const finSemana = endOfWeek(selectedDate, { weekStartsOn: 1 })
   const diasSemana = eachDayOfInterval({ start: inicioSemana, end: finSemana })
+  
+  if (isLoading) {
+    return (
+      <p className="text-muted-foreground text-center py-6">
+        Cargando datos...
+      </p>
+    )
+  }
 
   // Filtrar citas solo dentro del rango de la semana seleccionada
   const citasSemana = citas.filter((c) => {
@@ -132,9 +149,17 @@ export function WeekView({ citas, selectedDate, onSelect,pacientes,veterinarios,
 }
 
 // Vista mensual
-export function MonthView({ citas, selectedDate, onSelect,pacientes,veterinarios,onEstadoChange  }: MonthViewProps) {
+export function MonthView({ citas, selectedDate, isLoading,onSelect,pacientes,veterinarios,onEstadoChange  }: MonthViewProps) {
   const mesActual = selectedDate.getMonth()
   const añoActual = selectedDate.getFullYear()
+
+  if (isLoading) {
+    return (
+      <p className="text-muted-foreground text-center py-6">
+        Cargando datos...
+      </p>
+    )
+  }
 
   // Filtrar solo citas del mes/año seleccionados
   const citasFiltradas = citas.filter((cita) => {
