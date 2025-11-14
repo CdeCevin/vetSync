@@ -25,36 +25,41 @@ test.describe('Gestión de Citas', () => {
     // Esperar a que se abra el diálogo  
     await expect(page.locator('text=Crear nueva cita')).toBeVisible();  
       
-    // Seleccionar paciente usando Combobox  
+    // Seleccionar paciente "Manchas" usando Combobox  
     await page.click('input[placeholder="Seleccionar paciente..."]');  
     await page.fill('input[placeholder="Seleccionar paciente..."]', 'Manchas');  
+    // Esperar a que aparezcan las opciones filtradas  
+    await page.waitForSelector('text=Manchas — Dueño:', { timeout: 5000 });  
     await page.click('text=Manchas — Dueño:');  
       
-    // Seleccionar veterinario (si no está deshabilitado)  
-    const vetInput = page.locator('input[placeholder*="veterinario"]');  
-    const isDisabled = await vetInput.isDisabled();  
-    if (!isDisabled) {  
-      await vetInput.click();  
-      await vetInput.fill('');  
-      await page.click('div[class*="cursor-pointer"]').first();  
-    }  
+
       
     // Fecha y hora usando DatePicker  
     await page.click('input[placeholder="Seleccionar fecha y hora..."]');  
-    // Navegar al mes correcto si es necesario  
-    await page.click('text=11'); // Seleccionar día 11  
-    await page.click('text=1:45 PM'); // Seleccionar hora  
-      
-    // Duración usando Select  
-    await page.click('button:has-text("Duración")').first();  
-    await page.click('text=15').first();  
-      
+    // Esperar a que se abra el DatePicker  
+    await page.waitForSelector('.react-datepicker', { timeout: 5000 });  
+    // Seleccionar día 11  
+    await page.click('.react-datepicker__day:has-text("15"):not(.react-datepicker__day--outside-month)');  
+    // Esperar y seleccionar hora  
+    await page.waitForSelector('.react-datepicker__time-list-item', { timeout: 5000 });  
+    await page.click('.react-datepicker__time-list-item:has-text("1:45 PM")');  
+        
+    // Hacer clic en el combobox (el SelectTrigger)  
+    await page.getByRole('combobox').nth(2).click();  
+    // Esperar y seleccionar la opción  
+    await page.waitForSelector('[role="option"]', { timeout: 5000 });  
+    await page.locator('[role="option"]').filter({ hasText: /^15$/ }).click();
+          
     // Motivo  
     await page.fill('input[minlength="10"]', 'Testing motivo de la cita');  
       
+
+    
     // Tipo de cita usando Select  
-    await page.locator('button').filter({ hasText: 'Tipo de cita' }).click();  
-    await page.click('text=Consulta');  
+    await page.getByRole('combobox').filter({ hasText: 'Seleccionar...' }).click();  
+    // Esperar a que se abran las opciones  
+    await page.waitForSelector('[role="option"]', { timeout: 5000 });  
+    await page.locator('[role="option"]').filter({ hasText: 'Consulta' }).click();
       
     // Notas  
     await page.fill('textarea', 'Testing notas adicionales');  
@@ -63,7 +68,7 @@ test.describe('Gestión de Citas', () => {
     await page.click('button:has-text("Agendar")');  
       
     // Verificar mensaje de éxito  
-    await expect(page.locator('text=La cita se ha creado exitosamente')).toBeVisible();  
+    await expect(page.locator('text=La cita se ha creado exitosamente')).toBeVisible({ timeout: 10000 });  
       
     // Verificar que el diálogo se cerró  
     await expect(page.locator('text=Crear nueva cita')).not.toBeVisible();  

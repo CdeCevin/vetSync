@@ -17,6 +17,7 @@ const busquedaPacientes = async (req, res) => {
       WHERE Pacientes.id_clinica = ? 
         AND Pacientes.activo = TRUE 
         AND Dueños.activo = TRUE
+      ORDER BY nombre ASC
     `;
 
     const params = [idClinica];
