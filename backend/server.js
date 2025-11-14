@@ -1,5 +1,6 @@
 const express = require('express');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '..', 'backend/.env') });
 const cors = require('cors');
 const router = express.Router({ mergeParams: true });
 const verifyToken = require('./middleware/authMiddleware');  //ACUERDATE KEVIN
@@ -70,6 +71,14 @@ app.get('/', (req, res) => {
   res.send('Servidor funcionando');
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+
+// Al final del archivo, antes de app.listen()  
+module.exports = app;  
+  
+// Modificar el listen para que solo se ejecute si no es un test  
+if (require.main === module) {  
+  app.listen(PORT, () => {  
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);  
+  });  
+}
+

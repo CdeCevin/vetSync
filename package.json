@@ -2,13 +2,23 @@
   "scripts": {
     "start-backend": "cd backend && node server.js",
     "start-frontend": "cd frontend && npm run dev",
-    "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\""
+    "start": "concurrently \"npm run start-backend\" \"npm run start-frontend\"",
+    "test": "jest --detectOpenHandles --forceExit"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 10000,
+    "testPathIgnorePatterns": [
+      "<rootDir>/Test/playwright/"
+    ]
   },
   "dependencies": {
     "concurrently": "^9.2.1",
     "mysql2": "^3.15.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1"
+    "@playwright/test": "^1.56.1",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4"
   }
 }
