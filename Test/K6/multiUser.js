@@ -7,34 +7,35 @@ import { SharedArray } from 'k6/data';
 const usuarios = new SharedArray('usuarios', function () {  
   return [  
     // Clínica 1  
-    { correo: 'admin1@clinica1.com', password: '12345', idClinica: 1 },  
+    { correo: 'admin1@clinica1.com', password: '12345', idClinica: 1 },  //list
     { correo: 'vet1@clinica1.com', password: '12345', idClinica: 1 },  
-    { correo: 'recep1@clinica1.com', password: '12345', idClinica: 1 },  
-      
-    // Clínica 2  
-    { correo: 'admin2@clinica2.com', password: '12345', idClinica: 2 },  
-    { correo: 'vet2@clinica2.com', password: '12345', idClinica: 2 },  
-    { correo: 'recep2@clinica2.com', password: '12345', idClinica: 2 },  
-      
-    // Clínica 3  
-    { correo: 'admin3@clinica3.com', password: '12345', idClinica: 3 },  
-    { correo: 'vet3@clinica3.com', password: '12345', idClinica: 3 },  
-    { correo: 'recep3@clinica3.com', password: '12345', idClinica: 3 },  
+    { correo: 'recep@clinica1.com', password: '12345', idClinica: 1 },  
       
     // Clínica 4  
-    { correo: 'admin4@clinica4.com', password: '12345', idClinica: 4 },  
+    { correo: 'admin4@clinica4.com', password: '12345', idClinica: 4 },  //listo
     { correo: 'vet4@clinica4.com', password: '12345', idClinica: 4 },  
     { correo: 'recep4@clinica4.com', password: '12345', idClinica: 4 },  
-      
-    // Clínica 5  
-    { correo: 'admin5@clinica5.com', password: '12345', idClinica: 5 },  
-    { correo: 'vet5@clinica5.com', password: '12345', idClinica: 5 },  
-    { correo: 'recep5@clinica5.com', password: '12345', idClinica: 5 },  
-      
+
     // Clínica 6  
-    { correo: 'admin6@clinica6.com', password: '12345', idClinica: 6 },  
-    { correo: 'vet6@clinica6.com', password: '12345', idClinica: 6 },  
-    { correo: 'recep6@clinica6.com', password: '12345', idClinica: 6 },  
+    { correo: 'admin2@clinica2.com', password: '12345', idClinica: 6 },  //listo
+    { correo: 'vet2@clinica2.com', password: '12345', idClinica: 6 },  
+    { correo: 'recep2@clinica2.com', password: '12345', idClinica: 6 },  
+      
+    // Clínica 7 
+    { correo: 'admin7@clinica7.com', password: '12345', idClinica: 7 },  
+    { correo: 'vet7@clinica7.com', password: '12345', idClinica: 7 },  
+    { correo: 'recep7@clinica7.com', password: '12345', idClinica: 7 },  
+
+    // Clínica 8  
+    { correo: 'admin8@clinica8.com', password: '12345', idClinica: 8 },  
+    { correo: 'vet8@clinica8.com', password: '12345', idClinica: 8 },  
+    { correo: 'recep8@clinica8.com', password: '12345', idClinica: 8 },  
+      
+    // Clínica 9  
+    { correo: 'admin9@clinica9.com', password: '12345', idClinica: 9 },  
+    { correo: 'vet9@clinica9.com', password: '12345', idClinica: 9 },  
+    { correo: 'recep9@clinica9.com', password: '12345', idClinica: 9 },  
+
   ];  
 });  
   

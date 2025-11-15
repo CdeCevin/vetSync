@@ -39,10 +39,10 @@ test.describe('Gestión de Citas', () => {
     // Esperar a que se abra el DatePicker  
     await page.waitForSelector('.react-datepicker', { timeout: 5000 });  
     // Seleccionar día 11  
-    await page.click('.react-datepicker__day:has-text("15"):not(.react-datepicker__day--outside-month)');  
+    await page.click('.react-datepicker__day:has-text("19"):not(.react-datepicker__day--outside-month)');  
     // Esperar y seleccionar hora  
     await page.waitForSelector('.react-datepicker__time-list-item', { timeout: 5000 });  
-    await page.click('.react-datepicker__time-list-item:has-text("1:45 PM")');  
+    await page.click('.react-datepicker__time-list-item:has-text("9:45 AM")');  
         
     // Hacer clic en el combobox (el SelectTrigger)  
     await page.getByRole('combobox').nth(2).click();  

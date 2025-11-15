@@ -4,6 +4,9 @@ export default defineConfig({
   testDir: './Test/playwright',  
   use: {  
     video: 'on',  
-    headless: true, // Equivalente a --headed  
+    headless: false, // Equivalente a --headed  
+    launchOptions: {
+      slowMo: 500, // Retrasa cada acción 500 milisegundos (0.5 segundos)
+    },
   },  
 });
