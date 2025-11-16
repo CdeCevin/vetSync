@@ -5,7 +5,7 @@ test.describe('Gestión de Citas', () => {
   const Cita = {
     nombre: 'Manchas',
     dia: 21,
-    hora: '9:45 AM',
+    hora: '12:00 AM',
     motivo: 'Testing motivo de la cita',
     notas: 'Testing notas adicionales'
   };

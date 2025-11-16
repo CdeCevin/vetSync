@@ -11,9 +11,9 @@ test.describe('Gestión de Usuarios - Administrador', () => {
   };
 
   const usuarioAEliminar = {
-    iniciales: 'VC',
-    nombre: 'Viviana Casas',
-    correo: 'vet@two.com',
+    iniciales: 'UT',
+    nombre: 'Usuario Test',
+    correo: 'Usuario@Test.com',
     rol: 'Veterinario'
   };
 
