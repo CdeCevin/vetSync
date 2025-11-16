@@ -1,16 +1,35 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Gestión de Usuarios - Administrador', () => {
+
+  const credenciales = {
+    correo: 'admin@vin.com',
+    nombre: 'Administrador Testing',
+    password: '123456789',
+    iniciales: 'AT', 
+    rol: 'Administrador' 
+  };
+
+  const usuarioAEliminar = {
+    iniciales: 'VC',
+    nombre: 'Viviana Casas',
+    correo: 'vet@two.com',
+    rol: 'Veterinario'
+  };
+
+
   test.beforeEach(async ({ page }) => {
     // Login como administrador
     await page.goto('http://localhost:3000');
-    await page.fill('input[type="email"]', 'admin@vin.com');
-    await page.fill('input[type="password"]', '123456789');
+    await page.fill('input[type="email"]', credenciales.correo);
+    await page.fill('input[type="password"]', credenciales.password);
     await page.click('button:has-text("Ingresar")');
 
     // Esperar a que cargue el dashboard
-    await expect(page.getByRole('heading', { name: /Bienvenid@, Administrador/ })).toBeVisible();
+    const welcomeRegex = new RegExp(`Bienvenid@, ${credenciales.nombre}`);
+    await expect(page.getByRole('heading', { name: welcomeRegex })).toBeVisible();
   });
+
 // TEST 1: Eliminar usuario correctamente
 test('Eliminar usuario correctamente', async ({ page }) => {
   await page.click('text=Usuarios');
@@ -18,8 +37,10 @@ test('Eliminar usuario correctamente', async ({ page }) => {
   await page.waitForSelector('text=Lista de Usuarios', { timeout: 5000 });
 
   // Localizar la tarjeta exacta del usuario usando el patrón completo
-  const userCard = page.locator('div').filter({ 
-    hasText: /^PMPepa Morenope@pa\.comVeterinario$/
+  const correoEscapado = usuarioAEliminar.correo.replace(/\./g, '\\.');
+  const patternString = `^${usuarioAEliminar.iniciales}${usuarioAEliminar.nombre}${correoEscapado}${usuarioAEliminar.rol}$`;
+  const userCard = page.locator('div').filter({
+    hasText: new RegExp(patternString)
   }).first();
 
   // Clic en el botón dentro de esa tarjeta
@@ -31,7 +52,7 @@ test('Eliminar usuario correctamente', async ({ page }) => {
   // Verificar modal
   const modal = page.getByRole('dialog', { name: 'Confirmar Eliminación' });
   await expect(modal).toBeVisible();
-  await expect(modal.locator('text=Pepa Moreno')).toBeVisible();
+  await expect(modal.locator(`text=${usuarioAEliminar.nombre}`)).toBeVisible();
 
   // Confirmar eliminación
   await modal.getByRole('button', { name: 'Eliminar' }).click();
@@ -47,9 +68,11 @@ test('No permitir eliminar el usuario activo', async ({ page }) => {
   await expect(page.locator('h1:has-text("Gestión de Usuarios")')).toBeVisible();
   await page.waitForSelector('text=Lista de Usuarios', { timeout: 5000 });
 
-  // Localizar la tarjeta del admin (necesitas el patrón completo del admin)
-  const adminCard = page.locator('div').filter({ 
-    hasText: /^ATAdministrador Testingadmin@vin\.comAdministrador$/ 
+  // Localizar la tarjeta del admin (usando las credenciales)
+  const adminCorreoEscapado = credenciales.correo.replace(/\./g, '\\.');
+  const adminPatternString = `^${credenciales.iniciales}${credenciales.nombre}${adminCorreoEscapado}${credenciales.rol}$`;
+  const adminCard = page.locator('div').filter({
+    hasText: new RegExp(adminPatternString)
   }).first();
 
   // Clic en el botón

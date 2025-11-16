@@ -52,8 +52,7 @@ const crearCita = async (req, res) => {
       FROM Citas
       WHERE id_usuario = ? 
         AND id_clinica = ?
-        -- Opcional: Si tienes un campo 'estado', filtra solo citas activas/confirmadas
-        -- AND estado NOT IN ('Cancelada', 'Rechazada') 
+        AND activo = TRUE
         AND (
           ? < DATE_ADD(fecha_cita, INTERVAL duracion_minutos MINUTE)
           AND
@@ -64,11 +63,11 @@ const crearCita = async (req, res) => {
     const conflictoRes = await queryConReintento(
       sqlCheckConflicto,
       [
-        id_usuario,       // id_usuario = ?
-        idClinica,        // id_clinica = ?
-        fecha_cita,       // ? (NuevaCita_Inicio)
-        fecha_cita,       // ? (base para NuevaCita_Fin)
-        duracion_minutos  // ? (intervalo para NuevaCita_Fin)
+        id_usuario,      
+        idClinica,        
+        fecha_cita,       
+        fecha_cita,       
+        duracion_minutos  
       ]
     );
 

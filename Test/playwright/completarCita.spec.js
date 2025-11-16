@@ -1,11 +1,17 @@
 import { test, expect } from '@playwright/test';  
   
 test.describe('Gestión de Citas - Veterinario', () => {  
+
+  const credenciales = {
+    correo: 'Ce@vin.com',
+    password: '12345',
+  };
+
   test.beforeEach(async ({ page }) => {  
     // Login como veterinario  
     await page.goto('http://localhost:3000');  
-    await page.fill('input[type="email"]', 'Ce@vin.com'); // Credenciales de veterinario  
-    await page.fill('input[type="password"]', '12345');  
+    await page.fill('input[type="email"]', credenciales.correo); // Credenciales de veterinario  
+    await page.fill('input[type="password"]', credenciales.password);  
     await page.click('button:has-text("Ingresar")');  
       
     // Esperar a que cargue el dashboard  
