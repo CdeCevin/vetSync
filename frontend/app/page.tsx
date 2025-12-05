@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { DashboardOverview } from "@/components/dashboard-overview"
-import { PatientDashboard  } from "@/components/Pacientes/patient-dashboard"
+import { PatientDashboard } from "@/components/Pacientes/patient-dashboard"
 import { InventoryManagement } from "@/components/inventory-management"
 import { BillingModule } from "../components/billing-module"
 import { UserManagementDashboard } from "../components/Usuarios/user-dashboard"
@@ -33,7 +33,7 @@ export default function VetManagementHome() {
   const [loginError, setLoginError] = useState<string | null>(null)
   const [userName, setUserName] = useState("")
   const [hydrated, setHydrated] = useState(false)
-  
+
   useEffect(() => {
     setHydrated(true)
   }, [])
@@ -70,7 +70,7 @@ export default function VetManagementHome() {
       localStorage.setItem("activeSection", activeSection)
     }
   }, [activeSection])
-  
+
   const handleLogin = async () => {
     setLoginError(null)
     try {
@@ -114,7 +114,7 @@ export default function VetManagementHome() {
               <CardTitle className="font-serif font-bold text-primary">Inicio de Sesión</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
@@ -150,7 +150,7 @@ export default function VetManagementHome() {
               >
                 Ingresar
               </Button>
-              
+
             </CardContent>
           </Card>
         </div>
@@ -170,18 +170,18 @@ export default function VetManagementHome() {
                 {activeSection === "dashboard"
                   ? `Panel Principal - ${usuario.nombre_clinica}`
                   : activeSection === "appointments"
-                  ? `Citas - ${usuario.nombre_clinica}`
-                  : activeSection === "patients"
-                  ? `Pacientes - ${usuario.nombre_clinica}`
-                  : activeSection === "inventory"
-                  ? `Inventario - ${usuario.nombre_clinica}`
-                  : activeSection === "users"
-                  ? `Usuarios - ${usuario.nombre_clinica}`
-                  : activeSection === "owners"
-                  ? `Dueños - ${usuario.nombre_clinica}`
-                  : activeSection === "treatments"
-                  ? `Tratamientos - ${usuario.nombre_clinica}`
-                  : activeSection}
+                    ? `Citas - ${usuario.nombre_clinica}`
+                    : activeSection === "patients"
+                      ? `Pacientes - ${usuario.nombre_clinica}`
+                      : activeSection === "inventory"
+                        ? `Inventario - ${usuario.nombre_clinica}`
+                        : activeSection === "users"
+                          ? `Usuarios - ${usuario.nombre_clinica}`
+                          : activeSection === "owners"
+                            ? `Dueños - ${usuario.nombre_clinica}`
+                            : activeSection === "treatments"
+                              ? `Tratamientos - ${usuario.nombre_clinica}`
+                              : activeSection}
               </h2>
             </div>
             <div className="ml-auto flex items-center space-x-4">
@@ -194,11 +194,11 @@ export default function VetManagementHome() {
             </div>
           </div>
         </div>
-       
+
         <main className="flex-1 min-h-0 p-6">
           {activeSection === "dashboard" && userRole && <DashboardOverview userRole={userRole} />}
 
-          {activeSection === "patients" && <PatientDashboard  />}
+          {activeSection === "patients" && <PatientDashboard />}
 
           {activeSection === "appointments" && (
             userRole === "Recepcionista"
@@ -210,7 +210,7 @@ export default function VetManagementHome() {
           {activeSection === "billing" && <BillingModule />}
 
           {activeSection === "users" && <UserManagementDashboard />}
-          
+
           {activeSection === "logs" && <BillingModule />}
 
           {activeSection === "owners" && <OwnerManagementDashboard />}
@@ -221,9 +221,9 @@ export default function VetManagementHome() {
             activeSection !== "patients" &&
             activeSection !== "appointments" &&
             activeSection !== "inventory" &&
-            activeSection !== "billing" && 
-            activeSection !== "users" && 
-            activeSection !== "treatments" && 
+            activeSection !== "billing" &&
+            activeSection !== "users" &&
+            activeSection !== "treatments" &&
             activeSection !== "owners" && (
               <div className="space-y-6">
                 <div>

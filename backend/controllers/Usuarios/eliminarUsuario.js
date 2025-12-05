@@ -1,4 +1,5 @@
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
 
 const eliminarUsuario = async (req, res) => {
   try {
@@ -20,6 +21,17 @@ const eliminarUsuario = async (req, res) => {
     await queryConReintento(qDesactivarCitas, [idUsuario, idClinica]);
 
     const results = await queryConReintento(qDesactivarUsuario, [idUsuario, idClinica]);
+
+    if (results.affectedRows > 0) {
+      await logAuditoria({
+        id_usuario: req.usuario.id,
+        id_clinica: idClinica,
+        accion: 'ELIMINAR',
+        entidad: 'Usuario',
+        id_entidad: idUsuario,
+        detalles: `Usuario ${idUsuario} eliminado (desactivado) y sus citas canceladas.`
+      });
+    }
 
     if (results.affectedRows === 0) {
       return res.status(404).json({ message: 'Usuario no encontrado o no pertenece a esta clínica' });

@@ -1,4 +1,5 @@
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
 
 const crearDueno = async (req, res) => {
   try {
@@ -25,6 +26,16 @@ const crearDueno = async (req, res) => {
     `;
 
     const insertResults = await queryConReintento(query, [nombre, telefono, correo, direccion, idClinica]);
+
+    // Audit Log
+    await logAuditoria({
+      id_usuario: req.usuario.id,
+      id_clinica: idClinica,
+      accion: 'CREAR',
+      entidad: 'Dueño',
+      id_entidad: insertResults.insertId,
+      detalles: `Dueño ${nombre} creado.`
+    });
 
     res.status(201).json({ message: 'Dueño creado', id: insertResults.insertId });
   } catch (error) {

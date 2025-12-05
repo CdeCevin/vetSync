@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useCitaService } from "@/hooks/useCitaService"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { usePacienteService } from "@/hooks/usePacienteService"
-import { useUserService , User } from "@/hooks/useUsuarioService"
+import { useUserService, User } from "@/hooks/useUsuarioService"
 import { useDueñoService } from "@/hooks/useDueñoService"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { useAuth } from "@/components/user-context"
@@ -35,7 +35,7 @@ export function CitaModal({
   const { usuario } = useAuth()
   const { createCita } = useCitaService()
   const { getPacientes } = usePacienteService()
-  const { getUsers } = useUserService()
+  const { getVeterinarios } = useUserService()
   const { getOwners } = useDueñoService()
   const { onOpen: openAlert } = useAlertStore()
 
@@ -58,7 +58,7 @@ export function CitaModal({
   const hasLoadedRef = useRef(false)
   const formRef = useRef<HTMLFormElement>(null)
 
-  
+
 
   // Cargar pacientes, veterinarios y dueños
   useEffect(() => {
@@ -76,19 +76,19 @@ export function CitaModal({
           const [pacientesData, ownersData] = await Promise.all(basePromises)
           setPacientesList(pacientesData || [])
           setOwnersList(ownersData || [])
-        } 
+        }
         else {
           // Si no vienen desde el padre → cargar desde el backend
           const [pacientesData, ownersData, usersData] = await Promise.all([
             ...basePromises,
-            getUsers()
+            getVeterinarios()
           ])
 
           setPacientesList(pacientesData || [])
           setOwnersList(ownersData || [])
-          setVeterinariosList(usersData.filter((u: User) => u.id_rol === 2))
+          setVeterinariosList(usersData) // Ya viene filtrado
         }
-        
+
       } catch (err) {
         console.error("Error cargando datos:", err)
       }
@@ -132,13 +132,13 @@ export function CitaModal({
     }
     if (!form.tipo_cita) {
       //Muestra la alerta porque el select no es nativo, no lo toma el checkValidity 
-    alert("Debes seleccionar el tipo de cita.")
-    return
-  }
+      alert("Debes seleccionar el tipo de cita.")
+      return
+    }
     try {
       // Corregir hora local 
       const fechaLocal = new Date(form.fecha_cita)
-      const offset = fechaLocal.getTimezoneOffset() 
+      const offset = fechaLocal.getTimezoneOffset()
       const fechaUTC = new Date(fechaLocal.getTime() - offset * 60000)
 
       await createCita({

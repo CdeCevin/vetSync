@@ -1,4 +1,6 @@
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
+const getDiff = require('../../utils/diffHelper');
 const bcrypt = require('bcrypt');
 
 const editarUsuario = async (req, res) => {
@@ -55,6 +57,32 @@ const editarUsuario = async (req, res) => {
       queryUpdate,
       [nuevoRol, hashContraseña, nuevoNombre, nuevoCorreo, idUsuario, idClinica]
     );
+
+    // Audit Log con Diff
+    const updates = {
+      id_rol: nuevoRol,
+      nombre_completo: nuevoNombre,
+      correo_electronico: nuevoCorreo
+    };
+
+    // Comparar campos básicos
+    const cambios = getDiff(usuarioActual, updates) || {};
+
+    // Verificar si cambió contraseña manualmente para añadir nota
+    if (contraseña !== undefined && contraseña !== '') {
+      cambios.contraseña = { anterior: '***', nuevo: 'CAMBIADA' };
+    }
+
+    const hayCambios = Object.keys(cambios).length > 0;
+
+    await logAuditoria({
+      id_usuario: req.usuario.id,
+      id_clinica: idClinica,
+      accion: 'MODIFICAR',
+      entidad: 'Usuario',
+      id_entidad: idUsuario,
+      detalles: hayCambios ? JSON.stringify(cambios) : 'Actualización de usuario (sin cambios detectados)'
+    });
 
     res.json({ message: 'Usuario actualizado correctamente' });
   } catch (error) {

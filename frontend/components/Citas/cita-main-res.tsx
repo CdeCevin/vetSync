@@ -68,7 +68,7 @@ function parseDateInputAsLocal(dateStr: string): Date {
 
 export function CitasRecepcionistaPage() {
   const { getCitas } = useCitaService()
-  const { getUsers } = useUserService()
+  const { getUsers, getVeterinarios } = useUserService()
 
   const [citas, setCitas] = useState<Cita[]>([])
   const [veterinarios, setVeterinarios] = useState<any[]>([])
@@ -101,9 +101,9 @@ export function CitasRecepcionistaPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      const [citasData, usersData] = await Promise.all([getCitas(), getUsers()])
+      const [citasData, usersData] = await Promise.all([getCitas(), getVeterinarios()])
       setCitas(citasData)
-      setVeterinarios(usersData.filter((u) => u.id_rol === 2))
+      setVeterinarios(usersData || []) // Ya viene filtrado
     }
     loadData()
   }, [])
@@ -187,7 +187,7 @@ export function CitasRecepcionistaPage() {
             >
               <div className="relative mt-1">
                 <ComboboxInput
-                  className="input-like "      
+                  className="input-like "
                   onChange={(e) => setQueryVet(e.target.value)}
                   displayValue={(id: number) =>
                     veterinarios.find((v) => v.id === id)?.nombre_completo || ""
@@ -199,8 +199,7 @@ export function CitasRecepcionistaPage() {
                     key={"todos"}
                     value={null}
                     className={({ active }) =>
-                      `cursor-pointer px-4 py-2 text-sm ${
-                        active ? "bg-[#066357]/50" : ""
+                      `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""
                       }`
                     }
                   >
@@ -216,8 +215,7 @@ export function CitasRecepcionistaPage() {
                       key={v.id}
                       value={v.id}
                       className={({ active }) =>
-                        `cursor-pointer px-4 py-2 text-sm ${
-                          active ? "bg-[#066357]/50" : ""
+                        `cursor-pointer px-4 py-2 text-sm ${active ? "bg-[#066357]/50" : ""
                         }`
                       }
                     >
@@ -281,7 +279,7 @@ export function CitasRecepcionistaPage() {
                     const citasData = await getCitas()
                     setCitas(citasData)
                   }}
-                  veterinarios = {veterinarios}
+                  veterinarios={veterinarios}
                 />
               </DialogContent>
             </Dialog>
@@ -305,9 +303,8 @@ export function CitasRecepcionistaPage() {
               {veterinariosToShow.map((v, idx) => (
                 <th key={v.id} className="border p-2 text-center w-56">
                   <span
-                    className={`px-2 py-1 rounded text-sm font-medium ${
-                      VET_COLORS[idx % VET_COLORS.length]
-                    }`}
+                    className={`px-2 py-1 rounded text-sm font-medium ${VET_COLORS[idx % VET_COLORS.length]
+                      }`}
                   >
                     {v.nombre_completo}
                   </span>

@@ -1,17 +1,29 @@
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
 
 const crearCita = async (req, res) => {
   try {
     const idClinica = req.clinicaId;
     const {
       id_paciente,
-      id_usuario,
+      id_usuario: idUsuarioBody, // Renombramos para no conflictuar con let
       fecha_cita,
       duracion_minutos,
       motivo,
       tipo_cita,
       notas
     } = req.body;
+
+    const idRol = req.usuario.id_rol;
+
+    // Si es Veterinario (2), solo puede agendarse a sí mismo
+    let id_usuario = idUsuarioBody;
+    if (idRol === 2) {
+      if (idUsuarioBody && idUsuarioBody !== req.usuario.id) {
+        return res.status(403).json({ error: 'No tienes permiso para agendar citas a otros veterinarios.' });
+      }
+      id_usuario = req.usuario.id;
+    }
 
     // --- MODIFICACIÓN 1: duracion_minutos ahora es obligatorio ---
     if (!id_paciente || !id_usuario || !fecha_cita || !duracion_minutos || !motivo || !tipo_cita || !idClinica) {
@@ -45,7 +57,7 @@ const crearCita = async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado o inactivo en clínica' });
     }
 
-       
+
     // (NuevaCita_Inicio < CitaExistente_Fin) Y (NuevaCita_Fin > CitaExistente_Inicio)
     const sqlCheckConflicto = `
       SELECT 1 
@@ -63,11 +75,11 @@ const crearCita = async (req, res) => {
     const conflictoRes = await queryConReintento(
       sqlCheckConflicto,
       [
-        id_usuario,      
-        idClinica,        
-        fecha_cita,       
-        fecha_cita,       
-        duracion_minutos  
+        id_usuario,
+        idClinica,
+        fecha_cita,
+        fecha_cita,
+        duracion_minutos
       ]
     );
 
@@ -76,7 +88,7 @@ const crearCita = async (req, res) => {
       // Usamos el código 409 Conflict
       return res.status(409).json({ error: 'Conflicto de horario. El veterinario ya tiene una cita programada en ese rango.' });
     }
-    
+
     // 2. Insertar la cita (si no hay conflictos)
     const sqlInsert = `
       INSERT INTO Citas (
@@ -88,9 +100,9 @@ const crearCita = async (req, res) => {
     const insRes = await queryConReintento(
       sqlInsert,
       [
-        id_paciente, id_usuario, fecha_cita, 
+        id_paciente, id_usuario, fecha_cita,
         // --- MODIFICACIÓN 4: duracion_minutos ya no necesita '|| null' ---
-        duracion_minutos, 
+        duracion_minutos,
         motivo, tipo_cita, notas && notas.trim().length > 0 ? notas : null, idClinica
       ]
     );
@@ -98,6 +110,16 @@ const crearCita = async (req, res) => {
     res.status(201).json({
       message: 'Cita registrada correctamente',
       id: insRes.insertId
+    });
+
+    // Audit Log
+    await logAuditoria({
+      id_usuario: req.usuario.id,
+      id_clinica: idClinica,
+      accion: 'CREAR',
+      entidad: 'Cita',
+      id_entidad: insRes.insertId,
+      detalles: `Cita programada para la fecha: ${fecha_cita} (Tipo: ${tipo_cita})`
     });
   } catch (error) {
     console.error('Error registrando cita:', error);
