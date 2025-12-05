@@ -7,6 +7,12 @@ const estadisticaInventario = async (req, res) => {
     const id_clinica = req.clinicaId;
 
     try {
+        const totalProductos = query(`
+            SELECT COUNT(*) as total 
+            FROM Inventario_Items 
+            WHERE id_clinica = ? AND Activo = 1
+        `, [id_clinica]);
+
         const bajosStockPromise = query(`
             SELECT COUNT(*) as total 
             FROM Inventario_Items 
@@ -20,22 +26,18 @@ const estadisticaInventario = async (req, res) => {
             AND stock = 0
         `, [id_clinica]);
 
-        const valorTotalPromise = query(`
-            SELECT SUM(stock * precio) as totalValor
-            FROM Inventario_Items
-            WHERE id_clinica = ? AND Activo = 1
-        `, [id_clinica]);
 
-        const [bajosResults, agotadosResults, valorResults] = await Promise.all([
+
+        const [totalResults, bajosResults, agotadosResults] = await Promise.all([
+            totalProductos,
             bajosStockPromise,
-            agotadosPromise,
-            valorTotalPromise
+            agotadosPromise
         ]);
 
         res.json({
+            productosTotales: totalResults[0].total || 0,
             productosBajoStock: bajosResults[0].total || 0,
             productosAgotados: agotadosResults[0].total || 0,
-            valorTotalInventario: valorResults[0].totalValor || 0
         });
 
     } catch (error) {

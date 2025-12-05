@@ -11,7 +11,6 @@ const agregarProducto = (req, res) => {
         stockMinimo,    // Matches 'stock_minimo' in DB
         unidadMedida,   // Matches 'unidad_medida' in DB
         fechaExpiracion,// Matches 'fecha_expiracion' in DB
-        proveedor,
         costoUnitario   // Matches 'precio' in DB
     } = req.body;
 
@@ -41,8 +40,8 @@ const agregarProducto = (req, res) => {
         // Insertar producto
         const insertQuery = `
             INSERT INTO Inventario_Items 
-            (id_clinica, codigo, nombre, tipo, descripcion, stock, stock_minimo, unidad_medida, fecha_expiracion, proveedor, precio, Activo, creado_en, actualizado_en) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
+            (id_clinica, codigo, nombre, tipo, descripcion, stock, stock_minimo, unidad_medida, fecha_expiracion, precio, Activo, creado_en, actualizado_en) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
         `;
 
         const values = [
@@ -55,7 +54,6 @@ const agregarProducto = (req, res) => {
             stockMinimo,    // stock_minimo
             unidadMedida,   // unidad_medida
             fechaExpiracion || null, // fecha_expiracion
-            proveedor || null,
             costoUnitario   // precio
         ];
 
