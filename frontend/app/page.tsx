@@ -16,7 +16,7 @@ import { OwnerManagementDashboard } from "../components/Dueños/ow-dashboard"
 import { useAuth } from '@/components/user-context'
 import { CitasRecepcionistaPage } from "@/components/Citas/cita-main-res"
 import { CitasPage } from "@/components/Citas/cita-main"
-
+import { TratamientosPage } from "@/components/Tratamientos/tratamientosPage"
 
 export default function VetManagementHome() {
   const { usuario, token, setAuthInfo, clearAuthInfo } = useAuth()
@@ -179,6 +179,8 @@ export default function VetManagementHome() {
                   ? `Usuarios - ${usuario.nombre_clinica}`
                   : activeSection === "owners"
                   ? `Dueños - ${usuario.nombre_clinica}`
+                  : activeSection === "treatments"
+                  ? `Tratamientos - ${usuario.nombre_clinica}`
                   : activeSection}
               </h2>
             </div>
@@ -213,12 +215,15 @@ export default function VetManagementHome() {
 
           {activeSection === "owners" && <OwnerManagementDashboard />}
 
+          {activeSection === "treatments" && <TratamientosPage />}
+
           {activeSection !== "dashboard" &&
             activeSection !== "patients" &&
             activeSection !== "appointments" &&
             activeSection !== "inventory" &&
             activeSection !== "billing" && 
             activeSection !== "users" && 
+            activeSection !== "treatments" && 
             activeSection !== "owners" && (
               <div className="space-y-6">
                 <div>
