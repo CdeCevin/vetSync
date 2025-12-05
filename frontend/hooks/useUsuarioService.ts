@@ -74,5 +74,14 @@ export function useUserService() {
     return res.json()
   }
 
-  return { getUsers, createUser, updateUser, deleteUser }
+  // Obtener solo veterinarios (Público/Compartido)
+  const getVeterinarios = async (): Promise<User[]> => {
+    const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/usuarios/veterinarios`, {
+      cache: "no-store",
+    })
+    if (!res.ok) throw new Error("Error al obtener lista de veterinarios.")
+    return res.json()
+  }
+
+  return { getUsers, createUser, updateUser, deleteUser, getVeterinarios }
 }

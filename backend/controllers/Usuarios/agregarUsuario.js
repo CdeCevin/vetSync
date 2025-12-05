@@ -1,4 +1,5 @@
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
 const bcrypt = require('bcrypt');
 
 const crearUsuario = async (req, res) => {
@@ -28,6 +29,16 @@ const crearUsuario = async (req, res) => {
     `;
 
     const insertResults = await queryConReintento(query, [idClinica, id_rol, hash, nombre_completo, correo_electronico]);
+
+    // Audit Log
+    await logAuditoria({
+      id_usuario: req.usuario.id,
+      id_clinica: idClinica,
+      accion: 'CREAR',
+      entidad: 'Usuario',
+      id_entidad: insertResults.insertId,
+      detalles: `Usuario ${nombre_completo} creado.`
+    });
 
     res.status(201).json({ message: 'Usuario creado', id: insertResults.insertId });
   } catch (error) {

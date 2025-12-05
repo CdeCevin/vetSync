@@ -1,4 +1,5 @@
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
 
 const crearPaciente = async (req, res) => {
   try {
@@ -35,6 +36,16 @@ const crearPaciente = async (req, res) => {
       queryPaciente,
       [nombre, especie, raza, color, edad, peso, numero_microchip, id_dueño, idClinica]
     );
+
+    // Registro de auditoría
+    await logAuditoria({
+      id_usuario: req.usuario.id,
+      id_clinica: idClinica,
+      accion: 'CREAR',
+      entidad: 'Paciente',
+      id_entidad: insertResults.insertId,
+      detalles: `Paciente ${nombre} (${especie}) creado.`
+    });
 
     res.status(201).json({ message: 'Paciente creado correctamente', id: insertResults.insertId });
   } catch (error) {

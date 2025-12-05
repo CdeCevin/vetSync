@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
 
 const login = async (req, res) => {
   try {
@@ -18,6 +19,17 @@ const login = async (req, res) => {
     const results = await queryConReintento(query, [correo_electronico]);
 
     if (results.length === 0) {
+      // Intento de login con usuario no existente
+      // No tenemos ID de usuario, así que pasamos null (si la DB lo permite) o no logueamos este caso particular para evitar error FK.
+      // Probaremos pasando null.
+      await logAuditoria({
+        id_usuario: null,
+        id_clinica: null, // No sabemos clínica tampoco
+        accion: 'LOGIN_FALLIDO',
+        entidad: 'Auth',
+        id_entidad: 0,
+        detalles: `Intento de login fallido.`
+      });
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
@@ -26,6 +38,14 @@ const login = async (req, res) => {
     const igual = await bcrypt.compare(contraseña, usuario.hash_contraseña);
 
     if (!igual) {
+      await logAuditoria({
+        id_usuario: usuario.id,
+        id_clinica: usuario.id_clinica,
+        accion: 'LOGIN_FALLIDO',
+        entidad: 'Auth',
+        id_entidad: usuario.id,
+        detalles: `Intento de login fallido.`
+      });
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
@@ -47,6 +67,16 @@ const login = async (req, res) => {
     res.json({
       token,
       usuario: payload,
+    });
+
+    // Login Exitoso
+    await logAuditoria({
+      id_usuario: usuario.id,
+      id_clinica: usuario.id_clinica,
+      accion: 'LOGIN_EXITOSO',
+      entidad: 'Auth',
+      id_entidad: usuario.id,
+      detalles: `Login exitoso`
     });
   } catch (error) {
     console.error('Error en login:', error);

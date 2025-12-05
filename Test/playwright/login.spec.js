@@ -1,12 +1,18 @@
 import { test, expect } from '@playwright/test';  
   
 test.describe('Autenticación VetSync', () => {  
+
+  const credenciales = {
+    correo: 'Ce@vin.com',
+    password: '12345',
+  };
+
   test('Iniciar sesión correcto', async ({ page }) => {  
     await page.goto('http://localhost:3000');  
       
     // Llenar formulario de login  
-    await page.fill('input[type="email"]', 'Ce@vin.com');  
-    await page.fill('input[type="password"]', '12345');  
+    await page.fill('input[type="email"]', credenciales.correo);  
+    await page.fill('input[type="password"]', credenciales.password);  
       
     // Click en botón Ingresar  
     await page.click('button:has-text("Ingresar")');  

@@ -35,10 +35,10 @@ const ESTADOS_COLORES: Record<Cita["estado"], string> = {
   no_asistio: "bg-gray-200 text-gray-700",
 }
 
-export function CitaDetallesDialog({ open, onClose, cita, onUpdate,veterinarios }: CitaDetallesDialogProps) {
+export function CitaDetallesDialog({ open, onClose, cita, onUpdate, veterinarios }: CitaDetallesDialogProps) {
   const { updateCita, deleteCita } = useCitaService()
   const { getPacientes } = usePacienteService()
-  const { getUsers } = useUserService()
+  const { getUsers, getVeterinarios } = useUserService()
   const { onOpen: openAlert } = useAlertStore()
   const [pacientesList, setPacientesList] = useState<any[]>([])
   const [veterinariosList, setVeterinariosList] = useState<any[]>([])
@@ -52,28 +52,28 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate,veterinarios 
 
   // Cargar pacientes y veterinarios
   useEffect(() => {
-  const loadData = async () => {
-    try {
-      const pacientesData = await getPacientes("")
-      setPacientesList(pacientesData || [])
+    const loadData = async () => {
+      try {
+        const pacientesData = await getPacientes("")
+        setPacientesList(pacientesData || [])
 
-      // Si el padre YA entregó los veterinarios
-      if (veterinarios && veterinarios.length > 0) {
-        setVeterinariosList(veterinarios)
-      } else {
-        // Cargar desde API solo si no vienen del padre
-        const usersData = await getUsers()
-        setVeterinariosList(usersData.filter((u: User) => u.id_rol === 2))
+        // Si el padre YA entregó los veterinarios
+        if (veterinarios && veterinarios.length > 0) {
+          setVeterinariosList(veterinarios)
+        } else {
+          // Cargar desde API solo si no vienen del padre
+          const usersData = await getVeterinarios()
+          setVeterinariosList(usersData || [])
+        }
+
+      } catch (error) {
+        console.error("Error cargando datos:", error)
       }
-      
-    } catch (error) {
-      console.error("Error cargando datos:", error)
     }
-  }
 
-  if (open) loadData()
+    if (open) loadData()
 
-}, [open])
+  }, [open])
 
   useEffect(() => {
     setForm(cita)
@@ -284,8 +284,8 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate,veterinarios 
         onConfirm={confirmDelete}
         onSuccess={() => setShowDeleteModal(false)}
         mensajeEx={"La cita seleccionada se ha eliminado."}
-        mensajeConf ={"¿Estás seguro de que deseas eliminar la cita seleccionada? Esta acción no se puede deshacer."}
-        //userName="la cita seleccionada"
+        mensajeConf={"¿Estás seguro de que deseas eliminar la cita seleccionada? Esta acción no se puede deshacer."}
+      //userName="la cita seleccionada"
       />
     </Dialog>
   )

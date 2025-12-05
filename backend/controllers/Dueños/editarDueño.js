@@ -1,4 +1,6 @@
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
+const getDiff = require('../../utils/diffHelper');
 
 const editarDueno = async (req, res) => {
   try {
@@ -44,6 +46,24 @@ const editarDueno = async (req, res) => {
       queryUpdate,
       [nuevoNombre, nuevoTelefono, nuevoCorreo, nuevaDireccion, idDueno, idClinica]
     );
+
+    // Audit Log con Diff
+    const updates = {
+      nombre: nuevoNombre,
+      telefono: nuevoTelefono,
+      correo: nuevoCorreo,
+      direccion: nuevaDireccion
+    };
+    const cambios = getDiff(duenoActual, updates);
+
+    await logAuditoria({
+      id_usuario: req.usuario.id,
+      id_clinica: idClinica,
+      accion: 'MODIFICAR',
+      entidad: 'Dueño',
+      id_entidad: idDueno,
+      detalles: cambios ? JSON.stringify(cambios) : 'Actualización de dueño (sin cambios detectados)'
+    });
 
     res.json({ message: 'Dueño actualizado correctamente' });
   } catch (error) {

@@ -1,4 +1,6 @@
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
+const getDiff = require('../../utils/diffHelper');
 
 const editarCita = async (req, res) => {
   try {
@@ -24,8 +26,18 @@ const editarCita = async (req, res) => {
     }
 
     const citaActual = results[0];
+
+    // Validación de Rol: Veterinario (2) solo puede editar sus propias citas
+    if (req.usuario.id_rol === 2 && citaActual.id_usuario !== req.usuario.id) {
+      return res.status(403).json({ error: 'Acceso denegado. No puedes editar citas de otros veterinarios.' });
+    }
+
     const nuevoPaciente = id_paciente !== undefined ? id_paciente : citaActual.id_paciente;
-    const nuevoUsuario = id_usuario !== undefined ? id_usuario : citaActual.id_usuario;
+    // Si es Vet, no permitimos cambiar el id_usuario (reasignar cita), o si lo intenta debe ser a si mismo
+    let nuevoUsuario = id_usuario !== undefined ? id_usuario : citaActual.id_usuario;
+    if (req.usuario.id_rol === 2 && nuevoUsuario !== req.usuario.id) {
+      return res.status(403).json({ error: 'No puedes reasignar la cita a otro veterinario.' });
+    }
     const nuevaFecha = fecha_cita !== undefined ? fecha_cita : citaActual.fecha_cita;
     const nuevaDuracion = duracion_minutos !== undefined ? duracion_minutos : citaActual.duracion_minutos;
     const nuevoMotivo = motivo !== undefined ? motivo : citaActual.motivo;
@@ -59,6 +71,27 @@ const editarCita = async (req, res) => {
       updateQuery,
       [nuevoPaciente, nuevoUsuario, nuevaFecha, nuevaDuracion, nuevoMotivo, nuevoTipo, nuevasNotas, idCita, idClinica]
     );
+
+    // Audit Log con Diff
+    const updates = {
+      id_paciente: nuevoPaciente,
+      id_usuario: nuevoUsuario,
+      fecha_cita: nuevaFecha,
+      duracion_minutos: nuevaDuracion,
+      motivo: nuevoMotivo,
+      tipo_cita: nuevoTipo,
+      notas: nuevasNotas
+    };
+    const cambios = getDiff(citaActual, updates);
+
+    await logAuditoria({
+      id_usuario: req.usuario.id,
+      id_clinica: idClinica,
+      accion: 'MODIFICAR',
+      entidad: 'Cita',
+      id_entidad: idCita,
+      detalles: cambios ? JSON.stringify(cambios) : 'Actualización de Cita (sin cambios detectados)'
+    });
 
     res.json({ message: 'Cita actualizada correctamente' });
   } catch (error) {

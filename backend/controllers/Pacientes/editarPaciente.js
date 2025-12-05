@@ -1,4 +1,6 @@
 const { queryConReintento } = require('../../db/queryHelper');
+const logAuditoria = require('../../utils/auditLogger');
+const getDiff = require('../../utils/diffHelper');
 
 const editarPaciente = async (req, res) => {
   try {
@@ -43,6 +45,30 @@ const editarPaciente = async (req, res) => {
       updateQuery,
       [nuevoNombre, nuevaEspecie, nuevaRaza, nuevoColor, nuevaEdad, nuevoPeso, nuevoMicrochip, nuevoIdDueno, idPaciente, idClinica]
     );
+
+    // Calcular diferencias para el log
+    const updates = {
+      nombre: nuevoNombre,
+      especie: nuevaEspecie,
+      raza: nuevaRaza,
+      color: nuevoColor,
+      edad: nuevaEdad,
+      peso: nuevoPeso,
+      numero_microchip: nuevoMicrochip,
+      id_dueño: nuevoIdDueno
+    };
+
+    const cambios = getDiff(pacienteActual, updates);
+
+    // Registro de auditoría
+    await logAuditoria({
+      id_usuario: req.usuario.id,
+      id_clinica: idClinica,
+      accion: 'MODIFICAR',
+      entidad: 'Paciente',
+      id_entidad: idPaciente,
+      detalles: cambios ? JSON.stringify(cambios) : 'Sin cambios detectados (o actualización de campos idénticos)'
+    });
 
     res.json({ message: 'Paciente actualizado correctamente' });
   } catch (error) {
