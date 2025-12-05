@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { PatientDashboard  } from "@/components/Pacientes/patient-dashboard"
-import { InventoryManagement } from "@/components/inventory-management"
+import { InventoryManagement } from "@/components/Inventario/inventory-management"
 import { BillingModule } from "../components/billing-module"
 import { UserManagementDashboard } from "../components/Usuarios/user-dashboard"
 import { OwnerManagementDashboard } from "../components/Dueños/ow-dashboard"
@@ -194,7 +194,12 @@ export default function VetManagementHome() {
         </div>
        
         <main className="flex-1 min-h-0 p-6">
-          {activeSection === "dashboard" && userRole && <DashboardOverview userRole={userRole} />}
+          {activeSection === "dashboard" && userRole && (
+            <DashboardOverview 
+                userRole={userRole} 
+                onNavigate={setActiveSection} 
+            />
+          )}
 
           {activeSection === "patients" && <PatientDashboard  />}
 

@@ -1,358 +1,264 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Users, Package, FileClock, AlertTriangle, Clock, CheckCircle } from "lucide-react"
+import { Calendar, Users, Package, FileClock, AlertTriangle, Clock, CheckCircle, PawPrint, Activity, ArrowRight, Pill, Search as SearchIcon } from "lucide-react"
 import { useAuth } from '@/components/user-context'
-import { useState } from "react"
-
+import { useDashboardService, LogAuditoria, CitaResumen, PacienteResumen } from "@/hooks/useDashboardService"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface DashboardOverviewProps {
   userRole: "Admin" | "Veterinario" | "Recepcionista"
+  onNavigate: (section: string) => void
 }
 
+export function DashboardOverview({ userRole, onNavigate }: DashboardOverviewProps) {
+  const { usuario } = useAuth()
+  const { getAdminData, getVetData, getReceptionData, loading } = useDashboardService()
 
-export function DashboardOverview({ userRole }: DashboardOverviewProps) {
-  const { usuario, token, setAuthInfo, clearAuthInfo } = useAuth()
-  const [usuariosActivos] = useState(247)
-  const [ultimosCambios] = useState(156)
+  const [adminStats, setAdminStats] = useState<any>(null)
+  const [adminLogs, setAdminLogs] = useState<LogAuditoria[]>([])
+  
+  const [vetData, setVetData] = useState<{ citasHoy: CitaResumen[], pacientesAtendidos: number, alertasMedicamentos: number } | null>(null)
+  
+  // Estado Recepcionista
+  const [receptionData, setReceptionData] = useState<{ 
+    resumenCitas: any, 
+    alertasInventario: number,
+    pacientesRecientes: PacienteResumen[] 
+  } | null>(null)
+
+  useEffect(() => {
+    if (userRole === "Admin") {
+      getAdminData().then(data => {
+        setAdminStats(data.stats)
+        setAdminLogs(data.logs)
+      })
+    } else if (userRole === "Veterinario") {
+      getVetData().then(data => setVetData(data))
+    } else if (userRole === "Recepcionista") {
+      getReceptionData().then(data => setReceptionData(data))
+    }
+  }, [userRole, getAdminData, getVetData, getReceptionData])
+
+  if (loading) return <DashboardSkeleton />
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="font-serif font-bold text-2xl text-foreground">
-         {userRole === "Veterinario" ? `Bienvenido Dr. ${usuario?.nombre_completo}` : `Bienvenid@, ${usuario?.nombre_completo}`}
+          {userRole === "Veterinario" ? `Bienvenido Dr. ${usuario?.nombre_completo || ""}` : `Bienvenid@, ${usuario?.nombre_completo || "Usuario"}`}
         </h1>
-        <p className="text-muted-foreground">Esto es lo que está pasando hoy</p>
+        <p className="text-muted-foreground">Resumen de actividad para hoy</p>
       </div>
 
-       {userRole === "Admin" && (
-        <div >
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 ">
+      {/* VISTA ADMIN */}
+      {userRole === "Admin" && adminStats && (
+        <div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+             <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Usuarios Activos</CardTitle><Users className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-primary">{adminStats.usuariosActivos}</div></CardContent></Card>
+             <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Movimientos Hoy</CardTitle><FileClock className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-primary">{adminStats.cambiosHoy}</div></CardContent></Card>
+          </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Usuarios Activos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{usuariosActivos}</div>
-          </CardContent>
-        </Card>
+          <div className="grid mt-6 gap-6 md:grid-cols-2">
+            <Card className="col-span-1 md:col-span-2 lg:col-span-1">
+              <CardHeader><CardTitle className="font-serif">Auditoría Reciente</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                {adminLogs.slice(0, 5).map((log) => (
+                  <div key={log.id} className="flex items-start space-x-3 border-b pb-3 last:border-0 last:pb-0">
+                    <div className={`mt-1 w-2 h-2 rounded-full ${log.entidad === 'Usuario' ? 'bg-blue-500' : 'bg-orange-500'}`} />
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-medium leading-none">{log.accion}</p>
+                      <p className="text-xs text-muted-foreground">Por <span className="font-semibold">{log.usuario}</span></p>
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">{log.fecha.split(" ")[1]}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Últimos Cambios</CardTitle>
-            <FileClock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{ultimosCambios}</div>
-            <div className="flex items-center space-x-2 text-xs">
-              
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Acciones Rápidas */}
-      <div className="grid mt-6 gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif">Actividad Reciente</CardTitle>
-            <CardDescription>Últimas actualizaciones</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Usuario creado</p>
-                <p className="text-xs text-muted-foreground">Admin - Juan Pérez</p>
-              </div>
-              <span className="text-xs text-muted-foreground">hace 2 minutos</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Cambio de permisos</p>
-                <p className="text-xs text-muted-foreground">Recepcionista - María López</p>
-              </div>
-              <span className="text-xs text-muted-foreground">hace 15 minutos</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif">Acciones Rápidas</CardTitle>
-            <CardDescription>Tareas comunes para administradores</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3">
-              <Button className="justify-start h-auto p-4">
-                <div className="flex flex-col items-start space-y-1">
-                  <span className="font-serif font-semibold">Crear Usuario</span>
-                  <span className="text-xs opacity-80">Agregar un nuevo usuario al sistema</span>
-                </div>
-              </Button>
-              <Button variant="secondary" className="justify-start h-auto p-4">
-                <div className="flex flex-col items-start space-y-1">
-                  <span className="font-serif font-semibold">Administrar Usuarios</span>
-                  <span className="text-xs opacity-80">Editar o eliminar usuarios existentes</span>
-                </div>
-              </Button>
-              <Button variant="outline" className="justify-start h-auto p-4 bg-transparent">
-                  <div className="flex flex-col items-start space-y-1">
-                    <span className="font-serif font-semibold">Últimos Cambios</span>
-                    <span className="text-xs opacity-80">Visualizar cambios recientes</span>
+            <Card>
+              <CardHeader><CardTitle className="font-serif">Acciones Rápidas</CardTitle></CardHeader>
+              <CardContent className="grid gap-3">
+                <Button className="justify-start h-auto p-4 w-full bg-primary/10 hover:bg-primary/20 hover:text-primary text-primary border border-primary/10" variant="ghost" onClick={() => onNavigate("users")}>
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white p-2 rounded-full shadow-sm"><Users className="h-5 w-5 text-primary"/></div>
+                    <div className="text-left">
+                    <span className="block font-bold">Crear Nuevo Usuario</span>
+                    <span className="text-xs opacity-70">Registrar personal médico</span>
+                  </div>
+                   </div>
+                </Button>
+                <Button className="justify-start h-auto p-4 w-full bg-secondary/10 hover:bg-secondary/20 hover:text-secondary text-secondary border border-secondary/10" variant="ghost" onClick={() => onNavigate("logs")}>
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white p-2 rounded-full shadow-sm"><FileClock className="h-5 w-5 text-primary"/></div>
+                    <div className="text-left">
+                    <span className="block font-bold">Ver Logs Completos</span>
+                    <span className="text-xs opacity-70">Ir a auditoría detallada</span>
+                    </div>
                   </div>
                 </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* VISTA VETERINARIO */}
+      {userRole === "Veterinario" && vetData && (
+        <div>
+           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+             <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Mis Citas Hoy</CardTitle><Calendar className="h-4 w-4 text-muted-foreground"/></CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{vetData.citasHoy.length}</div>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center"><Clock className="w-3 h-3 mr-1 text-orange-500"/> {vetData.citasHoy.filter(c => c.estado === 'pendiente').length} Pendientes</span>
+                        <span className="flex items-center"><CheckCircle className="w-3 h-3 mr-1 text-green-500"/> {vetData.citasHoy.filter(c => c.estado === 'completada').length} Listas</span>
+                    </div>
+                </CardContent>
+             </Card>
+             
+             <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle><Users className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-primary">{vetData.pacientesAtendidos}</div><p className="text-xs text-muted-foreground mt-1">Pacientes Asociados</p></CardContent></Card>
+             <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Medicamentos Críticos</CardTitle><Pill className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-red-600">{vetData.alertasMedicamentos}</div> <p className="text-xs text-muted-foreground mt-1">Requieren reposición inmediata</p></CardContent></Card>
+
+           </div>
+
+          <div className="grid mt-6 gap-6 md:grid-cols-2">
+            
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle className="font-serif">Próximas 5 Citas</CardTitle>
+                <CardDescription>Agenda pendiente inmediata</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {vetData.citasHoy
+                    .filter(c => c.estado === 'pendiente' || c.estado === 'en-curso')
+                    .slice(0, 5)
+                    .length === 0 ? (
+                    <p className="text-muted-foreground text-sm">No hay próximas citas pendientes.</p>
+                  ) : (
+                    vetData.citasHoy
+                        .filter(c => c.estado === 'pendiente' || c.estado === 'en-curso')
+                        .slice(0, 5)
+                        .map(cita => (
+                            <div key={cita.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                                <div className="flex gap-3 items-center">
+                                    <div className="bg-primary/10 p-1 px-2 rounded font-bold text-primary text-xs text-center min-w-[50px]">
+                                        {cita.hora}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="font-semibold text-sm">{cita.paciente}</span>
+                                        <span className="text-xs text-muted-foreground">{cita.motivo}</span>
+                                    </div>
+                                </div>
+                                <Badge variant={cita.estado === 'en-curso' ? "secondary" : "outline"} className="text-[10px]">
+                                    {cita.estado}
+                                </Badge>
+                            </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle className="font-serif">Accesos Frecuentes</CardTitle>
+                <CardDescription>Atajos para tu gestión diaria</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3">
+                <Button className="justify-start h-auto p-4 w-full bg-secondary/10 hover:bg-secondary/20 hover:text-secondary text-secondary border border-secondary/10" variant="ghost" onClick={() => onNavigate("patients")}>
+                  <div className="flex items-center gap-3"><div className="bg-white p-2 rounded-full shadow-sm"><SearchIcon className="h-5 w-5 text-secondary"/></div><div className="text-left"><span className="block font-bold">Buscar Paciente</span><span className="text-xs opacity-70">Acceder a historial</span></div></div>
+                </Button>
+                <Button className="justify-start h-auto p-4 w-full bg-[#329c8c]/10 hover:bg-[#329c8c]/20 text-[#29564e] hover:text-[#29564e] border border-[#29564e]/10" variant="ghost" onClick={() => onNavigate("appointments")}>
+                  <div className="flex items-center gap-3"><div className="bg-white p-2 rounded-full shadow-sm"><FileClock className="h-5 w-5 text-[#29564e]"/></div><div className="text-left"><span className="block font-bold">Ver Calendario</span><span className="text-xs opacity-70">Consultar agenda</span></div></div>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* VISTA RECEPCIONISTA*/}
+      {userRole === "Recepcionista" && receptionData && (
+        <div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Citas Totales</CardTitle><Calendar className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-primary">{receptionData.resumenCitas.total}</div><p className="text-xs text-muted-foreground mt-1">Citas por realizar hoy</p></CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Citas Completadas</CardTitle><Calendar className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-primary">{receptionData.resumenCitas.completadas}</div> <p className="text-xs text-muted-foreground mt-1">Citas completadas hoy</p></CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Alertas Stock</CardTitle><Pill className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-red-600">{receptionData.alertasInventario}</div> <p className="text-xs text-muted-foreground mt-1">Requieren reposición inmediata</p></CardContent></Card>             
+          </div>
+
+          <div className="grid mt-6 gap-6 md:grid-cols-2">
+            
+            {/* Pacientes Recientes */}
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle className="font-serif">Pacientes Recientes</CardTitle>
+                <CardDescription>Últimos registros ingresados</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {(receptionData.pacientesRecientes || []).map((paciente) => (
+                    <div key={paciente.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <PawPrint className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{paciente.nombre} <span className="text-xs text-muted-foreground">({paciente.especie})</span></p>
+                          <p className="text-xs text-muted-foreground">Dueño: {paciente.propietario}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-medium bg-secondary/10 text-secondary px-2 py-1 rounded">
+                        {paciente.fechaRegistro}
+                      </span>
+                    </div>
+                  ))}
+                  {(!receptionData.pacientesRecientes || receptionData.pacientesRecientes.length === 0) && (
+                    <p className="text-sm text-muted-foreground">No hay registros recientes.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Accesos Directos*/}
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle className="font-serif">Accesos Rápidos</CardTitle>
+                <CardDescription>Tareas de recepción</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3">
+                <Button className="justify-start h-auto p-4 w-full bg-primary/10 hover:bg-primary/20 hover:text-primary text-primary border border-primary/10" variant="ghost" onClick={() => onNavigate("appointments")}>
+                  <div className="flex items-center gap-3"><div className="bg-white p-2 rounded-full shadow-sm"><Calendar className="h-5 w-5 text-primary"/></div><div className="text-left"><span className="block font-bold">Agendar Nueva Cita</span><span className="text-xs opacity-70">Registrar visita</span></div></div>
+                </Button>
+                
+                <Button className="justify-start h-auto p-4 w-full bg-green-50 hover:bg-secondary/20 hover:text-secondary text-secondary border border-secondary/10" variant="ghost" onClick={() => onNavigate("patients")}>
+                  <div className="flex items-center gap-3"><div className="bg-white p-2 rounded-full shadow-sm"><Users className="h-5 w-5 text-secondary"/></div><div className="text-left"><span className="block font-bold">Registrar Paciente</span><span className="text-xs opacity-70">Crear ficha nueva</span></div></div>
+                </Button>
+
+                <Button className="justify-start h-auto p-4 w-full bg-[#329c8c]/10 hover:bg-[#329c8c]/20 text-[#29564e] hover:text-[#29564e] border border-[#29564e]/10" variant="ghost" onClick={() => onNavigate("inventory")}>
+                  <div className="flex items-center gap-3"><div className="bg-white p-2 rounded-full shadow-sm"><Package className="h-5 w-5 text-[#29564e] "/></div><div className="text-left"><span className="block font-bold">Revisar Inventario</span><span className="text-xs opacity-70">Ver stock y alertas</span></div></div>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
-      )}
+  )
+}
 
-      {userRole === "Veterinario" && (
-        <div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Citas de Hoy</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">12</div>
-            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-              <CheckCircle className="h-3 w-3 text-green-500" />
-              <span>9 completadas</span>
-              <Clock className="h-3 w-3 text-orange-500" />
-              <span>3 pendientes</span>
-            </div>
-          </CardContent>
-        </Card>
-
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pacientes Activos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">247</div>
-            <p className="text-xs text-muted-foreground">+12 nuevos este mes</p>
-          </CardContent>
-        </Card>
-
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Estado del Inventario</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">156</div>
-            <div className="flex items-center space-x-2 text-xs">
-              <Badge variant="destructive" className="text-xs">
-                5 Bajo Stock
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tareas Urgentes</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">3</div>
-            <p className="text-xs text-muted-foreground">Requieren de atención inmediata</p>
-          </CardContent>
-        </Card>
-      </div>
-
-
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid mt-6 gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif">Actividad Reciente</CardTitle>
-            <CardDescription>Últimas actualizaciones de su consulta</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Cita completada</p>
-                <p className="text-xs text-muted-foreground">Bella (Golden Retriever) - Vacunación</p>
-              </div>
-              <span className="text-xs text-muted-foreground">hace 2 minutos</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Alerta de bajo inventario</p>
-                <p className="text-xs text-muted-foreground">Vacuna de rabia - 3 unidades restantes</p>
-              </div>
-              <span className="text-xs text-muted-foreground">hace 15 minutos</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Nueva cita programada</p>
-                <p className="text-xs text-muted-foreground">Max (Pastor Alemán) - Chequeo</p>
-              </div>
-              <span className="text-xs text-muted-foreground">hace 1 hora</span>
-            </div>
-          </CardContent>
-        </Card>
-
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif">Acciones Rápidas</CardTitle>
-            <CardDescription>Tareas comunes para doctores</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3">
-              <Button className="justify-start h-auto p-4">
-                <div className="flex flex-col items-start space-y-1">
-                  <span className="font-serif font-semibold">Programar Cita</span>
-                  <span className="text-xs opacity-80">Agendar visita para nuevo paciente</span>
-                </div>
-              </Button>
-              <Button variant="secondary" className="justify-start h-auto p-4">
-                <div className="flex flex-col items-start space-y-1">
-                  <span className="font-serif font-semibold">Buscar Paciente</span>
-                  <span className="text-xs opacity-80">Buscar registros médicos</span>
-                </div>
-              </Button>
-              {userRole === "Veterinario" && (
-                <Button variant="outline" className="justify-start h-auto p-4 bg-transparent">
-                  <div className="flex flex-col items-start space-y-1">
-                    <span className="font-serif font-semibold">Agregar Tratamiento</span>
-                    <span className="text-xs opacity-80">Registrar nuevo tratamiento</span>
-                  </div>
-                </Button>
-              )}
-              <Button variant="outline" className="justify-start h-auto p-4 bg-transparent">
-                <div className="flex flex-col items-start space-y-1">
-                  <span className="font-serif font-semibold">Enviar Mensaje</span>
-                  <span className="text-xs opacity-80">Contactar al dueño de la mascota</span>
-                </div>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      </div>
-      )}
-
-      {userRole === "Recepcionista" && (
-        <div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pacientes Activos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">247</div>
-            <p className="text-xs text-muted-foreground">+12 nuevos este mes</p>
-          </CardContent>
-        </Card>
-
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Estado del Inventario</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">156</div>
-            <div className="flex items-center space-x-2 text-xs">
-              <Badge variant="destructive" className="text-xs">
-                5 Bajo Stock
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-       
-      </div>
-
-
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid mt-6 gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif">Actividad Reciente</CardTitle>
-            <CardDescription>Últimas actualizaciones</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Cita completada</p>
-                <p className="text-xs text-muted-foreground">Bella (Golden Retriever) - Vacunación</p>
-              </div>
-              <span className="text-xs text-muted-foreground">hace 2 minutos</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Alerta de bajo inventario</p>
-                <p className="text-xs text-muted-foreground">Vacuna de rabia - 3 unidades restantes</p>
-              </div>
-              <span className="text-xs text-muted-foreground">hace 15 minutos</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Nueva cita programada</p>
-                <p className="text-xs text-muted-foreground">Max (Pastor Alemán) - Chequeo</p>
-              </div>
-              <span className="text-xs text-muted-foreground">hace 1 hora</span>
-            </div>
-          </CardContent>
-        </Card>
-
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif">Acciones Rápidas</CardTitle>
-            <CardDescription>Tareas comunes para recepcionistas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3">
-              <Button className="justify-start h-auto p-4">
-                <div className="flex flex-col items-start space-y-1">
-                  <span className="font-serif font-semibold">Programar Cita</span>
-                  <span className="text-xs opacity-80">Agendar visita para nuevo paciente</span>
-                </div>
-              </Button>
-              <Button variant="secondary" className="justify-start h-auto p-4">
-                <div className="flex flex-col items-start space-y-1">
-                  <span className="font-serif font-semibold">Buscar Paciente</span>
-                  <span className="text-xs opacity-80">Buscar registros médicos</span>
-                </div>
-              </Button>
-              
-              <Button variant="outline" className="justify-start h-auto p-4 bg-transparent">
-                <div className="flex flex-col items-start space-y-1">
-                  <span className="font-serif font-semibold">Actualizar Inventario</span>
-                  <span className="text-xs opacity-80">Ingresar movimientos de inventario recientes</span>
-                </div>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      </div>
-      )}
-
-      {/* Key Metrics */}
-      
+//REVISAR 
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2"><Skeleton className="h-8 w-[250px] bg-gray-200" /></div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"><Skeleton className="h-[120px] rounded-xl bg-gray-200" /><Skeleton className="h-[120px] rounded-xl bg-gray-200" /><Skeleton className="h-[120px] rounded-xl bg-gray-200" /><Skeleton className="h-[120px] rounded-xl bg-gray-200" /></div>
+      <div className="grid gap-6 md:grid-cols-2"><Skeleton className="h-[300px] rounded-xl bg-gray-200" /><Skeleton className="h-[300px] rounded-xl bg-gray-200" /></div>
     </div>
   )
 }
