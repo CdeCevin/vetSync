@@ -19,6 +19,13 @@ import {
   Search, Package, AlertTriangle, TrendingDown 
 } from "lucide-react"
 
+interface InventarioData {
+  valorTotal: any;
+  productosBajoStock: any;
+  productosAgotados: any;
+  ultimosMovimientos: any;
+}
+
 export function InventoryManagement() {
   const { 
     productos, 
@@ -27,7 +34,7 @@ export function InventoryManagement() {
     editarProducto, 
     eliminarProducto, 
     registrarMovimiento, 
-    generarReportes 
+    obtenerReportes 
   } = useInventoryService()
   
   const { onOpen: openAlert } = useAlertStore()
@@ -40,11 +47,17 @@ export function InventoryManagement() {
   const [busqueda, setBusqueda] = useState("")
   const [filtroCategoria, setFiltroCategoria] = useState("todos")
   const [filtroEstado, setFiltroEstado] = useState("todos")
+  const [reportes, setReportes] = useState<InventarioData | null>(null)
 
   useEffect(() => { 
-    cargarProductos() 
-  }, [cargarProductos])
+    cargarProductos()     
+  }, [])
 
+  const abrirReportes = async () => {
+    const data = await obtenerReportes();
+    setReportes(data);
+    setModalReportsOpen(true);
+  };
   const productosFiltrados = productos.filter((item) => {
     const term = busqueda.toLowerCase()
     const coincideBusqueda = 
@@ -109,7 +122,7 @@ export function InventoryManagement() {
             <p className="text-gray-500">Administra tus insumos y medicamentos</p>
         </div>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setModalReportsOpen(true)}>
+            <Button variant="outline" onClick={abrirReportes}>
                 <FileBarChart className="mr-2 h-4 w-4"/> Reportes
             </Button>
             <Button onClick={() => { setProductoSeleccionado(null); setModalFormOpen(true) }}>
@@ -255,7 +268,7 @@ export function InventoryManagement() {
       <InventoryReports
         isOpen={modalReportsOpen}
         onClose={() => setModalReportsOpen(false)}
-        datos={generarReportes()}
+        datos={reportes}
       />
 
       {/* Ajuste de Stock (Entrada/Salida) */}

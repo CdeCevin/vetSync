@@ -111,6 +111,26 @@ export function useInventoryService() {
     await cargarProductos()
   }, [idClinica, fetchWithAuth, baseUrl, cargarProductos])
 
+  const obtenerReportes = useCallback(async () => {
+  if (!idClinica || !token) return null;
+
+  const response = await fetchWithAuth(`${baseUrl}/reporte`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) throw new Error("Error al obtener reportes");
+
+    const data = await response.json();
+
+    return {
+      valorTotal: data.valorTotal,
+      productosBajoStock: data.productosBajoStock,
+      productosAgotados: data.productosAgotados,
+      ultimosMovimientos: data.ultimosMovimientos
+    };
+  }, [idClinica, token, fetchWithAuth, baseUrl]);
+
+
   // ARREGLAR
   const generarReportes = useCallback(() => {
     const totalValor = productos.reduce((acc, p) => acc + (p.stockActual * p.costoUnitario), 0)
@@ -130,7 +150,8 @@ export function useInventoryService() {
     editarProducto, 
     eliminarProducto, 
     registrarMovimiento, 
-    generarReportes 
+    generarReportes,
+    obtenerReportes
   }), [
     productos, 
     loading, 
@@ -139,6 +160,7 @@ export function useInventoryService() {
     editarProducto, 
     eliminarProducto, 
     registrarMovimiento, 
-    generarReportes
+    generarReportes,
+    obtenerReportes
   ])
 }
