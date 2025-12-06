@@ -10,7 +10,10 @@ const vetDashboard = async (req, res) => {
 
         // Query 1: Citas del Veterinario para Hoy
         citasHoy: `
-            SELECT COUNT(*) AS total 
+            SELECT 
+                COUNT(*) AS total,
+                SUM(CASE WHEN estado = 'programada' THEN 1 ELSE 0 END) AS pendientes,
+                SUM(CASE WHEN estado = 'completada' THEN 1 ELSE 0 END) AS completadas
             FROM Citas 
             WHERE id_clinica = ? AND id_usuario = ? AND activo = 1 AND DATE(fecha_cita) = CURDATE()
         `,
@@ -67,7 +70,11 @@ const vetDashboard = async (req, res) => {
         ]);
 
         // 4. Asignamos resultados
-        stats.citasHoy = citasHoyResults[0].total || 0;
+        stats.citasHoy = {
+            total: citasHoyResults[0].total || 0,
+            pendientes: citasHoyResults[0].pendientes || 0,
+            completadas: citasHoyResults[0].completadas || 0
+        };
         stats.totalPacientes = totalPacientesResults[0].total || 0;
         stats.stockCritico = stockCriticoResults[0].total || 0;
         stats.proximasCitas = proximasCitasResults;
