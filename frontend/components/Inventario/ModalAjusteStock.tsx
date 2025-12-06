@@ -25,7 +25,6 @@ export function StockAdjustmentModal({ producto, isOpen, onClose, onConfirm }: S
   const [isLoading, setIsLoading] = useState(false)
   const { onOpen: openAlert } = useAlertStore()
 
-  // Resetear formulario al abrir/cerrar
   useEffect(() => {
     if (isOpen) {
       setTipo("entrada")
@@ -36,15 +35,12 @@ export function StockAdjustmentModal({ producto, isOpen, onClose, onConfirm }: S
 
   if (!producto) return null
 
-  // Lógica de cálculo previo
   const valorCantidad = parseInt(cantidad) || 0
   let stockFinal = producto.stockActual
 
   if (tipo === "entrada") stockFinal += valorCantidad
   if (tipo === "salida") stockFinal -= valorCantidad
   if (tipo === "ajuste") stockFinal = valorCantidad
-
-  // Validaciones
   const esInvalido = stockFinal < 0 || valorCantidad <= 0
 
   const handleSave = async () => {
@@ -74,7 +70,6 @@ export function StockAdjustmentModal({ producto, isOpen, onClose, onConfirm }: S
 
         <div className="grid gap-4 py-4">
           
-          {/* Selector de tipo de movimiento */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="tipo" className="text-right">Acción</Label>
             <Select value={tipo} onValueChange={(val: any) => setTipo(val)}>
@@ -89,7 +84,6 @@ export function StockAdjustmentModal({ producto, isOpen, onClose, onConfirm }: S
             </Select>
           </div>
 
-          {/* Input de cantidad */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="cantidad" className="text-right">Cantidad</Label>
             <div className="col-span-3 relative">
@@ -106,7 +100,6 @@ export function StockAdjustmentModal({ producto, isOpen, onClose, onConfirm }: S
             </div>
           </div>
 
-          {/* Input de motivo*/}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="motivo" className="text-right">Motivo</Label>
             <Textarea
@@ -118,7 +111,6 @@ export function StockAdjustmentModal({ producto, isOpen, onClose, onConfirm }: S
             />
           </div>
 
-          {/* Tarjeta de preview del cambio */}
           <div className={`mt-2 p-3 rounded-lg border flex items-center justify-between ${stockFinal < 0 ? "bg-red-50 border-red-200" : "bg-slate-50 border-slate-200"}`}>
             <div className="text-center">
                 <p className="text-xs text-gray-500 uppercase font-bold">Actual</p>
@@ -133,7 +125,6 @@ export function StockAdjustmentModal({ producto, isOpen, onClose, onConfirm }: S
             </div>
           </div>
 
-          {/* Mensaje de validación de stock (REVISAR) */}
           {stockFinal < 0 && (
              <div className="flex items-center text-red-600 text-sm gap-2">
                 <AlertCircle className="h-4 w-4" />

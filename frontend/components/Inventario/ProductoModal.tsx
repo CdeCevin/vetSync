@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useForm } from "react-hook-form" 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -17,9 +17,12 @@ interface ProductFormModalProps {
 }
 
 export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: ProductFormModalProps) {
-  const { register, handleSubmit, reset, setValue } = useForm<Producto>()
+  const { register, reset, setValue, getValues } = useForm<Producto>()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { onOpen: openAlert } = useAlertStore()
+  
+  // validación nativa
+  const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
     if (productoEditar) {
@@ -28,11 +31,25 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
       reset({ codigo: "", nombre: "", stockActual: 0, stockMinimo: 0, costoUnitario: 0 })
     }
   }, [productoEditar, isOpen, reset])
+  const handleNativeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-  const onFormSubmit = async (data: Producto) => {
+    // validación del navegador
+    if (formRef.current && !formRef.current.checkValidity()) {
+      formRef.current.reportValidity()
+      return
+    }
+
+    // validación manual para componentes no nativos
+    const currentData = getValues()
+    if (!currentData.categoria) {
+        openAlert("Campo incompleto", "Por favor selecciona una categoría.", "error")
+        return
+    }
+
     setIsSubmitting(true)
     try {
-        // Convertir strings a números
+        const data = { ...currentData }
         data.stockActual = Number(data.stockActual)
         data.stockMinimo = Number(data.stockMinimo)
         data.costoUnitario = Number(data.costoUnitario)
@@ -52,16 +69,24 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
         <DialogHeader>
           <DialogTitle>{productoEditar ? "Editar Producto" : "Nuevo Producto"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onFormSubmit)} className="grid gap-4 py-4">
+        <form ref={formRef} onSubmit={handleNativeSubmit} className="grid gap-4 py-4" noValidate={false}>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Código *</Label>
-              <Input {...register("codigo", { required: true })} placeholder="MED-001" disabled={!!productoEditar} />
+              <Input 
+                {...register("codigo")} 
+                required 
+                placeholder="MED-001" 
+                disabled={!!productoEditar} 
+              />
             </div>
             <div className="space-y-2">
                <Label>Categoría *</Label>
-               <Select onValueChange={(val: any) => setValue("categoria", val)} defaultValue={productoEditar?.categoria}>
+               <Select 
+                 onValueChange={(val: any) => setValue("categoria", val)} 
+                 defaultValue={productoEditar?.categoria}
+               >
                 <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Medicamento">Medicamento</SelectItem>
@@ -75,28 +100,52 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
 
           <div className="space-y-2">
             <Label>Nombre del Producto *</Label>
-            <Input {...register("nombre", { required: true })} />
+            <Input 
+                {...register("nombre")} 
+                required 
+                minLength={3}
+            />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Stock Inicial</Label>
-              {/* Deshabilitado al editar para forzar uso de movimientos */}
-              <Input type="number" {...register("stockActual")} disabled={!!productoEditar} className={productoEditar ? "bg-gray-100" : ""} />
+              <Input 
+                type="number" 
+                {...register("stockActual")} 
+                disabled={!!productoEditar} 
+                className={productoEditar ? "bg-gray-100" : ""} 
+                min={0}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Stock Mínimo (Alerta)</Label>
-              <Input type="number" {...register("stockMinimo", { required: true })} />
+              <Label>Stock Mínimo (Alerta) *</Label>
+              <Input 
+                type="number" 
+                {...register("stockMinimo")} 
+                required 
+                min={0}
+              />
             </div>
              <div className="space-y-2">
-              <Label>Unidad Medida</Label>
-              <Input {...register("unidadMedida", { required: true })} placeholder="cajas, ml..." />
+              <Label>Unidad Medida *</Label>
+              <Input 
+                {...register("unidadMedida")} 
+                required 
+                placeholder="cajas, ml..." 
+              />
             </div>
           </div>
 
           <div className="space-y-2">
               <Label>Costo Unitario ($)</Label>
-              <Input type="number" {...register("costoUnitario")} placeholder="0" />
+              <Input 
+                type="number" 
+                {...register("costoUnitario")} 
+                placeholder="0" 
+                min={0}
+                step="0.01"
+              />
           </div>
 
           <div className="flex justify-end gap-2 mt-4">

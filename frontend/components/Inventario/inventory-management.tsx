@@ -31,35 +31,28 @@ export function InventoryManagement() {
   } = useInventoryService()
   
   const { onOpen: openAlert } = useAlertStore()
-
   const [modalFormOpen, setModalFormOpen] = useState(false)
   const [modalReportsOpen, setModalReportsOpen] = useState(false)
   const [modalStockOpen, setModalStockOpen] = useState(false)
-  
-  // Modal de Eliminación
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(null)
-  
-  // Selección para Edición/Ajuste
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null)
-
-  // Filtros
   const [busqueda, setBusqueda] = useState("")
   const [filtroCategoria, setFiltroCategoria] = useState("todos")
   const [filtroEstado, setFiltroEstado] = useState("todos")
 
-  // Carga inicial (revisar porque aqui normalmente se producen los bucles !!)
-  useEffect(() => { cargarProductos() }, [cargarProductos])
+  useEffect(() => { 
+    cargarProductos() 
+  }, [cargarProductos])
 
-  // filtrado
   const productosFiltrados = productos.filter((item) => {
+    const term = busqueda.toLowerCase()
     const coincideBusqueda = 
-      item.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      item.codigo.toLowerCase().includes(busqueda.toLowerCase())
+      item.nombre?.toLowerCase().includes(term) ||
+      item.codigo?.toLowerCase().includes(term)
     
     const coincideCategoria = filtroCategoria === "todos" || item.categoria === filtroCategoria
     
-    // Cálculo de estado para filtro (REvisar, esto podria venir ya calculado desde el backend con un estado,,)
     let estadoItem = "Normal"
     if (item.stockActual === 0) estadoItem = "Agotado"
     else if (item.stockActual <= item.stockMinimo) estadoItem = "Bajo Stock"
@@ -72,11 +65,9 @@ export function InventoryManagement() {
     return coincideBusqueda && coincideCategoria && coincideEstado
   })
 
-  // --- Mas calculos para los cards (REvisar, esto podria venir ya calculado desde el backend con un estado,,)
   const stockBajo = productos.filter(p => p.stockActual <= p.stockMinimo && p.stockActual > 0).length
   const agotados = productos.filter(p => p.stockActual === 0).length
 
-  // Guardar (Crear/Editar)
   const handleFormSubmit = async (data: Producto) => {
     try {
       if (productoSeleccionado) {
@@ -90,31 +81,28 @@ export function InventoryManagement() {
       openAlert("Error", e.message, "error")
     }
   }
-
-  // Lógica de eliminacion (REVISAR))
   
-  // Abrir modal
   const handleOpenDelete = (producto: Producto) => {
+    if(producto.stockActual > 0) {
+        openAlert("Error", "No es posible eliminar un producto con stock.", "error")
+        return
+      }
     setProductoAEliminar(producto)
     setIsDeleteModalOpen(true)
   }
 
-  // Función async para onConfirm
   const handleConfirmDelete = async () => {
-      if (!productoAEliminar) return
-      // El modal manejará el loading y el try/catch internamente
+      if (!productoAEliminar) return  
       await eliminarProducto(productoAEliminar.id) 
   }
 
-  // Función post-éxito para onSuccess
   const handleDeleteSuccess = () => {
-      cargarProductos() // Recargamos la lista
+      cargarProductos() // Recargar lista
       setProductoAEliminar(null)
   }
 
   return (
     <div className="p-6 space-y-6">
-      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <h1 className="text-2xl font-bold font-serif">Gestión de Inventario</h1>
@@ -131,44 +119,31 @@ export function InventoryManagement() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{productos.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stock Bajo</CardTitle>
-            <TrendingDown className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stockBajo}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stock Agotado</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{agotados}</div>
-          </CardContent>
-        </Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Productos</CardTitle><Package className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-primary">{productos.length}</div></CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Productos con Stock Bajo</CardTitle><TrendingDown className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-yellow-600">{stockBajo}</div></CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Productos con Stock Agotado</CardTitle><AlertTriangle className="h-4 w-4 text-muted-foreground"/></CardHeader><CardContent><div className="text-2xl font-bold text-red-600">{agotados}</div></CardContent></Card>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Buscar por nombre, código..."
-            className="pl-9"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-          />
+      <Card>
+        <CardHeader>
+            <div className="flex items-center justify-between">
+                <CardTitle className="font-serif text-lg">Listado de Prescripciones</CardTitle>
+            </div>
+        </CardHeader>
+        <CardContent>
+      <div className="flex flex-col md:flex-row gap-4 mb-5">
+
+        <div className="flex flex-col sm:flex-row gap-4 flex-1">
+        
+            <div className="relative flex-1 max-w-sm">
+              <Search className=" absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar por nombre, código..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="pl-10 border-gray/80"
+              />
+            </div>  
         </div>
         <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
           <SelectTrigger className="w-[180px]">
@@ -195,17 +170,15 @@ export function InventoryManagement() {
         </Select>
       </div>
 
-      {/* TABLA PRINCIPAL */}
-      <div className="border rounded-md bg-white">
-        <Table>
+        <Table >
             <TableHeader>
                 <TableRow>
-                    <TableHead>Producto</TableHead>
-                    <TableHead>Categoría</TableHead>
+                    <TableHead >Producto</TableHead>
+                    <TableHead >Categoría</TableHead>
                     <TableHead>Stock</TableHead>
-                    <TableHead>Costo</TableHead>
+                    <TableHead >Costo</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead className="text-center">Acciones</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -217,6 +190,7 @@ export function InventoryManagement() {
                     </TableRow>
                 ) : (
                     productosFiltrados.map(p => {
+                        // Lógica visual de estado (Badges)
                         let badgeColor = "bg-green-100 text-green-800 hover:bg-green-100"
                         let estadoTexto = "Normal"
                         if (p.stockActual === 0) {
@@ -231,7 +205,7 @@ export function InventoryManagement() {
                             <TableRow key={p.id}>
                                 <TableCell>
                                     <div className="font-medium">{p.nombre}</div>
-                                    <div className="text-xs text-gray-500">{p.codigo}</div>
+                                    <div className="text-xs text-muted-foreground">{p.codigo}</div>
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant="outline">{p.categoria}</Badge>
@@ -247,15 +221,14 @@ export function InventoryManagement() {
                                 <TableCell>
                                     <Badge className={badgeColor}>{estadoTexto}</Badge>
                                 </TableCell>
-                                <TableCell className="text-right space-x-1">
-                                    <Button variant="ghost" size="icon" onClick={() => { setProductoSeleccionado(p); setModalStockOpen(true) }} title="Ajustar Stock">
-                                        <ArrowRightLeft className="h-4 w-4 text-blue-500"/>
+                                <TableCell className="text-center space-x-1">
+                                    <Button className="hover:bg-primary/30" variant="ghost" size="icon" onClick={() => { setProductoSeleccionado(p); setModalStockOpen(true) }} title="Ajustar Stock">
+                                        <ArrowRightLeft className="h-4 w-4 text-primary "/>
                                     </Button>
-                                    <Button variant="ghost" size="icon" onClick={() => { setProductoSeleccionado(p); setModalFormOpen(true) }} title="Editar">
+                                    <Button className="hover:bg-primary/30" variant="ghost" size="icon" onClick={() => { setProductoSeleccionado(p); setModalFormOpen(true) }} title="Editar Información">
                                         <Edit className="h-4 w-4 text-gray-600"/>
                                     </Button>
-                                    {/* Botón Eliminar abre el modal */}
-                                    <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(p)} title="Eliminar">
+                                    <Button className="hover:bg-primary/30" variant="ghost" size="icon" onClick={() => handleOpenDelete(p)} title="Eliminar">
                                         <Trash2 className="h-4 w-4 text-red-500"/>
                                     </Button>
                                 </TableCell>
@@ -265,10 +238,12 @@ export function InventoryManagement() {
                 )}
             </TableBody>
         </Table>
-      </div>
+        
+        </CardContent>
+      </Card>
 
-      {/* --- MODALES --- */}
-      {/* Crear / Editar */}
+      
+      {/* Crear / Editar Producto */}
       <ProductFormModal 
         isOpen={modalFormOpen} 
         onClose={() => setModalFormOpen(false)} 
@@ -276,14 +251,14 @@ export function InventoryManagement() {
         productoEditar={productoSeleccionado}
       />
 
-      {/* Reportes */}
+      {/* Reportes Generales */}
       <InventoryReports
         isOpen={modalReportsOpen}
         onClose={() => setModalReportsOpen(false)}
         datos={generarReportes()}
       />
 
-      {/*Ajuste de Stock */}
+      {/* Ajuste de Stock (Entrada/Salida) */}
       <StockAdjustmentModal
          isOpen={modalStockOpen}
          onClose={() => setModalStockOpen(false)}
@@ -291,18 +266,18 @@ export function InventoryManagement() {
          onConfirm={registrarMovimiento}
       />
 
-      {/*Confirmar Eliminación*/}
+      {/* Confirmación de Eliminación */}
       {productoAEliminar && (
         <DeleteConfirmModal
             isOpen={isDeleteModalOpen}
             onClose={() => setIsDeleteModalOpen(false)}
             onConfirm={handleConfirmDelete}
             onSuccess={handleDeleteSuccess}
-            mensajeEx={`El producto ${productoAEliminar.nombre} se ha eliminado correctamente.`}
+            mensajeEx={`El producto ${productoAEliminar.nombre} se ha desactivado correctamente.`}
             mensajeConf={
                 <>
                   ¿Estás seguro de que deseas desactivar el producto <b>{productoAEliminar.nombre}</b>? 
-                  <br/>Esta acción ocultará el producto de la lista activa.
+                  <br/>Esta acción no se puede deshacer.
                 </>
             }
         />
