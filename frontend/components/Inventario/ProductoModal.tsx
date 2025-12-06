@@ -28,7 +28,7 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
     if (productoEditar) {
       reset(productoEditar)
     } else {
-      reset({ codigo: "", nombre: "", stockActual: 0, stockMinimo: 0, costoUnitario: 0 })
+      reset({ codigo: "", nombre: "", stockActual: undefined, stockMinimo: undefined, costoUnitario: undefined })
     }
   }, [productoEditar, isOpen, reset])
   const handleNativeSubmit = async (e: React.FormEvent) => {
@@ -43,8 +43,16 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
     // validación manual para componentes no nativos
     const currentData = getValues()
     if (!currentData.categoria) {
-        openAlert("Campo incompleto", "Por favor selecciona una categoría.", "error")
-        return
+      openAlert("Campo incompleto", "Por favor selecciona una categoría.", "error")
+      return
+    }
+    if (!currentData.unidadMedida) {
+      openAlert("Campo incompleto", "Por favor selecciona una unidad de medida.", "error")
+      return
+    }
+    if (Number(currentData.stockActual) < 0 || Number(currentData.stockMinimo) < 0) {
+      openAlert("Valores inválidos", "El stock debe ser 0 o mayor.", "error")
+      return
     }
 
     setIsSubmitting(true)
@@ -77,12 +85,11 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
               <Input 
                 {...register("codigo")} 
                 required 
-                placeholder="MED-001" 
                 disabled={!!productoEditar} 
               />
             </div>
             <div className="space-y-2">
-               <Label>Categoría *</Label>
+               <Label>Categoría*</Label>
                <Select 
                  onValueChange={(val: any) => setValue("categoria", val)} 
                  defaultValue={productoEditar?.categoria}
@@ -90,16 +97,17 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
                 <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Medicamento">Medicamento</SelectItem>
-                  <SelectItem value="Insumo">Insumo</SelectItem>
-                  <SelectItem value="Equipo">Equipo</SelectItem>
+                  <SelectItem value="Suplemento">Suplemento</SelectItem>
+                  <SelectItem value="Material Médico">Material Médico</SelectItem>
                   <SelectItem value="Alimento">Alimento</SelectItem>
-                </SelectContent>
+                  <SelectItem value="Otro">Otro</SelectItem>
+              </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Nombre del Producto *</Label>
+            <Label>Nombre del Producto*</Label>
             <Input 
                 {...register("nombre")} 
                 required 
@@ -109,8 +117,9 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>Stock Inicial</Label>
+              <Label>Stock Inicial*</Label>
               <Input 
+                required 
                 type="number" 
                 {...register("stockActual")} 
                 disabled={!!productoEditar} 
@@ -128,24 +137,39 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
               />
             </div>
              <div className="space-y-2">
-              <Label>Unidad Medida *</Label>
-              <Input 
-                {...register("unidadMedida")} 
-                required 
-                placeholder="cajas, ml..." 
-              />
+              <Label>Unidad Medida*</Label>
+              <Select onValueChange={(val) => setValue("unidadMedida", val)} defaultValue={productoEditar?.unidadMedida}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Unidades">Unidades</SelectItem>
+                  <SelectItem value="ml">ml</SelectItem>
+                  <SelectItem value="gr">gr</SelectItem>
+                  <SelectItem value="kg">kg</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-              <Label>Costo Unitario ($)</Label>
+              <Label>Costo Unitario ($)*</Label>
               <Input 
                 type="number" 
                 {...register("costoUnitario")} 
-                placeholder="0" 
+                //placeholder="0" 
+                required
                 min={0}
                 step="0.01"
               />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Descripción</Label>
+            <Input {...register("descripcion")} placeholder="Opcional" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Fecha de Expiración</Label>
+            <Input type="date" {...register("fechaExpiracion")} />
           </div>
 
           <div className="flex justify-end gap-2 mt-4">

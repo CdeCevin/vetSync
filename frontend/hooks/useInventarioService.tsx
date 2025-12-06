@@ -44,7 +44,7 @@ export function useInventoryService() {
 
   const crearProducto = useCallback(async (data: Omit<Producto, "id" | "estado">) => {
     if (!idClinica) throw new Error("No hay clínica asociada")
-
+    console.log(data)
     const response = await fetchWithAuth(baseUrl, {
       method: "POST",
       body: JSON.stringify(data)
