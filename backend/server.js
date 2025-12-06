@@ -19,6 +19,7 @@ const tratamientosRoutes = require('./routes/TratamientosRoute');
 const inventarioRoutes = require('./routes/inventarioRoute');
 const dashboardRoutes = require('./routes/dashboardRoute');
 const logsRoutes = require('./routes/logsRoute');
+const iaRoutes = require('./routes/iaRoute');
 
 
 const PORT = 3001;
@@ -56,6 +57,11 @@ app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
   next();
 }, inventarioRoutes);
+
+app.use('/api/:idClinica', (req, res, next) => {
+  req.clinicaId = req.params.idClinica;
+  next();
+}, iaRoutes);
 
 app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
