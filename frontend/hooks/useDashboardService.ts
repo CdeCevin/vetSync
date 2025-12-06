@@ -1,109 +1,153 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
+import { useAuth } from "@/components/user-context"
+import { ROUTES } from "@/apiRoutes"
 
-export interface LogAuditoria {
-  id: string
+// Admin
+export interface ActividadReciente {
   accion: string
-  usuario: string
-  rol: string
   entidad: string
-  fecha: string
   detalles: string
+  nombre_completo: string
+  nombre_rol: string
+  creado_en: string
+  tiempo_transcurrido: string
 }
 
-export interface CitaResumen {
-  id: string
-  hora: string
+export interface AdminDashboardData {
+  totalUsuarios: number
+  ultimosCambios: number
+  actividadReciente: ActividadReciente[]
+}
+
+// Veterinario
+export interface ProximaCita {
+  fecha_cita: string
   paciente: string
-  motivo: string
-  estado: "pendiente" | "completada" | "cancelada" | "en-curso"
+  dueno: string
+  estado: string
 }
 
-export interface PacienteResumen {
-  id: string
+export interface VetDashboardData {
+  citasHoy: {
+    total: number
+    pendientes: string | number
+    completadas: string | number
+  }
+  totalPacientes: number
+  stockCritico: number
+  proximasCitas: ProximaCita[]
+}
+
+// Recepcionista
+export interface PacienteReciente {
   nombre: string
   especie: string
-  propietario: string
-  fechaRegistro: string
+  raza: string
+  dueno: string
+  creado_en: string
 }
 
-// MOCK DATA: Logs
-const MOCK_LOGS: LogAuditoria[] = [
-  { id: "1", accion: "Creación Usuario", usuario: "Admin Principal", rol: "Admin", entidad: "Usuario", fecha: "2024-03-10 10:00", detalles: "Creó usuario 'Dr. House'" },
-  { id: "2", accion: "Ajuste Stock", usuario: "Ana Recepción", rol: "Recepcionista", entidad: "Inventario", fecha: "2024-03-10 11:30", detalles: "Añadió 50 unidades de Amoxicilina" },
-  { id: "3", accion: "Edición Historial", usuario: "Dr. House", rol: "Veterinario", entidad: "Paciente", fecha: "2024-03-10 12:15", detalles: "Agregó diagnóstico a 'Firulais'" },
-  { id: "4", accion: "Eliminación Cita", usuario: "Ana Recepción", rol: "Recepcionista", entidad: "Cita", fecha: "2024-03-10 14:00", detalles: "Canceló cita #884" },
-]
-
-// MOCK DATA: Citas
-const MOCK_CITAS: CitaResumen[] = [
-  { id: "101", hora: "09:00", paciente: "Max", motivo: "Vacunación", estado: "completada" },
-  { id: "102", hora: "10:30", paciente: "Luna", motivo: "Chequeo General", estado: "en-curso" },
-  { id: "103", hora: "11:15", paciente: "Thor", motivo: "Revisión Pata", estado: "pendiente" },
-  { id: "104", hora: "14:00", paciente: "Rocky", motivo: "Cirugía", estado: "pendiente" },
-  { id: "105", hora: "15:30", paciente: "Coco", motivo: "Revisión", estado: "pendiente" },
-  { id: "106", hora: "16:45", paciente: "Simba", motivo: "Vacunación", estado: "pendiente" },
-  { id: "107", hora: "17:15", paciente: "Nala", motivo: "Consulta", estado: "pendiente" },
-]
-
-// MOCK DATA: Pacientes Recientes (VS-021)
-const MOCK_PACIENTES_RECIENTES: PacienteResumen[] = [
-  { id: "p1", nombre: "Bolita", especie: "Gato", propietario: "María Paz", fechaRegistro: "Hoy 09:30" },
-  { id: "p2", nombre: "Kaiser", especie: "Perro", propietario: "Juan Soto", fechaRegistro: "Hoy 11:00" },
-  { id: "p3", nombre: "Lola", especie: "Perro", propietario: "Ana Rivas", fechaRegistro: "Ayer 16:45" },
-]
+export interface RecepDashboardData {
+  citasHoy: {
+    total: number
+    completadas: string | number
+  }
+  alertasStock: number
+  pacientesRecientes: PacienteReciente[]
+}
 
 export function useDashboardService() {
+  const { usuario, token, fetchWithAuth } = useAuth()
+  
+  // estados internos
   const [loading, setLoading] = useState(false)
+  const [adminData, setAdminData] = useState<AdminDashboardData | null>(null)
+  const [vetData, setVetData] = useState<VetDashboardData | null>(null)
+  const [receptionData, setReceptionData] = useState<RecepDashboardData | null>(null)
 
-  // VS-008: Admin
-  const getAdminData = useCallback(async () => {
+  const idClinica = usuario?.id_clinica
+  const baseUrl = idClinica ? `${ROUTES.base}/${idClinica}` : ""
+
+  // Cargar Dashboard Admin
+  const cargarAdminData = useCallback(async () => {
+    if (!idClinica || !token) return
+
     setLoading(true)
-    return new Promise<{ stats: any, logs: LogAuditoria[] }>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          stats: { usuariosActivos: 12, cambiosHoy: 4, erroresSistema: 0 },
-          logs: MOCK_LOGS
-        })
-        setLoading(false)
-      }, 500)
-    })
-  }, [])
+    try {
+      const response = await fetchWithAuth(`${baseUrl}/adminDashboard`, {
+        cache: "no-store",
+      })
 
-  // VS-014: Veterinario
-  const getVetData = useCallback(async () => {
+      if (!response.ok) throw new Error("Error al cargar dashboard admin")
+
+      const data = await response.json()
+      setAdminData(data)
+    } catch (error) {
+      console.error("Error loading admin dashboard:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [idClinica, token, fetchWithAuth, baseUrl])
+
+  // Cargar Dashboard Veterinario
+  const cargarVetData = useCallback(async () => {
+    if (!idClinica || !token) return
+
     setLoading(true)
-    return new Promise<{ citasHoy: CitaResumen[], pacientesAtendidos: number, alertasMedicamentos: number }>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          citasHoy: MOCK_CITAS,
-          pacientesAtendidos: 145,
-          alertasMedicamentos: 3 
-        })
-        setLoading(false)
-      }, 500)
-    })
-  }, [])
+    try {
+      const response = await fetchWithAuth(`${baseUrl}/vetDashboard`, {
+        cache: "no-store",
+      })
 
-  // VS-021: Recepcionista
-  const getReceptionData = useCallback(async () => {
+      if (!response.ok) throw new Error("Error al cargar dashboard veterinario")
+
+      const data = await response.json()
+      setVetData(data)
+    } catch (error) {
+      console.error("Error loading vet dashboard:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [idClinica, token, fetchWithAuth, baseUrl])
+
+  // Cargar Dashboard Recepcionista
+  const cargarReceptionData = useCallback(async () => {
+    if (!idClinica || !token) return
+
     setLoading(true)
-    return new Promise<{ 
-      resumenCitas: any, 
-      alertasInventario: number, 
-      pacientesRecientes: PacienteResumen[]
-    }>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          resumenCitas: { total: 15, pendientes: 8, completadas: 5, canceladas: 2 },
-          alertasInventario: 5,
-          pacientesRecientes: MOCK_PACIENTES_RECIENTES
-        })
-        setLoading(false)
-      }, 500)
-    })
-  }, [])
+    try {
+      const response = await fetchWithAuth(`${baseUrl}/recepDashboard`, {
+        cache: "no-store",
+      })
 
-  return { loading, getAdminData, getVetData, getReceptionData }
+      if (!response.ok) throw new Error("Error al cargar dashboard recepcionista")
+
+      const data = await response.json()
+      setReceptionData(data)
+    } catch (error) {
+      console.error("Error loading reception dashboard:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [idClinica, token, fetchWithAuth, baseUrl])
+
+  return useMemo(() => ({
+    loading,
+    adminData,
+    vetData,
+    receptionData,
+    cargarAdminData,
+    cargarVetData,
+    cargarReceptionData
+  }), [
+    loading,
+    adminData,
+    vetData,
+    receptionData,
+    cargarAdminData,
+    cargarVetData,
+    cargarReceptionData
+  ])
 }
