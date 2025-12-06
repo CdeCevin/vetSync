@@ -56,12 +56,6 @@ export function SidebarNav({ userRole, activeSection, onSectionChange }: Sidebar
       roles: ["Veterinario", "Recepcionista"],
     },
     {
-      title: "Configuración",
-      icon: Settings,
-      id: "settings",
-      roles: ["Veterinario", "Recepcionista"],
-    },
-    {
       title: "Usuarios",
       icon: UsersRound,
       id: "users",
