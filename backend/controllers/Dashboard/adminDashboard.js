@@ -1,8 +1,4 @@
-const connection = require('../../db/connection');
-const util = require('util');
-
-// 1. Convertimos 'connection.query' a promesas
-const query = util.promisify(connection.query).bind(connection);
+const { queryConReintento } = require('../../db/queryHelper');
 
 const adminDashboard = async (req, res) => {
     const id_clinica = req.clinicaId;
@@ -10,10 +6,10 @@ const adminDashboard = async (req, res) => {
 
     // 2. Definimos las 3 queries que necesitamos
     const queries = {
-        
+
         // Query 1: Cantidad de Usuarios (Corregida a 'activo = 1' como pusiste)
         totalUsuarios: 'SELECT COUNT(*) AS total FROM Usuarios WHERE activo = 1 AND id_clinica = ?',
-        
+
         // Query 2: Últimos 5 cambios (Corregido el 'id_clinica = 1' hardcodeado)
         // Selecciono columnas específicas en lugar de '*' para ser más eficiente
         ultimosCambios: `
@@ -21,7 +17,7 @@ const adminDashboard = async (req, res) => {
             FROM Registros_Auditoria 
             WHERE id_clinica = ? AND creado_en >= NOW() - INTERVAL 7 DAY
         `,
-        
+
         // Query 3: Actividad reciente (¡NUEVA QUERY!)
         // Esta une Registros, Usuarios y Roles, y calcula el tiempo transcurrido.
         actividadReciente: `
@@ -52,9 +48,9 @@ const adminDashboard = async (req, res) => {
     try {
         // 4. Preparamos todas las promesas de consulta.
         //    (Todas usan [id_clinica] como parámetro)
-        const totalUsuariosPromise = query(queries.totalUsuarios, [id_clinica]);
-        const ultimosCambiosPromise = query(queries.ultimosCambios, [id_clinica]);
-        const actividadRecientePromise = query(queries.actividadReciente, [id_clinica]);
+        const totalUsuariosPromise = queryConReintento(queries.totalUsuarios, [id_clinica]);
+        const ultimosCambiosPromise = queryConReintento(queries.ultimosCambios, [id_clinica]);
+        const actividadRecientePromise = queryConReintento(queries.actividadReciente, [id_clinica]);
 
         // 5. Con Promise.all(), ejecutamos TODAS en paralelo
         const [

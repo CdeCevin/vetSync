@@ -6,7 +6,7 @@ const listadoVeterinarios = async (req, res) => {
 
         // Solo obtenemos veterinarios (id_rol = 2) activos y datos NO sensibles
         const query = `
-      SELECT id, nombre_completo, correo_electronico 
+      SELECT id, nombre_completo, correo_electronico, id_rol 
       FROM Usuarios 
       WHERE id_clinica = ? AND id_rol = 2 AND activo = 1
       ORDER BY nombre_completo ASC
