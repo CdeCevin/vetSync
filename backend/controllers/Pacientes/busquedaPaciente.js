@@ -38,9 +38,15 @@ const busquedaPacientes = async (req, res) => {
     const pacientesConDueño = results.map(row => ({
       id: row.id,
       nombre: row.nombre,
+      especie: row.especie,
       raza: row.raza,
+      color: row.color,
+      edad: row.edad,
+      numero_microchip: row.numero_microchip,
       dueno: {
+        id: row.id_dueño, // It's useful to have the ID too
         nombre: row.dueno_nombre,
+        telefono: row.dueno_telefono
       }
     }));
 

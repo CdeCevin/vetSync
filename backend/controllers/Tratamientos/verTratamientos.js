@@ -1,45 +1,65 @@
 const connection = require('../../db/connection');
 
-const verTratamientos = (req, res) => {
+const verTratamientos = async (req, res) => {
   const idClinica = req.clinicaId;
   const idPaciente = req.params.idPaciente;
 
-  console.log('Ver tratamientos - idClinica:', idClinica, 'idPaciente:', idPaciente);
+  if (!idPaciente) {
+    return res.status(400).json({ error: 'Falta el parámetro idPaciente' });
+  }
 
-  // Consulta para obtener tratamientos con detalle incluyendo medicamento
-  const queryTratamientos = `
-    SELECT 
-      p.nombre AS paciente,
-      hm.fecha_visita,
-      hm.diagnostico,
-      t.fecha_prescripcion,
-      t.dosis,
-      t.instrucciones,
-      t.notas AS notas_tratamiento,
-      ii.descripcion AS medicamento
-    FROM Pacientes p
-    INNER JOIN Historial_Medico hm ON hm.id_paciente = p.id AND hm.id_clinica = ?
-    LEFT JOIN Tratamientos t ON t.id_historial_medico = hm.id AND t.id_clinica = ?
-    LEFT JOIN Inventario_Items ii ON t.id_medicamento = ii.id AND ii.id_clinica = ?
-    WHERE p.id = ? AND p.id_clinica = ? AND p.activo = TRUE
-    ORDER BY hm.fecha_visita DESC, t.fecha_prescripcion DESC;
-  `;
+  try {
+    const conn = await connection.promise();
 
-  connection.query(queryTratamientos, [idClinica, idClinica, idClinica, idPaciente, idClinica], (err, results) => {
-    if (err) {
-      console.error('Error buscando tratamientos:', err);
-      return res.status(500).json({ error: 'Error al buscar tratamientos' });
-    }
+    // Consulta con todos los joins necesarios
+    const query = `
+      SELECT 
+        t.id,
+        t.id_paciente,
+        p.nombre AS paciente_nombre,
+        p.especie AS paciente_especie,
+        t.prescripto_por AS veterinario_id,
+        u.nombre_completo AS veterinario_nombre,
+        t.fecha_prescripcion,
+        ii.descripcion AS medicamento,
+        t.dosis,
+        t.instrucciones,
+        t.duracion_dias,
+        t.notas,
+        t.estado,
+        t.editado
+      FROM Tratamientos t
+      INNER JOIN Pacientes p ON t.id_paciente = p.id
+      LEFT JOIN Usuarios u ON t.prescripto_por = u.id
+      LEFT JOIN Inventario_Items ii ON t.id_medicamento = ii.id
+      WHERE t.id_paciente = ? AND t.id_clinica = ?
+      ORDER BY t.fecha_prescripcion DESC, t.id DESC
+    `;
 
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'No se encontraron tratamientos para este paciente en esta clínica' });
-    }
+    const [results] = await conn.query(query, [idPaciente, idClinica]);
 
-    // Construir respuesta agrupando tratamientos por fecha visita y detalle paciente
-    // Opcionalmente, simplificar la estructura para frontend
-    
-    res.json(results);
-  });
+    // Formatear respuesta según requerimiento
+    const formateados = results.map(r => ({
+      id: `${r.id}`,
+      pacienteId: `${r.id_paciente}`,
+      pacienteNombre: `${r.paciente_nombre} (${r.paciente_especie || 'Desconocido'})`,
+      veterinarioId: `${r.veterinario_id}`,
+      veterinarioNombre: r.veterinario_nombre || 'Desconocido',
+      fechaPrescripcion: r.fecha_prescripcion,
+      medicamento: r.medicamento || 'Sin medicamento',
+      dosis: r.dosis,
+      instrucciones: r.instrucciones,
+      duracionDias: r.duracion_dias,
+      notas: r.notas,
+      estado: r.estado,
+      editado: !!r.editado // Asegurar booleano
+    }));
+
+    res.json(formateados);
+  } catch (error) {
+    console.error('Error al obtener tratamientos:', error);
+    res.status(500).json({ error: 'Error interno al obtener los tratamientos' });
+  }
 };
 
 module.exports = verTratamientos;

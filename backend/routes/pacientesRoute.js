@@ -15,6 +15,7 @@ const busquedaPacientes = require('../controllers/Pacientes/busquedaPaciente.js'
 
 
 router.post('/Pacientes', permitirRoles(3), crearPaciente);
+router.get('/Pacientes', permitirRoles(2, 3), busquedaPacientes); // Nueva ruta para listar todos
 router.get('/Pacientes/buscar', permitirRoles(2, 3), busquedaPacientes);    // ruta específica arriba
 router.get('/Pacientes/:idPaciente', permitirRoles(2, 3), verPaciente);     // ruta dinámica abajo
 router.put('/Pacientes/:id', permitirRoles(3), editarPaciente);

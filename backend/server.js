@@ -15,11 +15,13 @@ const authRoutes = require('./routes/login');
 const dueñosRoutes = require('./routes/dueñosRoute');
 const pacientesRoutes = require('./routes/pacientesRoute');
 const citasRoutes = require('./routes/citasRoute');
-const tratamientosRoutes = require('./routes/TratamientosRoute');
+const tratamientosRoutes = require('./routes/TratamientosRoute.js');
 const inventarioRoutes = require('./routes/inventarioRoute');
 const dashboardRoutes = require('./routes/dashboardRoute');
 const logsRoutes = require('./routes/logsRoute');
+const procedimientosRoutes = require('./routes/procedimientosRoute');
 const iaRoutes = require('./routes/iaRoute');
+const historialRoutes = require('./routes/historialRoutes');
 
 
 const PORT = 3001;
@@ -71,12 +73,22 @@ app.use('/api/:idClinica', (req, res, next) => {
 app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
   next();
+}, procedimientosRoutes);
+
+app.use('/api/:idClinica', (req, res, next) => {
+  req.clinicaId = req.params.idClinica;
+  next();
 }, dashboardRoutes);
 
 app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
   next();
 }, logsRoutes);
+
+app.use('/api/:idClinica', (req, res, next) => {
+  req.clinicaId = req.params.idClinica;
+  next();
+}, historialRoutes);
 
 // Ruta raíz para verificar que el servidor está funcionando
 app.get('/', (req, res) => {

@@ -16,7 +16,7 @@ CREATE TABLE Dueños (
     id_clinica INT UNSIGNED,
     activo BOOLEAN DEFAULT TRUE,
     UNIQUE INDEX unique_correo (correo),
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id)
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id)
 );
 
 CREATE TABLE Pacientes (
@@ -32,8 +32,8 @@ CREATE TABLE Pacientes (
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     activo BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (id_dueño) REFERENCES Dueños(id),
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id)
+    FOREIGN KEY (id_dueño) REFERENCES Dueños (id),
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id)
 );
 
 CREATE TABLE Roles (
@@ -53,8 +53,8 @@ CREATE TABLE Usuarios (
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     activo BOOLEAN DEFAULT TRUE,
     UNIQUE INDEX unique_correo_electronico (correo_electronico),
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id),
-    FOREIGN KEY (id_rol) REFERENCES Roles(id)
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id),
+    FOREIGN KEY (id_rol) REFERENCES Roles (id)
 );
 
 CREATE TABLE Citas (
@@ -71,9 +71,9 @@ CREATE TABLE Citas (
     id_clinica INT UNSIGNED,
     estado VARCHAR(50) DEFAULT 'programada',
     activo BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (id_paciente) REFERENCES Pacientes(id),
-    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id),
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id)
+    FOREIGN KEY (id_paciente) REFERENCES Pacientes (id),
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios (id),
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id)
 );
 
 CREATE TABLE Historial_Medico (
@@ -82,15 +82,19 @@ CREATE TABLE Historial_Medico (
     id_cita INT UNSIGNED,
     id_usuario INT UNSIGNED,
     fecha_visita TIMESTAMP NOT NULL,
-    diagnostico VARCHAR(255),
+    peso DECIMAL(5, 2),
+    temperatura DECIMAL(4, 1),
+    frecuencia_cardiaca INT,
+    frecuencia_respiratoria INT,
+    diagnostico TEXT,
     notas TEXT,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     id_clinica INT UNSIGNED,
-    FOREIGN KEY (id_paciente) REFERENCES Pacientes(id),
-    FOREIGN KEY (id_cita) REFERENCES Citas(id),
-    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id),
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id)
+    FOREIGN KEY (id_paciente) REFERENCES Pacientes (id),
+    FOREIGN KEY (id_cita) REFERENCES Citas (id),
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios (id),
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id)
 );
 
 CREATE TABLE Procedimientos (
@@ -100,8 +104,8 @@ CREATE TABLE Procedimientos (
     realizado_en TIMESTAMP,
     notas TEXT,
     id_clinica INT UNSIGNED,
-    FOREIGN KEY (id_historial_medico) REFERENCES Historial_Medico(id),
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id)
+    FOREIGN KEY (id_historial_medico) REFERENCES Historial_Medico (id),
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id)
 );
 
 CREATE TABLE Vacunaciones (
@@ -114,9 +118,9 @@ CREATE TABLE Vacunaciones (
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     id_clinica INT UNSIGNED,
-    FOREIGN KEY (id_paciente) REFERENCES Pacientes(id),
-    FOREIGN KEY (id_historial_medico) REFERENCES Historial_Medico(id),
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id)
+    FOREIGN KEY (id_paciente) REFERENCES Pacientes (id),
+    FOREIGN KEY (id_historial_medico) REFERENCES Historial_Medico (id),
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id)
 );
 
 CREATE TABLE Tratamientos (
@@ -130,9 +134,9 @@ CREATE TABLE Tratamientos (
     duracion_dias INT,
     notas TEXT,
     id_medicamento INT UNSIGNED,
-    FOREIGN KEY (id_historial_medico) REFERENCES Historial_Medico(id),
-    FOREIGN KEY (prescripto_por) REFERENCES Usuarios(id),
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id)
+    FOREIGN KEY (id_historial_medico) REFERENCES Historial_Medico (id),
+    FOREIGN KEY (prescripto_por) REFERENCES Usuarios (id),
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id)
     -- Nota: Agrega FOREIGN KEY para id_medicamento si defines tabla inventario_items
 );
 
@@ -148,7 +152,7 @@ CREATE TABLE Inventario_Items (
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     activo BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id)
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id)
 );
 
 CREATE TABLE Movimientos_Inventario (
@@ -160,9 +164,9 @@ CREATE TABLE Movimientos_Inventario (
     motivo VARCHAR(255),
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     id_item INT UNSIGNED,
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id),
-    FOREIGN KEY (realizado_por) REFERENCES Usuarios(id),
-    FOREIGN KEY (id_item) REFERENCES Inventario_Items(id)
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id),
+    FOREIGN KEY (realizado_por) REFERENCES Usuarios (id),
+    FOREIGN KEY (id_item) REFERENCES Inventario_Items (id)
 );
 
 CREATE TABLE Registros_Auditoria (
@@ -175,6 +179,6 @@ CREATE TABLE Registros_Auditoria (
     detalles TEXT,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id),
-    FOREIGN KEY (id_clinica) REFERENCES Clinicas(id)
+    FOREIGN KEY (id_usuario) REFERENCES Usuarios (id),
+    FOREIGN KEY (id_clinica) REFERENCES Clinicas (id)
 );
