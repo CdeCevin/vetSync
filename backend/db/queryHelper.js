@@ -1,19 +1,26 @@
 const pool = require('./connection');
 
-async function queryConReintento(sql, params, intentos = 3) {
-  for (let i = 0; i < intentos; i++) {
-    try {
-      const [results] = await pool.promise().query(sql, params);
-      return results;
-    } catch (err) {
-      if ((err.code === 'ECONNRESET' || err.code === 'PROTOCOL_CONNECTION_LOST') && i < intentos - 1) {
-        console.log(`Error de conexión detectado, reintentando... (${i + 1}/${intentos})`);
-        await new Promise(resolve => setTimeout(resolve, 200));
-        continue;
-      }
-      throw err;
-    }
-  }
+function queryConReintento(sql, params, intentos = 3) {
+  return new Promise((resolve, reject) => {
+
+    const intentarQuery = (n) => {
+      pool.query(sql, params, (err, results) => {
+        if (err) {
+          if ((err.code === 'ECONNRESET' || err.code === 'PROTOCOL_CONNECTION_LOST') && n < intentos - 1) {
+            console.log(`Error de conexión detectado, reintentando... (${n + 1}/${intentos})`);
+            setTimeout(() => intentarQuery(n + 1), 200);
+          } else {
+            console.error("Error final en queryConReintento:", err);
+            reject(err);
+          }
+        } else {
+          resolve(results);
+        }
+      });
+    };
+
+    intentarQuery(0);
+  });
 }
 
 module.exports = { queryConReintento };

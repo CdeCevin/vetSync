@@ -1,5 +1,4 @@
-const pool = require('../../db/connection');
-const util = require('util');
+const { queryConReintento } = require('../../db/queryHelper');
 
 const verHistorialDetalle = async (req, res) => {
     const { id } = req.params; // ID del Historial
@@ -9,12 +8,9 @@ const verHistorialDetalle = async (req, res) => {
         return res.status(400).json({ error: "Falta el ID del historial" });
     }
 
-    // Promisify pool.query to avoid using .promise() which is causing issues
-    const query = util.promisify(pool.query).bind(pool);
-
     try {
-        // 1. Obtener Cabecera (Historial + Paciente + Veterinario)
-        const headerRows = await query(`
+        // 1. Obtener Cabecera
+        const headerRows = await queryConReintento(`
             SELECT 
                 h.id AS id_historial,
                 h.fecha_visita,
@@ -37,7 +33,7 @@ const verHistorialDetalle = async (req, res) => {
         const header = headerRows[0];
 
         // 2. Obtener Procedimientos
-        const procedimientosRows = await query(`
+        const procedimientosRows = await queryConReintento(`
             SELECT 
                 id,
                 nombre_procedimiento AS nombre,
@@ -46,16 +42,15 @@ const verHistorialDetalle = async (req, res) => {
             WHERE id_historial_medico = ? AND id_clinica = ?
         `, [id, idClinica]);
 
-        // Formatear procedimientos para el JSON (agregando descripciones ficticias si no existen en DB, o usando notas)
         const procedimientos = procedimientosRows.map(p => ({
             id: p.id,
             nombre: p.nombre,
-            descripcion: "Procedimiento realizado en consulta", // Placeholder o podrías usar notas
+            descripcion: "Procedimiento realizado en consulta",
             notas: p.notas
         }));
 
         // 3. Obtener Tratamientos
-        const tratamientosRows = await query(`
+        const tratamientosRows = await queryConReintento(`
             SELECT 
                 t.id,
                 ii.descripcion AS medicamento,
@@ -63,27 +58,24 @@ const verHistorialDetalle = async (req, res) => {
                 t.dosis,
                 t.instrucciones,
                 t.duracion_dias,
-                ii.unidad_medida AS unidad -- Asumiendo columna unidad_medida existe en Inventario_Items, si no revisar tables.sql
+                ii.unidad_medida AS unidad
             FROM Tratamientos t
             LEFT JOIN Inventario_Items ii ON t.id_medicamento = ii.id
             WHERE t.id_historial_medico = ? AND t.id_clinica = ?
         `, [id, idClinica]);
 
-        // Formatear tratamientos
-        // NOTA: 'cantidad_entregada' y 'estado' no están en la tabla Tratamientos actualmente.
         const tratamientos = tratamientosRows.map(t => ({
             id: t.id,
             medicamento: t.medicamento || "Sin nombre",
             id_inventario: t.id_inventario,
             dosis: t.dosis,
-            // cantidad_entregada: ??? - No existe en DB
             unidad: t.unidad || "unidad",
             instrucciones: t.instrucciones,
             duracion_dias: t.duracion_dias,
-            estado: "Activo" // Calculado o hardcodeado
+            estado: "Activo"
         }));
 
-        // 4. Armar el JSON Final
+        // 4. Armar JSON
         const responseHelper = {
             id_historial: header.id_historial,
             fecha_visita: header.fecha_visita,

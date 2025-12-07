@@ -1,5 +1,4 @@
-const pool = require('../../db/connection');
-const util = require('util');
+const { queryConReintento } = require('../../db/queryHelper');
 
 const agregarProcedimiento = async (req, res) => {
     const {
@@ -14,11 +13,9 @@ const agregarProcedimiento = async (req, res) => {
         return res.status(400).json({ error: "Faltan datos: id_historial_medico y nombre_procedimiento son obligatorios" });
     }
 
-    const query = util.promisify(pool.query).bind(pool);
-
     try {
-        // Verificar que el historial exista y pertenezca a la clínica (seguridad)
-        const historialCheck = await query(
+        // Verificar que el historial exista
+        const historialCheck = await queryConReintento(
             'SELECT id FROM Historial_Medico WHERE id = ? AND id_clinica = ?',
             [id_historial_medico, idClinica]
         );
@@ -28,7 +25,7 @@ const agregarProcedimiento = async (req, res) => {
         }
 
         // Insertar procedimiento
-        const result = await query(
+        const result = await queryConReintento(
             `INSERT INTO Procedimientos 
             (id_historial_medico, nombre_procedimiento, realizado_en, notas, id_clinica)
             VALUES (?, ?, NOW(), ?, ?)`,

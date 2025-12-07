@@ -1,6 +1,6 @@
-const db = require('../../db/connection');
+const pool = require('../../db/connection');
 
-exports.eliminarTratamiento = async (req, res) => {
+exports.eliminarTratamiento = (req, res) => {
     const { id } = req.params;
     const { id_usuario } = req.body;
     const id_clinica = req.clinicaId;
@@ -9,51 +9,60 @@ exports.eliminarTratamiento = async (req, res) => {
         return res.status(400).json({ error: 'Falta el ID del tratamiento' });
     }
 
-    let connection;
-    try {
-        connection = await db.promise().getConnection();
-        await connection.beginTransaction();
-
-        // Verificar existencia
-        const [rows] = await connection.query(
-            'SELECT * FROM Tratamientos WHERE id = ? AND id_clinica = ?',
-            [id, id_clinica]
-        );
-
-        if (rows.length === 0) {
-            throw new Error('Tratamiento no encontrado');
+    pool.getConnection((err, connection) => {
+        if (err) {
+            console.error("Error conexión:", err);
+            return res.status(500).json({ error: "Error de conexión" });
         }
 
-        await connection.query(
-            'UPDATE Tratamientos SET estado = "Cancelado" WHERE id = ?',
-            [id]
-        );
+        connection.beginTransaction((err) => {
+            if (err) {
+                connection.release();
+                return res.status(500).json({ error: "Error iniciando transacción" });
+            }
 
-        // Auditoría
-        await connection.query(
-            'INSERT INTO Registros_Auditoria (id_usuario, id_clinica, accion, entidad, id_entidad, detalles) VALUES (?, ?, ?, ?, ?, ?)',
-            [
-                id_usuario || rows[0].prescripto_por,
-                id_clinica,
-                'CANCELAR',
-                'Tratamientos',
-                id,
-                'Tratamiento marcado como Cancelado'
-            ]
-        );
+            // Verificar existencia
+            connection.query('SELECT * FROM Tratamientos WHERE id = ? AND id_clinica = ?', [id, id_clinica], (err, rows) => {
+                if (err) {
+                    return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error base de datos" }); });
+                }
 
-        await connection.commit();
-        res.json({ message: 'Tratamiento desactivado/cancelado correctamente' });
+                if (rows.length === 0) {
+                    return connection.rollback(() => { connection.release(); res.status(404).json({ error: 'Tratamiento no encontrado' }); });
+                }
 
-    } catch (error) {
-        if (connection) {
-            await connection.rollback();
-        }
-        console.error('Error al desactivar tratamiento:', error);
-        res.status(500).json({ error: error.message });
-    } finally {
-        if (connection) {
-            connection.release();
-        }
-    }
+                connection.query('UPDATE Tratamientos SET estado = "Cancelado" WHERE id = ?', [id], (err) => {
+                    if (err) {
+                        return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al cancelar" }); });
+                    }
+
+                    // Auditoría
+                    connection.query(
+                        'INSERT INTO Registros_Auditoria (id_usuario, id_clinica, accion, entidad, id_entidad, detalles) VALUES (?, ?, ?, ?, ?, ?)',
+                        [
+                            id_usuario || rows[0].prescripto_por,
+                            id_clinica,
+                            'CANCELAR',
+                            'Tratamientos',
+                            id,
+                            'Tratamiento marcado como Cancelado'
+                        ],
+                        (err) => {
+                            if (err) {
+                                return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al auditar" }); });
+                            }
+
+                            connection.commit((err) => {
+                                if (err) {
+                                    return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al commit" }); });
+                                }
+                                connection.release();
+                                res.json({ message: 'Tratamiento desactivado/cancelado correctamente' });
+                            });
+                        }
+                    );
+                });
+            });
+        });
+    });
 };
