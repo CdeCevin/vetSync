@@ -83,17 +83,68 @@ export function DashboardOverview({ userRole, onNavigate }: DashboardOverviewPro
             <Card className="col-span-1 md:col-span-2 lg:col-span-1">
               <CardHeader><CardTitle className="font-serif">Auditoría Reciente</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                {(adminData.actividadReciente || []).slice(0, 5).map((log, index) => (
-                  <div key={index} className="flex items-start space-x-3 border-b pb-3 last:border-0 last:pb-0">
-                    <div className={`mt-1 w-2 h-2 rounded-full ${log.entidad === 'Usuario' ? 'bg-blue-500' : 'bg-orange-500'}`} />
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">{log.accion} - {log.entidad}</p>
-                      <p className="text-xs text-muted-foreground">{log.detalles}</p>
-                      <p className="text-xs text-muted-foreground">Por <span className="font-semibold">{log.nombre_completo}</span> ({log.nombre_rol})</p>
+                {(adminData.actividadReciente || []).slice(0, 5).map((log, index) => {
+                  
+                  //formateo del detalle
+                  let contenidoDetalle = <span className="italic">{log.detalles}</span>;
+
+                  try {
+                    // Si parece JSON  se parsea para mostrarlo como cambio
+                    if (log.detalles && log.detalles.startsWith("{")) {
+                      const parsed = JSON.parse(log.detalles);
+                      contenidoDetalle = (
+                        <div className="flex flex-col gap-1 mt-1">
+                          {Object.entries(parsed).map(([campo, val]: [string, any]) => (
+                            <div key={campo} className="flex flex-wrap items-center gap-1 text-[11px]">
+                              <span className="font-semibold capitalize text-slate-700">{campo}:</span>
+                              <span className="text-slate-400 line-through decoration-slate-300">
+                                {val.anterior !== null ? String(val.anterior) : "Vacío"}
+                              </span>
+                              <span className="text-slate-400">→</span>
+                              <span className="text-green-600 font-medium">
+                                {val.nuevo !== null ? String(val.nuevo) : "Vacío"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                  } catch (e) {
+                    // Si falla el parseo, se queda como el valor por defecto
+                  }
+
+                  return (
+                    <div key={index} className="flex items-start space-x-3 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                      <div 
+                        className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
+                          log.entidad === 'Usuario' ? 'bg-blue-500' : 
+                          log.entidad === 'Paciente' ? 'bg-green-500' : 'bg-orange-500'
+                        }`} 
+                      />
+                      
+                      <div className="flex-1 space-y-0.5 min-w-0">
+                        <p className="text-sm font-medium leading-none text-slate-900">
+                          {log.accion.replace(/_/g, " ")} 
+                          <span className="text-slate-400 font-normal mx-1">-</span> 
+                          {log.entidad}
+                        </p>
+                        
+                        {/* Detalles - variable procesada */}
+                        <div className="text-xs text-muted-foreground break-words">
+                          {contenidoDetalle}
+                        </div>
+                        
+                        <p className="text-[10px] text-slate-400 pt-1">
+                          Por <span className="font-medium text-slate-600">{log.nombre_completo}</span> ({log.nombre_rol})
+                        </p>
+                      </div>
+
+                      <span className="text-[10px] text-slate-400 whitespace-nowrap tabular-nums">
+                        {log.tiempo_transcurrido}
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">{log.tiempo_transcurrido}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
 
