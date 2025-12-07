@@ -17,6 +17,7 @@ import { useAuth } from '@/components/user-context'
 import { CitasRecepcionistaPage } from "@/components/Citas/cita-main-res"
 import { CitasPage } from "@/components/Citas/cita-main"
 import { TratamientosPage } from "@/components/Tratamientos/tratamientosPage"
+import { AuditDashboard  } from "@/components/Logs/logs-dashboard"
 
 export default function VetManagementHome() {
   const { usuario, token, setAuthInfo, clearAuthInfo } = useAuth()
@@ -216,11 +217,11 @@ export default function VetManagementHome() {
 
           {activeSection === "users" && <UserManagementDashboard />}
 
-          {activeSection === "logs" && <BillingModule />}
-
           {activeSection === "owners" && <OwnerManagementDashboard />}
 
           {activeSection === "treatments" && <TratamientosPage />}
+
+          {activeSection === "logs" && <AuditDashboard />}
 
           {activeSection !== "dashboard" &&
             activeSection !== "patients" &&
@@ -229,6 +230,7 @@ export default function VetManagementHome() {
             activeSection !== "billing" &&
             activeSection !== "users" &&
             activeSection !== "treatments" &&
+             activeSection !== "logs" &&
             activeSection !== "owners" && (
               <div className="space-y-6">
                 <div>
