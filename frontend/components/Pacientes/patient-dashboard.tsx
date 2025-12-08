@@ -405,10 +405,11 @@ function DetallesPaciente({
                <TabsContent value="medical" className="space-y-4">
                   <div className="flex items-center justify-between">
                      <h4 className="font-serif font-semibold">Historial Medico</h4>
+                     {/*
                      <Button size="sm">
                         <Plus className="h-4 w-4 mr-2" />
                         Añadir Registro
-                     </Button>
+                     </Button> */}
                   </div>
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
               {paciente.historial.length > 0 ? (
@@ -429,9 +430,10 @@ function DetallesPaciente({
                                        <p className="text-sm text-muted-foreground">Veterinario: {record.veterinario_nombre}</p>
                                        {record.notas && <p className="text-sm">{record.notas}</p>}
                                     </div>
+                                    {/*
                                     <Button variant="ghost" size="sm">
                                        <Edit className="h-4 w-4" />
-                                    </Button>
+                                    </Button>* */}
                                  </div>
                               </CardContent>
                            </Card>
