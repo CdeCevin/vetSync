@@ -1,19 +1,21 @@
+const { queryConReintento } = require('../../db/queryHelper');
 const pool = require('../../db/connection');
 
-const agregarProcedimiento = (req, res) => {
+const editarProcedimiento = (req, res) => {
+    const { id } = req.params;
+    const usuario_editor = req.usuario.id;
     const {
-        id_historial_medico,
         nombre_procedimiento,
         notas
     } = req.body;
 
     const id_clinica = req.clinicaId;
-    const usuario_editor = req.usuario.id;
 
-    if (!id_historial_medico || !nombre_procedimiento) {
-        return res.status(400).json({ error: "Faltan datos: id_historial_medico y nombre_procedimiento son obligatorios" });
+    if (!id || !nombre_procedimiento) {
+        return res.status(400).json({ error: "Faltan datos obligatorios: nombre_procedimiento" });
     }
 
+    // Usamos callbacks para consistencia con el patrón "stable"
     pool.getConnection((err, connection) => {
         if (err) {
             console.error("Error al obtener conexión:", err);
@@ -26,26 +28,26 @@ const agregarProcedimiento = (req, res) => {
                 return res.status(500).json({ error: "Error al iniciar transacción" });
             }
 
-            // 1. Verificar Historial
-            connection.query('SELECT id FROM Historial_Medico WHERE id = ? AND id_clinica = ?', [id_historial_medico, id_clinica], (err, rows) => {
+            // 1. Verificar existencia y pertenencia
+            connection.query('SELECT * FROM Procedimientos WHERE id = ? AND id_clinica = ?', [id, id_clinica], (err, rows) => {
                 if (err) {
                     return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error de base de datos" }); });
                 }
 
                 if (rows.length === 0) {
-                    return connection.rollback(() => { connection.release(); res.status(404).json({ error: "Historial médico no encontrado" }); });
+                    return connection.rollback(() => { connection.release(); res.status(404).json({ error: "Procedimiento no encontrado" }); });
                 }
 
-                // 2. Insertar Procedimiento
-                connection.query(
-                    'INSERT INTO Procedimientos (id_historial_medico, nombre_procedimiento, realizado_en, notas, id_clinica) VALUES (?, ?, NOW(), ?, ?)',
-                    [id_historial_medico, nombre_procedimiento, notas || '', id_clinica],
-                    (err, result) => {
-                        if (err) {
-                            return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al agregar procedimiento" }); });
-                        }
+                const procActual = rows[0];
 
-                        const nuevoId = result.insertId;
+                // 2. Actualizar
+                connection.query(
+                    'UPDATE Procedimientos SET nombre_procedimiento = ?, notas = ? WHERE id = ?',
+                    [nombre_procedimiento, notas || '', id],
+                    (err) => {
+                        if (err) {
+                            return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al actualizar procedimiento" }); });
+                        }
 
                         // 3. Auditoría
                         connection.query(
@@ -53,10 +55,10 @@ const agregarProcedimiento = (req, res) => {
                             [
                                 usuario_editor,
                                 id_clinica,
-                                'AGREGAR',
+                                'EDITAR',
                                 'Procedimientos',
-                                nuevoId,
-                                `Procedimiento agregado: ${nombre_procedimiento}`
+                                id,
+                                `Edición de procedimiento. Nombre anterior: ${procActual.nombre_procedimiento}`
                             ],
                             (err) => {
                                 if (err) {
@@ -68,10 +70,7 @@ const agregarProcedimiento = (req, res) => {
                                         return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al commit" }); });
                                     }
                                     connection.release();
-                                    res.status(201).json({
-                                        message: "Procedimiento agregado correctamente",
-                                        id: nuevoId
-                                    });
+                                    res.json({ message: "Procedimiento actualizado correctamente" });
                                 });
                             }
                         );
@@ -82,4 +81,4 @@ const agregarProcedimiento = (req, res) => {
     });
 };
 
-module.exports = agregarProcedimiento;
+module.exports = editarProcedimiento;

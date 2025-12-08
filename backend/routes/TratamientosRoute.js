@@ -7,13 +7,18 @@ router.use(verifyToken);
 
 // Importar controladores (atención a exportaciones nombradas vs default)
 const verTratamientos = require('../controllers/Tratamientos/verTratamientos.js');
+const buscarTratamiento = require('../controllers/Tratamientos/buscarTratamiento.js');
 const { agregarTratamiento } = require('../controllers/Tratamientos/agregarTratamiento.js');
 const { editarTratamiento } = require('../controllers/Tratamientos/editarTratamiento.js');
 const { eliminarTratamiento } = require('../controllers/Tratamientos/eliminarTratamiento.js');
 
 // Rutas
-// GET /api/:idClinica/tratamientos/:idPaciente - Ver tratamientos de un paciente
-router.get('/tratamientos/:idPaciente', verTratamientos);
+
+// GET /api/:idClinica/tratamientos/buscar - Busqueda general (Debe ir ANTES de :idPaciente para no confundirse)
+router.get('/tratamientos/buscar', buscarTratamiento);
+
+// GET /api/:idClinica/tratamientos - Ver listado de tratamientos (Últimos 50)
+router.get('/tratamientos', verTratamientos);
 
 // POST /api/:idClinica/tratamientos - Agregar nuevo tratamiento
 router.post('/tratamientos', agregarTratamiento);

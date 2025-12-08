@@ -2,6 +2,7 @@ const pool = require('../../db/connection');
 
 exports.editarTratamiento = (req, res) => {
     const { id } = req.params;
+    const usuario_editor = req.usuario.id;
     const {
         id_medicamento,
         dosis,
@@ -9,13 +10,14 @@ exports.editarTratamiento = (req, res) => {
         instrucciones,
         duracion_dias,
         notas,
-        usuario_editor
+        id_paciente,
+        prescripto_por
     } = req.body;
 
     const id_clinica = req.clinicaId;
 
-    if (!id || !id_medicamento || !cantidad) {
-        return res.status(400).json({ error: 'Faltan datos obligatorios para editar.' });
+    if (!id) {
+        return res.status(400).json({ error: 'Falta el ID del tratamiento' });
     }
 
     pool.getConnection((err, connection) => {
@@ -30,35 +32,39 @@ exports.editarTratamiento = (req, res) => {
                 return res.status(500).json({ error: "Error al iniciar transacción" });
             }
 
-            // 1. Obtener tratamiento actual
+            // 1. Obtener tratamiento actual (Lock for update para evitar race conditions en stock)
             connection.query(
                 'SELECT * FROM Tratamientos WHERE id = ? AND id_clinica = ? FOR UPDATE',
                 [id, id_clinica],
                 (err, rows) => {
                     if (err) {
-                        return connection.rollback(() => {
-                            connection.release();
-                            console.error("Error consultando tratamiento:", err);
-                            res.status(500).json({ error: "Error al consultar tratamiento" });
-                        });
+                        return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error consultando tratamiento" }); });
                     }
 
                     if (rows.length === 0) {
                         return connection.rollback(() => {
-                            connection.release();
-                            res.status(404).json({ error: 'Tratamiento no encontrado o no pertenece a esta clínica' });
+                            connection.release(); res.status(404).json({ error: 'Tratamiento no encontrado o no pertenece a esta clínica' });
                         });
                     }
 
                     const tratamientoActual = rows[0];
-                    const oldMedId = tratamientoActual.id_medicamento;
-                    const oldCant = tratamientoActual.cantidad;
-                    const newMedId = id_medicamento;
-                    const newCant = cantidad;
 
-                    // Función para manejar el update de inventario secuencialmente
+                    // Valores a usar (Nuevos o los que ya tenía)
+                    const oldMedId = tratamientoActual.id_medicamento;
+                    const oldCant = tratamientoActual.cantidad; // Nota: La tabla Tratamientos tiene columna cantidad? Verificar schema.
+                    // REVISION: En crearTratamiento usamos 'cantidad' para restar stock pero en la tabla Tratamientos 
+                    // la columna 'cantidad' existe en el schema actual? 
+                    // Revisando migrations/tablas: Tratamientos tiene 'cantidad' INT? 
+                    // CrearTratamiento inserta: dosis, cantidad. Si, el schema la tiene.
+
+                    const newMedId = id_medicamento !== undefined ? id_medicamento : oldMedId;
+                    const newCant = cantidad !== undefined ? cantidad : oldCant; // Asumimos que Tratamientos guarda la cantidad entregada
+
+                    // 2. Lógica de Inventario (Solo si cambia medicamento o cantidad)
                     const handleInventory = (callback) => {
-                        if (oldMedId != newMedId || oldCant != newCant) {
+                        const needsStockAdjustment = (oldMedId != newMedId) || (oldCant != newCant);
+
+                        if (needsStockAdjustment) {
                             // A. Devolver stock anterior
                             const returnStock = (next) => {
                                 if (oldMedId) {
@@ -66,9 +72,9 @@ exports.editarTratamiento = (req, res) => {
                                         if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error devolviendo stock" }); });
 
                                         connection.query('INSERT INTO Movimientos_Inventario (id_clinica, realizado_por, tipo_movimiento, cantidad, motivo, id_item) VALUES (?, ?, ?, ?, ?, ?)',
-                                            [id_clinica, usuario_editor || tratamientoActual.prescripto_por, 'ENTRADA', oldCant, `Devolución por edición de Tratamiento #${id}`, oldMedId],
+                                            [id_clinica, usuario_editor, 'ENTRADA', oldCant, `Devolución auto: Edición Tratamiento #${id}`, oldMedId],
                                             (err) => {
-                                                if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error registrando devolución" }); });
+                                                if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error mov inventario (dev)" }); });
                                                 next();
                                             }
                                         );
@@ -80,31 +86,34 @@ exports.editarTratamiento = (req, res) => {
 
                             // B. Descontar stock nuevo
                             const deductStock = () => {
-                                connection.query('SELECT stock, descripcion FROM Inventario_Items WHERE id = ? AND id_clinica = ? FOR UPDATE', [newMedId, id_clinica], (err, stockRows) => {
-                                    if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error consultando nuevo stock" }); });
+                                if (newMedId) {
+                                    connection.query('SELECT stock, descripcion FROM Inventario_Items WHERE id = ? AND id_clinica = ? FOR UPDATE', [newMedId, id_clinica], (err, stockRows) => {
+                                        if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error consultando nuevo stock" }); });
+                                        if (stockRows.length === 0) return connection.rollback(() => { connection.release(); res.status(404).json({ error: 'Medicamento destino no encontrado' }); });
 
-                                    if (stockRows.length === 0) return connection.rollback(() => { connection.release(); res.status(404).json({ error: 'Nuevo medicamento no encontrado' }); });
+                                        const item = stockRows[0];
+                                        if (item.stock < newCant) {
+                                            return connection.rollback(() => {
+                                                connection.release();
+                                                res.status(400).json({ error: `Stock insuficiente: ${item.descripcion}. Disp: ${item.stock}, Req: ${newCant}` });
+                                            });
+                                        }
 
-                                    const nuevoStock = stockRows[0].stock; // Usando .stock
-                                    if (nuevoStock < newCant) {
-                                        return connection.rollback(() => {
-                                            connection.release();
-                                            res.status(400).json({ error: `Stock insuficiente para ${stockRows[0].descripcion}. Disponible: ${nuevoStock}, Solicitado: ${newCant}` });
+                                        connection.query('UPDATE Inventario_Items SET stock = stock - ? WHERE id = ?', [newCant, newMedId], (err) => {
+                                            if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error descontando stock" }); });
+
+                                            connection.query('INSERT INTO Movimientos_Inventario (id_clinica, realizado_por, tipo_movimiento, cantidad, motivo, id_item) VALUES (?, ?, ?, ?, ?, ?)',
+                                                [id_clinica, usuario_editor, 'SALIDA', newCant, `Salida auto: Edición Tratamiento #${id}`, newMedId],
+                                                (err) => {
+                                                    if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error mov inventario (salida)" }); });
+                                                    callback();
+                                                }
+                                            );
                                         });
-                                    }
-
-                                    connection.query('UPDATE Inventario_Items SET stock = stock - ? WHERE id = ?', [newCant, newMedId], (err) => {
-                                        if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error descontando stock" }); });
-
-                                        connection.query('INSERT INTO Movimientos_Inventario (id_clinica, realizado_por, tipo_movimiento, cantidad, motivo, id_item) VALUES (?, ?, ?, ?, ?, ?)',
-                                            [id_clinica, usuario_editor || tratamientoActual.prescripto_por, 'SALIDA', newCant, `Ajuste por edición de Tratamiento #${id}`, newMedId],
-                                            (err) => {
-                                                if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error registrando salida" }); });
-                                                callback();
-                                            }
-                                        );
                                     });
-                                });
+                                } else {
+                                    callback();
+                                }
                             };
 
                             returnStock(deductStock);
@@ -114,30 +123,51 @@ exports.editarTratamiento = (req, res) => {
                     };
 
                     handleInventory(() => {
-                        // 2. Actualizar Tratamiento
-                        const queryUpdate = `
-                            UPDATE Tratamientos 
-                            SET id_medicamento=?, dosis=?, cantidad=?, instrucciones=?, duracion_dias=?, notas=?, editado=TRUE
-                            WHERE id=?
-                        `;
-                        connection.query(queryUpdate, [newMedId, dosis, newCant, instrucciones, duracion_dias, notas, id], (err) => {
+                        // 3. Construir Query Dinámica
+                        const fields = [];
+                        const values = [];
+
+                        const add = (col, val) => { if (val !== undefined) { fields.push(`${col}=?`); values.push(val); } };
+
+                        add('id_medicamento', id_medicamento);
+                        add('dosis', dosis);
+                        add('cantidad', cantidad);
+                        add('instrucciones', instrucciones);
+                        add('duracion_dias', duracion_dias);
+                        add('notas', notas);
+                        add('id_paciente', id_paciente);
+                        add('prescripto_por', prescripto_por);
+
+                        fields.push('editado = TRUE');
+
+                        if (fields.length === 1) { // Solo 'editado=TRUE', no hubo cambios reales enviados
+                            // Aun así permitimos hacer 'touch' o simplemente devolvemos éxito.
+                        }
+
+                        const sqlUpdate = `UPDATE Tratamientos SET ${fields.join(', ')} WHERE id = ?`;
+                        values.push(id);
+
+                        connection.query(sqlUpdate, values, (err) => {
                             if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error actualizando tratamiento" }); });
 
-                            // 3. Auditoría
+                            // 4. Auditoría
+                            let detalles = "Edición Tratamiento: ";
+                            if (newMedId != oldMedId) detalles += `[Cambio Med] `;
+                            if (newCant != oldCant) detalles += `[Cambio Cant: ${oldCant}->${newCant}] `;
+                            if (id_paciente !== undefined) detalles += `[Cambio Paciente] `;
+
                             connection.query(
                                 'INSERT INTO Registros_Auditoria (id_usuario, id_clinica, accion, entidad, id_entidad, detalles) VALUES (?, ?, ?, ?, ?, ?)',
                                 [
-                                    usuario_editor || tratamientoActual.prescripto_por,
+                                    usuario_editor,
                                     id_clinica,
                                     'EDITAR',
                                     'Tratamientos',
                                     id,
-                                    `Edición de tratamiento. Cambios en medicamento/cantidad: ${oldMedId != newMedId || oldCant != newCant}`
+                                    detalles
                                 ],
                                 (err) => {
-                                    if (err) { /* Log error but don't fail transaction? better safe rollback */
-                                        return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error auditando" }); });
-                                    }
+                                    if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error auditando" }); });
 
                                     connection.commit((err) => {
                                         if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error commit" }); });

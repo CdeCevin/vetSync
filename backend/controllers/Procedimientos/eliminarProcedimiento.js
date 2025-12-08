@@ -1,51 +1,53 @@
 const pool = require('../../db/connection');
 
-exports.eliminarTratamiento = (req, res) => {
+const eliminarProcedimiento = (req, res) => {
     const { id } = req.params;
-    const id_usuario = req.usuario.id;
+    const usuario_editor = req.usuario.id;
     const id_clinica = req.clinicaId;
 
     if (!id) {
-        return res.status(400).json({ error: 'Falta el ID del tratamiento' });
+        return res.status(400).json({ error: "Falta el ID del procedimiento" });
     }
 
     pool.getConnection((err, connection) => {
         if (err) {
-            console.error("Error conexión:", err);
+            console.error("Error al obtener conexión:", err);
             return res.status(500).json({ error: "Error de conexión" });
         }
 
         connection.beginTransaction((err) => {
             if (err) {
                 connection.release();
-                return res.status(500).json({ error: "Error iniciando transacción" });
+                return res.status(500).json({ error: "Error al iniciar transacción" });
             }
 
-            // Verificar existencia
-            connection.query('SELECT * FROM Tratamientos WHERE id = ? AND id_clinica = ?', [id, id_clinica], (err, rows) => {
+            // 1. Verificar existencia
+            connection.query('SELECT * FROM Procedimientos WHERE id = ? AND id_clinica = ?', [id, id_clinica], (err, rows) => {
                 if (err) {
-                    return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error base de datos" }); });
+                    return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error de base de datos" }); });
                 }
 
                 if (rows.length === 0) {
-                    return connection.rollback(() => { connection.release(); res.status(404).json({ error: 'Tratamiento no encontrado' }); });
+                    return connection.rollback(() => { connection.release(); res.status(404).json({ error: "Procedimiento no encontrado" }); });
                 }
 
-                connection.query('UPDATE Tratamientos SET estado = "Cancelado" WHERE id = ?', [id], (err) => {
+                // 2. Soft Delete
+                // Asumiendo que la migración agregó 'estado' y 'activo'
+                connection.query('UPDATE Procedimientos SET estado = "Eliminado", activo = FALSE WHERE id = ?', [id], (err) => {
                     if (err) {
-                        return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al cancelar" }); });
+                        return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al eliminar procedimiento" }); });
                     }
 
-                    // Auditoría
+                    // 3. Auditoría
                     connection.query(
                         'INSERT INTO Registros_Auditoria (id_usuario, id_clinica, accion, entidad, id_entidad, detalles) VALUES (?, ?, ?, ?, ?, ?)',
                         [
-                            id_usuario,
+                            usuario_editor,
                             id_clinica,
-                            'CANCELAR',
-                            'Tratamientos',
+                            'ELIMINAR',
+                            'Procedimientos',
                             id,
-                            'Tratamiento marcado como Cancelado'
+                            `Procedimiento eliminado (soft delete)`
                         ],
                         (err) => {
                             if (err) {
@@ -57,7 +59,7 @@ exports.eliminarTratamiento = (req, res) => {
                                     return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al commit" }); });
                                 }
                                 connection.release();
-                                res.json({ message: 'Tratamiento desactivado/cancelado correctamente' });
+                                res.json({ message: "Procedimiento eliminado correctamente" });
                             });
                         }
                     );
@@ -66,3 +68,5 @@ exports.eliminarTratamiento = (req, res) => {
         });
     });
 };
+
+module.exports = eliminarProcedimiento;

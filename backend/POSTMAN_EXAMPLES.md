@@ -1,117 +1,136 @@
-# Cómo probar el Historial Médico en Postman
+# Cómo probar el Historial Médico, Tratamientos y Procedimientos en Postman
 
-Gracias a la implementación transaccional (`crearHistorial.js`), puedes realizar las 3 acciones (Crear Historial, Asignar Tratamiento + Descontar Stock, Asignar Procedimiento) en **una sola petición**.
+## 1. HISTORIAL MÉDICO (CRUD)
 
-## Configuración de la Petición
-
+### A. Crear Historial (Completo: Cita + Procedimientos + Tratamientos)
+Crea todo en una sola transacción.
 - **Método**: `POST`
 - **URL**: `http://localhost:3001/api/1/historial`
-  - *(Reemplaza `1` con el ID real de la clínica si es distinto)*.
-- **Headers**:
-  - `Content-Type`: `application/json`
-  - `Authorization`: `Bearer TU_TOKEN_JWT_AQUI`
-    - *(Debes estar logueado como Veterinario o Admin)*.
-
-## Body (JSON)
-
-Copia y pega este JSON en la pestaña **Body** -> **raw**:
-
+- **Body JSON**:
 ```json
 {
   "paciente_id": 50,
   "cita_id": null,
-  "diagnostico": "Gastritis Aguda Severa",
-  "notas_generales": "El paciente presenta dolor abdominal y vómitos.",
-  
+  "diagnostico": "Gastroenteritis",
+  "notas_generales": "Dolor abdominal marcado.",
   "procedimientos": [
-    {
-      "nombre": "Ecografía Abdominal",
-      "notas": "Se observa inflamación en paredes gástricas."
-    }
+    { "nombre": "Ecografía", "notas": "Sin hallazgos" }
   ],
-
   "tratamientos": [
-    {
-      "medicamento_id": 102, 
-      "dosis": "1 comprimido",
-      "instrucciones": "Cada 12 horas por 3 días",
-      "duracion_dias": 3,
-      "notas": "Entregado en consulta",
-      "cantidad": 2
-    }
+    { "medicamento_id": 102, "dosis": "10mg", "cantidad": 2, "instrucciones": "Oral", "duracion_dias": 3 }
   ]
 }
 ```
 
-### Claves del JSON:
-1.  **`cita_id`**: Puede ser `null` (Urgencia) o un ID (ej: `105`) para cerrar la cita automáticamente.
-2.  **`procedimientos`**: Array de objetos. Cada uno crea una fila en la tabla `Procedimientos`.
-3.  **`tratamientos`**:
-    - **`cantidad`**: **IMPORTANTE**. Este campo es el que activa el descuento de inventario.
-        - Ejemplo: `"cantidad": 2` restará 2 unidades al item con ID `102` en `Inventario_Items`.
-        - Este número **no se guarda** en la tabla `Tratamientos` (por limitación de esquema), solo se usa para la transacción de stock.
-    - **`dosis`, `instrucciones`**: Se guardan como texto en el registro del tratamiento.
+### B. Ver LISTADO de Historiales (Recientes)
+Obtiene los últimos 50 historiales de todos los pacientes, con sus detalles (Procedimientos y Tratamientos completos).
+- **Método**: `GET`
+- **URL**: `http://localhost:3001/api/1/historial`
+- **Respuesta**: Array JSON detallado con todos los historiales.
 
-## Ejemplo Específico: Paciente #7 (Paso 1: Solo Historial)
+### C. Buscar Historial (Avanzado)
+Busca por nombre de paciente, dueño, vet, o diagnóstico.
+- **Método**: `GET`
+- **URL**: `http://localhost:3001/api/1/historial/buscar?q=Firulais`
+- **URL (Por Procedimiento)**: `http://localhost:3001/api/1/historial/buscar?q=Limpieza` (Encuentra historiales donde se hizo 'Limpieza')
 
-Aquí creamos solo la cabecera del evento. Como tiene `notas_generales`, pasa la validación.
-
-**URL**: `POST /api/1/historial`
-
-```json
-{
-  "paciente_id": 7,
-  "cita_id": null,
-  "diagnostico": "Dermatitis Alérgica",
-  "notas_generales": "Paciente presenta irritación en la zona lumbar. Se sospecha alergia a pulgas."
+### D. Editar Historial (Cabecera)
+Edita diagnóstico, notas, o reasigna paciente/vet.
+- **Método**: `PUT`
+- **URL**: `http://localhost:3001/api/1/historial/206`
+- **Body JSON**:
+  "diagnostico": "Diagnóstico Corregido",
+  "notas": "Nuevas notas...",
+  "peso": 4.5,             // Opcional: Corregir peso
+  "temperatura": 39.1,     // Opcional: Corregir temperatura
+  "fecha_visita": "2023-12-05 10:00:00", // Opcional: Backdating
+  "id_paciente": 55,       // Opcional: Reasignar paciente
+  "id_usuario": 22         // Opcional: Reasignar veterinario
 }
 ```
-*Esto devolverá un ID (ej: `206`). Guárdalo para los siguientes pasos.*
 
-## Ejemplo Específico: Paciente #7 (Paso 2: Agregar Tratamiento)
+### E. Eliminar Historial (Soft Delete)
+**IMPORTANTE**: Esta acción eliminará (ocultará) también todos los tratamientos y procedimientos asociados a este historial.
+- **Método**: `DELETE`
+- **URL**: `http://localhost:3001/api/1/historial/206`
+- **Body JSON**: No requerido (el ID viaja en URL).
 
-Ahora agregamos el tratamiento al historial `206`.
+---
 
-**URL**: `POST /api/1/tratamientos`
+## 2. TRATAMIENTOS (CRUD)
 
+### A. Agregar Tratamiento (Individual)
+Agrega un tratamiento a un historial existente y descuenta stock.
+- **Método**: `POST`
+- **URL**: `http://localhost:3001/api/1/tratamientos`
+- **Body JSON**:
 ```json
 {
-  "id_paciente": 7,
   "id_historial_medico": 206,
+  "id_paciente": 50,
   "prescripto_por": 21,
   "id_medicamento": 102,
-  "dosis": "10mg",
+  "dosis": "5ml",
   "cantidad": 1,
-  "instrucciones": "Oral cada 24 hrs por 5 días",
+  "instrucciones": "Noche",
   "duracion_dias": 5,
-  "notas": "Corticoide"
+  "notas": "Jarabe"
 }
 ```
 
-## Ejemplo Específico: Paciente #7 (Paso 3: Agregar Procedimiento)
+### B. Ver LISTADO de Tratamientos (Recientes)
+- **Método**: `GET`
+- **URL**: `http://localhost:3001/api/1/tratamientos`
+- **Respuesta**: Array JSON con los últimos 50 tratamientos activos.
 
-**URL**: `POST /api/1/procedimientos`
+### C. Buscar Tratamientos
+Busca por medicamento, paciente o vet.
+- **Método**: `GET`
+- **URL**: `http://localhost:3001/api/1/tratamientos/buscar?q=Paracetamol`
 
+### C. Editar Tratamiento
+- **Método**: `PUT`
+- **URL**: `http://localhost:3001/api/1/tratamientos/50`
+- **Body JSON**:
+```json
+{
+  "dosis": "10ml",
+  "instrucciones": "Mañana y Noche",
+  "cantidad": 5 // Opcional: Si se envía, ajusta el stock (devuelve el anterior, resta el nuevo)
+}
+```
+
+### D. Eliminar Tratamiento (Soft Delete)
+- **Método**: `DELETE`
+- **URL**: `http://localhost:3001/api/1/tratamientos/50`
+
+---
+
+## 3. PROCEDIMIENTOS (CRUD)
+
+### A. Agregar Procedimiento (Individual)
+- **Método**: `POST`
+- **URL**: `http://localhost:3001/api/1/procedimientos`
+- **Body JSON**:
 ```json
 {
   "id_historial_medico": 206,
-  "nombre_procedimiento": "Raspado de piel",
-  "notas": "Muestra tomada para cultivo."
+  "nombre_procedimiento": "Limpieza Dental",
+  "notas": "Extracción de molar requerida"
 }
 ```
-*Al enviar esto, el sistema valida que tengas al menos una "Resolución" (Notas, Procedimientos o Tratamientos), crea el historial, guarda el raspado, guarda la receta y resta 1 unidad del item 102.*
 
-## Agregar más cosas tarde (Flujo "Se me olvidó algo")
-
-Sí, puedes agregar más procedimientos o tratamientos a ese mismo historial (digamos que el ID generado fue `500`) en cualquier momento.
-
-**URL**: `POST /api/1/procedimientos`
-
+### B. Editar Procedimiento
+- **Método**: `PUT`
+- **URL**: `http://localhost:3001/api/1/procedimientos/15`
+- **Body JSON**:
 ```json
 {
-  "id_historial_medico": 500,
-  "nombre_procedimiento": "Limpieza de herida",
-  "notas": "Se realiza aseo quirúrgico de la zona afectada."
+  "nombre_procedimiento": "Limpieza Dental Profunda",
+  "notas": "Se aplicó anestesia local"
 }
 ```
-*Esto insertará el nuevo procedimiento vinculado a la visita original, sin tener que crear una visita nueva.*
+
+### C. Eliminar Procedimiento (Soft Delete)
+- **Método**: `DELETE`
+- **URL**: `http://localhost:3001/api/1/procedimientos/15`

@@ -1,49 +1,46 @@
-const connection = require('../../db/connection');
+const { queryConReintento } = require('../../db/queryHelper');
 
 const verTratamientos = async (req, res) => {
   const idClinica = req.clinicaId;
-  const idPaciente = req.params.idPaciente;
 
-  if (!idPaciente) {
-    return res.status(400).json({ error: 'Falta el parámetro idPaciente' });
-  }
+  // Si viene idPaciente en query params o params, podríamos filtrar, 
+  // pero el requerimiento es "pasarlo a listado".
+  // Haremos que devuelva los últimos 50 tratamientos de la clínica.
 
   try {
-    const conn = await connection.promise();
-
-    // Consulta con todos los joins necesarios
     const query = `
-      SELECT 
-        t.id,
-        t.id_paciente,
-        p.nombre AS paciente_nombre,
-        p.especie AS paciente_especie,
-        t.prescripto_por AS veterinario_id,
-        u.nombre_completo AS veterinario_nombre,
-        t.fecha_prescripcion,
-        ii.descripcion AS medicamento,
-        t.dosis,
-        t.instrucciones,
-        t.duracion_dias,
-        t.notas,
-        t.estado,
-        t.editado
-      FROM Tratamientos t
-      INNER JOIN Pacientes p ON t.id_paciente = p.id
-      LEFT JOIN Usuarios u ON t.prescripto_por = u.id
-      LEFT JOIN Inventario_Items ii ON t.id_medicamento = ii.id
-      WHERE t.id_paciente = ? AND t.id_clinica = ?
-      ORDER BY t.fecha_prescripcion DESC, t.id DESC
-    `;
+          SELECT 
+            t.id,
+            t.id_paciente,
+            p.nombre AS paciente_nombre,
+            p.especie AS paciente_especie,
+            t.prescripto_por AS veterinario_id,
+            u.nombre_completo AS veterinario_nombre,
+            t.fecha_prescripcion,
+            ii.descripcion AS medicamento,
+            t.dosis,
+            t.instrucciones,
+            t.duracion_dias,
+            t.notas,
+            t.estado,
+            t.editado
+          FROM Tratamientos t
+          INNER JOIN Pacientes p ON t.id_paciente = p.id
+          LEFT JOIN Usuarios u ON t.prescripto_por = u.id
+          LEFT JOIN Inventario_Items ii ON t.id_medicamento = ii.id
+          WHERE t.id_clinica = ? AND t.estado != 'Cancelado'
+          ORDER BY t.fecha_prescripcion DESC, t.id DESC
+          LIMIT 50
+        `;
 
-    const [results] = await conn.query(query, [idPaciente, idClinica]);
+    const results = await queryConReintento(query, [idClinica]);
 
-    // Formatear respuesta según requerimiento
+    // Formatear respuesta
     const formateados = results.map(r => ({
-      id: `${r.id}`,
-      pacienteId: `${r.id_paciente}`,
+      id: r.id,
+      pacienteId: r.id_paciente,
       pacienteNombre: `${r.paciente_nombre} (${r.paciente_especie || 'Desconocido'})`,
-      veterinarioId: `${r.veterinario_id}`,
+      veterinarioId: r.veterinario_id,
       veterinarioNombre: r.veterinario_nombre || 'Desconocido',
       fechaPrescripcion: r.fecha_prescripcion,
       medicamento: r.medicamento || 'Sin medicamento',
@@ -52,10 +49,11 @@ const verTratamientos = async (req, res) => {
       duracionDias: r.duracion_dias,
       notas: r.notas,
       estado: r.estado,
-      editado: !!r.editado // Asegurar booleano
+      editado: !!r.editado
     }));
 
     res.json(formateados);
+
   } catch (error) {
     console.error('Error al obtener tratamientos:', error);
     res.status(500).json({ error: 'Error interno al obtener los tratamientos' });

@@ -1,0 +1,3 @@
+ALTER TABLE Procedimientos
+ADD COLUMN estado VARCHAR(50) DEFAULT 'Realizado',
+ADD COLUMN activo BOOLEAN DEFAULT TRUE;
