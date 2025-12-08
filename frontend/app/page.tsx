@@ -13,11 +13,13 @@ import { InventoryManagement } from "@/components/Inventario/inventory-managemen
 import { BillingModule } from "../components/billing-module"
 import { UserManagementDashboard } from "../components/Usuarios/user-dashboard"
 import { OwnerManagementDashboard } from "../components/Dueños/ow-dashboard"
+import { HistorialDashboard } from "../components/Historial/historial-dashboard"
 import { useAuth } from '@/components/user-context'
 import { CitasRecepcionistaPage } from "@/components/Citas/cita-main-res"
 import { CitasPage } from "@/components/Citas/cita-main"
 import { TratamientosPage } from "@/components/Tratamientos/tratamientosPage"
 import { AuditDashboard  } from "@/components/Logs/logs-dashboard"
+
 
 export default function VetManagementHome() {
   const { usuario, token, setAuthInfo, clearAuthInfo } = useAuth()
@@ -180,6 +182,8 @@ export default function VetManagementHome() {
                           ? `Usuarios - ${usuario.nombre_clinica}`
                           : activeSection === "owners"
                             ? `Dueños - ${usuario.nombre_clinica}`
+                            : activeSection === "records"
+                            ? `Historial Médico - ${usuario.nombre_clinica}`
                             : activeSection === "treatments"
                               ? `Tratamientos - ${usuario.nombre_clinica}`
                               : activeSection}
@@ -223,6 +227,8 @@ export default function VetManagementHome() {
 
           {activeSection === "logs" && <AuditDashboard />}
 
+          {activeSection === "records" && <HistorialDashboard />}
+
           {activeSection !== "dashboard" &&
             activeSection !== "patients" &&
             activeSection !== "appointments" &&
@@ -231,6 +237,7 @@ export default function VetManagementHome() {
             activeSection !== "users" &&
             activeSection !== "treatments" &&
              activeSection !== "logs" &&
+             activeSection !== "records" &&
             activeSection !== "owners" && (
               <div className="space-y-6">
                 <div>
