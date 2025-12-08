@@ -1,15 +1,16 @@
 export interface Tratamiento {
-  id: string;
-  pacienteId: string;
-  pacienteNombre: string; // Para mostrar en la tabla sin hacer otro fetch
-  veterinarioId: string;
-  veterinarioNombre: string; 
-  fechaPrescripcion: string; 
-  medicamento: string; 
+  id: number;
+  pacienteId: number;
+  pacienteNombre: string;
+  veterinarioId: number;
+  veterinarioNombre: string;
+  fechaPrescripcion: string;
+  medicamento: string;
+  medicamentoId?: number; 
   dosis: string;
   instrucciones: string;
   duracionDias: number;
-  notas?: string;
-  estado: "Activo" | "Completado" | "Cancelado";
-  editado?: boolean; 
+  notas: string;
+  estado: string;
+  editado: boolean;
 }

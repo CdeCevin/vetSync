@@ -8,23 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Plus, Search, FileText, Pill, Clock, Trash2, CheckCircle } from "lucide-react"
+import { Plus, Search, FileText, Pill, Clock, Trash2, Edit } from "lucide-react"
 import { TratamientoFormModal } from "./TratamientoFormModal"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { useAuth } from "@/components/user-context"
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal"
 
 export function TratamientosPage() {
-  const { tratamientos, cargarTratamientos, crearTratamiento, actualizarTratamiento } = useTratamientoService()
+  const { tratamientos, cargarTratamientos, crearTratamiento, actualizarTratamiento, eliminarTratamiento } = useTratamientoService()
   const { onOpen: openAlert } = useAlertStore()
   const { usuario } = useAuth()
-  
-  // Estados
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [tratamientoSeleccionado, setTratamientoSeleccionado] = useState<Tratamiento | null>(null)
   const [busqueda, setBusqueda] = useState("")
-
-  // Estados para Modal de Eliminación/Cancelación
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [tratamientoAEliminar, setTratamientoAEliminar] = useState<Tratamiento | null>(null)
 
@@ -32,23 +28,19 @@ export function TratamientosPage() {
     cargarTratamientos()
   }, [cargarTratamientos])
 
-  // Filtrado
+
   const filteredTratamientos = tratamientos.filter(t => 
     (t.pacienteNombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    t.medicamento.toLowerCase().includes(busqueda.toLowerCase())) &&
-    t.estado !== "Cancelado" // Ocultar los cancelados de la vista principal
+    t.medicamento.toLowerCase().includes(busqueda.toLowerCase()))
   )
 
-  // Función auxiliar para verificar propiedad
   const esCreador = (t: Tratamiento) => {
-    return usuario && String(usuario.id) === String(t.veterinarioId)
+    return usuario && Number(usuario.id) === Number(t.veterinarioId)
   }
-
 
   const handleCreateOrUpdate = async (data: any) => {
     try {
         if (tratamientoSeleccionado) {
-           
             await actualizarTratamiento(tratamientoSeleccionado.id, data)
             openAlert("Éxito", "Tratamiento modificado correctamente", "success")
         } else {
@@ -67,27 +59,25 @@ export function TratamientosPage() {
       setIsModalOpen(true)
   }
 
-  const handleFinalizarClick = async (t: Tratamiento) => {
-      
-      await actualizarTratamiento(t.id, { estado: "Completado" })
-      openAlert("Completado", `El tratamiento de ${t.pacienteNombre} ha finalizado.`, "success")
-  }
-
-  // Preparar eliminación 
   const handleDeleteClick = (t: Tratamiento) => {
       setTratamientoAEliminar(t)
       setIsDeleteModalOpen(true)
   }
 
-  // Confirmar eliminación 
   const onConfirmDelete = async () => {
       if (!tratamientoAEliminar) return
-      await actualizarTratamiento(tratamientoAEliminar.id, { estado: "Cancelado" })
+      try {
+        await eliminarTratamiento(tratamientoAEliminar.id)
+        setIsDeleteModalOpen(false)
+        onDeleteSuccess()
+      } catch (error) {
+        openAlert("Error", "No se pudo eliminar", "error")
+      }
   }
 
   const onDeleteSuccess = () => {
-      cargarTratamientos()
       setTratamientoAEliminar(null)
+      openAlert("Eliminado", "El tratamiento ha sido eliminado.", "success")
   }
 
   return (
@@ -102,7 +92,6 @@ export function TratamientosPage() {
         </Button>
       </div>
 
-      {/* Tabla */}
       <Card>
         <CardHeader>
             <div className="flex items-center justify-between">
@@ -143,16 +132,16 @@ export function TratamientosPage() {
                                 <TableCell>
                                     <div className="font-medium">{t.pacienteNombre}</div>
                                     <div className="text-xs text-muted-foreground">Vet: {t.veterinarioNombre}</div>
-                                    {t.editado && <Badge variant="outline" className="text-[10px] mt-1 border-blue-200 text-blue-700">Editado</Badge>}
+                                    {t.editado && <Badge variant="outline" className="text-[10px] mt-1 border-blue-200 text-primary">Editado</Badge>}
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2 font-semibold">
-                                        <Pill className="h-4 w-4 text-blue-500" /> {t.medicamento}
+                                        <Pill className="h-4 w-4 text-primary" /> {t.medicamento}
                                     </div>
                                     <div className="text-xs text-muted-foreground">{t.dosis}</div>
                                 </TableCell>
                                 <TableCell className="max-w-xs truncate text-sm" title={t.instrucciones}>
-                                    {t.instrucciones}
+                                    {t.instrucciones ? t.instrucciones : <p className="italic text-primary/40">Sin registros</p> }
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-1 text-sm">
@@ -168,23 +157,19 @@ export function TratamientosPage() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    {/* Lógica de Permisos: Solo el creador ve las opciones */}
-                                    {t.estado === 'Activo' && esCreador(t) && (
+                                    {esCreador(t) ? (
                                         <div className="flex justify-end gap-1">
-                                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(t)} title="Editar Tratamiento">
-                                                <FileText className="h-4 w-4 text-gray-600" />
+                                            <Button className="text-slate-400 hover:text-primary hover:bg-primary/10" variant="ghost" size="icon" onClick={() => handleEditClick(t)}>
+                                                <Edit className="h-4 w-4" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleFinalizarClick(t)} title="Marcar Completado">
-                                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(t)} title="Cancelar Tratamiento">
-                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                            <Button className=" text-slate-400 hover:text-red-600 hover:bg-red-500/10" variant="ghost" size="icon" onClick={() => handleDeleteClick(t)}>
+                                                <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </div>
-                                    )}
-                                    {/* Si no es creador o no está activo, no se muestran las acciones - solo lectura */}
-                                    {!esCreador(t) && t.estado === 'Activo' && (
-                                        <span className="text-xs text-muted-foreground italic">Solo lectura</span>
+                                    ) : (
+                                        <div className="flex justify-end gap-1">
+                                            <p className="italic text-xs text-primary/40">No disponible</p>
+                                        </div>    
                                     )}
                                 </TableCell>
                             </TableRow>
@@ -195,7 +180,6 @@ export function TratamientosPage() {
         </CardContent>
       </Card>
 
-      {/* Modal de Crear/Editar */}
       <TratamientoFormModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -203,15 +187,14 @@ export function TratamientosPage() {
         tratamientoEditar={tratamientoSeleccionado}
       />
 
-      {/* Modal de Confirmación de Eliminación/Cancelación */}
       {tratamientoAEliminar && (
         <DeleteConfirmModal 
             isOpen={isDeleteModalOpen}
             onClose={() => setIsDeleteModalOpen(false)}
             onConfirm={onConfirmDelete}
-            onSuccess={onDeleteSuccess}
-            mensajeConf={<>¿Estás seguro de que deseas cancelar el tratamiento de <b>{tratamientoAEliminar.pacienteNombre}</b>?</>}
-            mensajeEx="El tratamiento ha sido cancelado correctamente."
+            onSuccess={() => {}}
+            mensajeConf={<>¿Estás seguro de que deseas eliminar el tratamiento de <b>{tratamientoAEliminar.pacienteNombre}</b>?</>}
+            mensajeEx="El tratamiento ha sido eliminado correctamente."
         />
       )}
     </div>

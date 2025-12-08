@@ -1,92 +1,147 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { Tratamiento } from "../components/Tratamientos/tratamiento"
-
-// Datos iniciales de prueba
-let MOCK_TRATAMIENTOS: Tratamiento[] = [
-  {
-    id: "1",
-    pacienteId: "p1",
-    pacienteNombre: "Max (Perro)",
-    veterinarioId: "v1",
-    veterinarioNombre: "Dr. Juan Pérez",
-    fechaPrescripcion: new Date().toISOString(),
-    medicamento: "Amoxicilina",
-    dosis: "500mg cada 12 horas",
-    instrucciones: "Dar con comida",
-    duracionDias: 7,
-    estado: "Activo"
-  },
-  {
-    id: "2",
-    pacienteId: "p2",
-    pacienteNombre: "Luna (Gato)",
-    veterinarioId: "v1",
-    veterinarioNombre: "Dr. Juan Pérez",
-    fechaPrescripcion: new Date(Date.now() - 86400000 * 2).toISOString(), // Hace 2 días
-    medicamento: "Meloxicam",
-    dosis: "0.5mg una vez al día",
-    instrucciones: "Agitar antes de usar",
-    duracionDias: 3,
-    estado: "Activo"
-  }
-]
+import { useState, useCallback, useMemo } from "react"
+import { useAuth } from "@/components/user-context"
+import { ROUTES } from "@/apiRoutes" 
+import { Tratamiento } from "@/components/Tratamientos/tratamiento"
 
 export function useTratamientoService() {
-  const [tratamientos, setTratamientos] = useState<Tratamiento[]>(MOCK_TRATAMIENTOS)
+  const { usuario, token, fetchWithAuth } = useAuth()
+  const [tratamientos, setTratamientos] = useState<Tratamiento[]>([])
   const [loading, setLoading] = useState(false)
 
+  const idClinica = usuario?.id_clinica
+  const baseUrl = idClinica ? `${ROUTES.base}/${idClinica}/tratamientos` : ""
+
   const cargarTratamientos = useCallback(async () => {
-    setLoading(true)
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        // más reciente primero
-        const ordenados = [...MOCK_TRATAMIENTOS].sort((a, b) => 
-            new Date(b.fechaPrescripcion).getTime() - new Date(a.fechaPrescripcion).getTime()
-        )
-        setTratamientos(ordenados)
-        setLoading(false)
-        resolve()
-      }, 500)
-    })
-  }, [])
+    if (!idClinica || !token) return
 
-  const crearTratamiento = async (data: Omit<Tratamiento, "id" | "fechaPrescripcion" | "editado" | "estado">) => {
     setLoading(true)
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        const nuevo: Tratamiento = {
-          ...data,
-          id: Math.random().toString(36).substr(2, 9),
-          fechaPrescripcion: new Date().toISOString(),
-          estado: "Activo",
-          editado: false
+    try {
+      const response = await fetchWithAuth(baseUrl, {
+        cache: "no-store",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
         }
-        MOCK_TRATAMIENTOS = [nuevo, ...MOCK_TRATAMIENTOS]
-        cargarTratamientos()
-        resolve()
-      }, 500)
-    })
-  }
+      })
+      
+      if (!response.ok) {
+          throw new Error(`Error al cargar: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      const tratamientosFormateados = data.map((t: any) => ({
+        ...t,
+        medicamento: t.medicamento || t.nombre_medicamento || t.producto?.nombre || "Sin asignar"
+      }))
 
-  const actualizarTratamiento = async (id: string, data: Partial<Tratamiento>) => {
-    setLoading(true)
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        const index = MOCK_TRATAMIENTOS.findIndex(t => t.id === id)
-        if (index !== -1) {
-          MOCK_TRATAMIENTOS[index] = { 
-            ...MOCK_TRATAMIENTOS[index], 
-            ...data, 
-            editado: true // Marca de auditoría 
-          }
+      setTratamientos(tratamientosFormateados)
+    } catch (error) {
+      console.error("Error loading tratamientos:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [idClinica, token, fetchWithAuth, baseUrl])
+
+  const crearTratamiento = useCallback(async (data: Partial<Tratamiento>) => {
+    if (!idClinica) throw new Error("No hay clínica asociada")
+
+    // mapeo de datos
+    const payload = {
+        id_medicamento: Number(data.medicamentoId),
+        dosis: data.dosis,
+        cantidad: 1, 
+        instrucciones: data.instrucciones,
+        duracion_dias: Number(data.duracionDias),
+        notas: data.notas || "",
+        id_paciente: Number(data.pacienteId),
+        prescripto_por: Number(usuario?.id)
+    }
+    if (!payload.id_medicamento || payload.id_medicamento === 0) {
+        throw new Error("El ID del medicamento es inválido (0 o null).")
+    }
+
+    const response = await fetchWithAuth(baseUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || "Error al crear tratamiento")
+    }
+    
+    await cargarTratamientos()
+  }, [idClinica, fetchWithAuth, baseUrl, cargarTratamientos, usuario, token])
+
+  const actualizarTratamiento = useCallback(async (id: number, data: Partial<Tratamiento>) => {
+    if (!idClinica) throw new Error("No hay clínica asociada")
+
+    const payload: any = {}
+    
+    if (data.medicamentoId) payload.id_medicamento = Number(data.medicamentoId)
+    if (data.dosis) payload.dosis = data.dosis
+    if (data.instrucciones) payload.instrucciones = data.instrucciones
+    if (data.duracionDias) payload.duracion_dias = Number(data.duracionDias)
+    if (data.notas) payload.notas = data.notas
+
+    const response = await fetchWithAuth(`${baseUrl}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+        if (data.estado === 'Cancelado') {
+             await eliminarTratamiento(id);
+             return;
         }
-        cargarTratamientos()
-        resolve()
-      }, 500)
-    })
-  }
+        const errText = await response.text()
+        console.error("Error Backend (PUT):", errText)
+        throw new Error("Error al actualizar tratamiento")
+    }
+    await cargarTratamientos()
+  }, [idClinica, fetchWithAuth, baseUrl, cargarTratamientos, token])
 
-  return { tratamientos, loading, cargarTratamientos, crearTratamiento, actualizarTratamiento }
+  const eliminarTratamiento = useCallback(async (id: number) => {
+    if (!idClinica) throw new Error("No hay clínica asociada")
+
+    const response = await fetchWithAuth(`${baseUrl}/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      }
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || "No se pudo eliminar el tratamiento")
+    }
+    
+    await cargarTratamientos()
+  }, [idClinica, fetchWithAuth, baseUrl, cargarTratamientos, token])
+
+  return useMemo(() => ({
+    tratamientos, 
+    loading, 
+    cargarTratamientos, 
+    crearTratamiento, 
+    actualizarTratamiento, 
+    eliminarTratamiento
+  }), [
+    tratamientos, 
+    loading, 
+    cargarTratamientos, 
+    crearTratamiento, 
+    actualizarTratamiento, 
+    eliminarTratamiento
+  ])
 }
