@@ -38,6 +38,7 @@ export interface HistorialMedico {
   diagnostico: string
   notas: string | null
   id_usuario: number
+  veterinario_nombre: string
 }
 
 export interface PacienteDetallado {
