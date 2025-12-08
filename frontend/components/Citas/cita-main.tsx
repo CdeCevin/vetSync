@@ -109,15 +109,14 @@ export function CitasPage() {
           </Card>
 
           <div className="grid gap-6 lg:grid-cols-4">
-            <div className=" lg:col-span-1 space-y-4">
+            <div className=" lg:col-span-1 space-y-4 ">
               <Card>
                 <CardHeader><CardTitle>Calendario</CardTitle></CardHeader>
-                <CardContent className="p-2">
+                <CardContent className="p-2 ml-10">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={(date) => date && setSelectedDate(date)}
-                    className=""
                     locale={es}
                   />
                 </CardContent>
