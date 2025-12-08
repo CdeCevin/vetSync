@@ -48,6 +48,7 @@ export function PatientDashboard() {
     setIsLoadingList(true)
     try {
       const data = await getPacientes()
+      console.log(data)
       setPacientesBase(data)
       setPacientes(data)
     } catch (err: any) {
@@ -73,6 +74,7 @@ export function PatientDashboard() {
   setIsLoadingDetails(true)
   try {
     const detalle = await getPacienteDetalle(paciente.id)
+    console.log(detalle)
 
     const mappedDetalle: PacienteDetallado = {
     ...detalle,
@@ -424,7 +426,7 @@ function DetallesPaciente({
                                           </span>
                                        </div>
                                        <h5 className="font-semibold">{record.diagnostico}</h5>
-                                       <p className="text-sm text-muted-foreground">Veterinario: (ID: {record.id_usuario})</p>
+                                       <p className="text-sm text-muted-foreground">Veterinario: {record.veterinario_nombre}</p>
                                        {record.notas && <p className="text-sm">{record.notas}</p>}
                                     </div>
                                     <Button variant="ghost" size="sm">
