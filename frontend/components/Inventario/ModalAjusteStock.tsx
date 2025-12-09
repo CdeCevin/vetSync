@@ -111,7 +111,7 @@ export function StockAdjustmentModal({ producto, isOpen, onClose, onConfirm }: S
             />
           </div>
 
-          <div className={`mt-2 p-3 rounded-lg border flex items-center justify-between ${stockFinal < 0 ? "bg-red-50 border-red-200" : "bg-slate-50 border-slate-200"}`}>
+          <div className={`mt-2 p-3 rounded-lg border flex items-center justify-between ${stockFinal < 0 ? "bg-red-50 border-red-200/50" : "bg-slate-50 border-slate-200/50"}`}>
             <div className="text-center">
                 <p className="text-xs text-gray-500 uppercase font-bold">Actual</p>
                 <p className="text-xl font-mono">{producto.stockActual}</p>
@@ -119,7 +119,7 @@ export function StockAdjustmentModal({ producto, isOpen, onClose, onConfirm }: S
             <ArrowRight className="text-gray-400" />
             <div className="text-center">
                 <p className="text-xs text-gray-500 uppercase font-bold">Final</p>
-                <p className={`text-xl font-mono font-bold ${stockFinal < 0 ? "text-red-600" : "text-blue-600"}`}>
+                <p className={`text-xl font-mono font-bold ${stockFinal < 0 ? "text-red-600/50" : "text-secondary/80"}`}>
                     {stockFinal}
                 </p>
             </div>
