@@ -84,7 +84,7 @@ export function PacienteModal({
       ? ownersList
       : ownersList.filter(
           (o) =>
-            o.nombre.toLowerCase().includes(query.toLowerCase()) ||
+            o.nombre?.toLowerCase().includes(query.toLowerCase()) ||
             o.correo?.toLowerCase().includes(query.toLowerCase())
         )
   
