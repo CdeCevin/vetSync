@@ -17,7 +17,7 @@ const verTratamientos = async (req, res) => {
             t.prescripto_por AS veterinario_id,
             u.nombre_completo AS veterinario_nombre,
             t.fecha_prescripcion,
-            ii.descripcion AS medicamento,
+            ii.nombre AS medicamento,
             t.dosis,
             t.instrucciones,
             t.duracion_dias,
