@@ -235,14 +235,14 @@ export function InventoryManagement() {
                                     <Badge className={badgeColor}>{estadoTexto}</Badge>
                                 </TableCell>
                                 <TableCell className="text-center space-x-1">
-                                    <Button className="hover:bg-primary/30" variant="ghost" size="icon" onClick={() => { setProductoSeleccionado(p); setModalStockOpen(true) }} title="Ajustar Stock">
-                                        <ArrowRightLeft className="h-4 w-4 text-primary "/>
+                                    <Button className="hover:bg-primary/20" variant="ghost" size="icon" onClick={() => { setProductoSeleccionado(p); setModalStockOpen(true) }} title="Ajustar Stock">
+                                        <ArrowRightLeft className="h-4 w-4 text-primary/50 hover:text-primary"/>
                                     </Button>
-                                    <Button className="hover:bg-primary/30" variant="ghost" size="icon" onClick={() => { setProductoSeleccionado(p); setModalFormOpen(true) }} title="Editar Información">
-                                        <Edit className="h-4 w-4 text-gray-600"/>
+                                    <Button  className="text-slate-400 hover:text-primary hover:bg-primary/10" variant="ghost" size="icon" onClick={() => { setProductoSeleccionado(p); setModalFormOpen(true) }} title="Editar Información">
+                                        <Edit className="h-4 w-4 "/>
                                     </Button>
-                                    <Button className="hover:bg-primary/30" variant="ghost" size="icon" onClick={() => handleOpenDelete(p)} title="Eliminar">
-                                        <Trash2 className="h-4 w-4 text-red-500"/>
+                                    <Button className=" text-slate-400 hover:text-red-600 hover:bg-red-500/10" variant="ghost" size="icon" onClick={() => handleOpenDelete(p)} title="Eliminar">
+                                        <Trash2 className="h-4 w-4"/>
                                     </Button>
                                 </TableCell>
                             </TableRow>

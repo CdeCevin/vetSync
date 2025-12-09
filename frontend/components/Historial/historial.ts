@@ -23,6 +23,7 @@ export interface HistorialMedico {
   paciente_nombre?: string;
   paciente_id?: number;
   paciente?: { id: number; nombre: string; detalle?: string };
+  dueño_nombre?:string;
   veterinario_nombre?: string;
   veterinario?: string;
   veterinario_id?: number;

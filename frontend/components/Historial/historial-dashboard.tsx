@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label"
 import { 
   Search, Plus, Calendar, User, Stethoscope, ChevronDown, ChevronUp, 
-  Syringe, Pill, FileText, PawPrint, Edit, Trash2, Save
+  Syringe, Pill, FileText, PawPrint, Edit, Trash2, Save, Contact
 } from "lucide-react"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { HistorialMedico, Procedimiento } from "./historial"
@@ -22,6 +22,7 @@ export function HistorialDashboard() {
     historiales, loading, cargarHistoriales, crearHistorial, 
     agregarProcedimiento, editarProcedimiento, eliminarProcedimiento 
   } = useHistorialService()
+  console.log(historiales)
   
   const { onOpen: openAlert } = useAlertStore()
   
@@ -112,6 +113,8 @@ export function HistorialDashboard() {
   }
 
   const getNombrePaciente = (h: HistorialMedico) => h.paciente_nombre || h.paciente?.nombre || "Desconocido"
+  const getNombreDueno = (h: HistorialMedico) => h.dueño_nombre || "Desconocido"
+
   const getNombreVeterinario = (h: HistorialMedico) => h.veterinario_nombre || h.veterinario || "Desconocido"
   const getFecha = (h: HistorialMedico) => h.fecha_visita || (h as any).fecha
 
@@ -166,7 +169,7 @@ export function HistorialDashboard() {
                 className="flex items-center justify-between p-5 md:p-6 cursor-pointer"
                 onClick={() => setExpandedId(expandedId === historial.id ? null : historial.id)}
               >
-                <div className="flex items-center gap-8 flex-1 min-w-0 mr-4">
+                <div className="flex items-center gap-50 flex-1 min-w-0 mr-4">
                   
                   {/* paciente */}
                   <div className="flex items-center gap-4 shrink-0">
@@ -177,20 +180,21 @@ export function HistorialDashboard() {
                        <span className="font-bold text-base text-slate-900 truncate" title={getNombrePaciente(historial)}>
                          {getNombrePaciente(historial)}
                        </span>
-                       {historial.paciente?.detalle && (
-                         <span className="text-xs text-slate-500 truncate">{historial.paciente.detalle}</span>
-                       )}
+                       <div className="flex items-center gap-1.5 text-xs text-slate-500 truncate">
+                        <Contact className="h-3.5 w-3.5 text-slate-400" /> 
+                        <span>{getNombreDueno(historial).split(" ")[0]} {getNombreDueno(historial).split(" ")[1]}</span>
+                     </div>
                      </div>
                   </div>
 
                   {/* diagnostico y vet */}
-                  <div className="flex flex-col justify-center min-w-0 shrink-0 pt-1">
-                     <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex flex-col items-left min-w-0 shrink-0 pt-1 ml-5">
+                     <div className="flex items-left gap-2 mb-1.5">
                        <Badge variant="outline" className={`${getDiagnosticoColor(historial.diagnostico)} px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide`}>
                           {historial.diagnostico}
                        </Badge>
                      </div>
-                     <div className="flex items-center gap-1.5 text-xs text-slate-500 truncate">
+                     <div className="flex items-left gap-1.5 text-xs text-slate-500 truncate">
                         <User className="h-3.5 w-3.5 text-slate-400" /> 
                         <span>Dr/a. {getNombreVeterinario(historial)}</span>
                      </div>

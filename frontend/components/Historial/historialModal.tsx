@@ -264,8 +264,8 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
                       <div className="font-semibold text-sm">{proc.nombre}</div>
                       {proc.notas && <div className="text-xs text-muted-foreground">{proc.notas}</div>}
                     </div>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => setProcedimientos(prev => prev.filter((_, i) => i !== idx))}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                    <Button className=" text-slate-400 hover:text-red-600 hover:bg-red-500/10" type="button" variant="ghost" size="icon" onClick={() => setProcedimientos(prev => prev.filter((_, i) => i !== idx))}>
+                      <Trash2 className="h-4 w-4 " />
                     </Button>
                   </div>
                 ))}
@@ -347,12 +347,12 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
                         {t.dosis} - {t.instrucciones}
                       </div>
                     </div>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => setTratamientos(prev => prev.filter((_, i) => i !== idx))}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                    <Button className=" text-slate-400 hover:text-red-600 hover:bg-red-500/10" type="button" variant="ghost" size="icon" onClick={() => setTratamientos(prev => prev.filter((_, i) => i !== idx))}>
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                {tratamientos.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No hay medicamentos recetados.</p>}
+                {tratamientos.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No hay tratamientos agregados.</p>}
               </div>
             </TabsContent>
           </Tabs>
