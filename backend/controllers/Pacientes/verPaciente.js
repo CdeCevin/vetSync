@@ -20,10 +20,16 @@ const verPaciente = async (req, res) => {
     `;
 
     const queryHistorial = `
-      SELECT * FROM Historial_Medico
-      WHERE id_paciente = ? AND id_clinica = ? 
+      SELECT 
+        Historial_Medico.*,
+        Usuarios.nombre_completo AS veterinario_nombre
+      FROM Historial_Medico
+      JOIN Usuarios ON Historial_Medico.id_usuario = Usuarios.id
+      WHERE Historial_Medico.id_paciente = ? AND Historial_Medico.id_clinica = ?
       ORDER BY fecha_visita DESC
     `;
+
+
 
     const pacienteResults = await queryConReintento(queryPacienteDueno, [idPaciente, idClinica]);
 

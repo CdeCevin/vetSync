@@ -18,9 +18,12 @@ const verHistorialDetalle = async (req, res) => {
                 p.raza AS paciente_raza,
                 p.id AS paciente_id,
                 u.nombre_completo AS veterinario_nombre,
-                u.id AS veterinario_id
+                u.id AS veterinario_id,
+                d.nombre AS dueño_nombre,
+                d.id AS dueño_id
             FROM Historial_Medico h
             JOIN Pacientes p ON h.id_paciente = p.id
+            JOIN Dueños d ON p.id_dueño = d.id
             LEFT JOIN Usuarios u ON h.id_usuario = u.id
             WHERE h.id_clinica = ? AND h.activo = 1
             ORDER BY h.fecha_visita DESC, h.id DESC
@@ -49,7 +52,7 @@ const verHistorialDetalle = async (req, res) => {
             const queryTrat = `
                 SELECT 
                     t.*,
-                    ii.descripcion AS medicamento_nombre
+                    ii.nombre AS medicamento_nombre
                 FROM Tratamientos t
                 LEFT JOIN Inventario_Items ii ON t.id_medicamento = ii.id
                 WHERE t.id_historial_medico IN (?) AND t.id_clinica = ? AND t.estado != 'Cancelado'

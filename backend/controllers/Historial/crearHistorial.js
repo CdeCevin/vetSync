@@ -110,10 +110,10 @@ const crearHistorial = (req, res) => {
 
                         const t = tratamientos[i];
                         const queryTrat = `INSERT INTO Tratamientos 
-                        (id_historial_medico, prescripto_por, id_clinica, fecha_prescripcion, dosis, instrucciones, duracion_dias, notas, id_medicamento)
-                        VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?)`;
+                        (id_historial_medico, id_paciente,prescripto_por, id_clinica, fecha_prescripcion, dosis, instrucciones, duracion_dias, notas, id_medicamento)
+                        VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)`;
 
-                        const paramsTrat = [historialId, idUsuario, idClinica, t.dosis, t.instrucciones, t.duracion_dias, t.notas || '', t.medicamento_id];
+                        const paramsTrat = [historialId, paciente_id, idUsuario, idClinica, t.dosis, t.instrucciones, t.duracion_dias, t.notas || '', t.id_medicamento];
 
                         connection.query(queryTrat, paramsTrat, (err) => {
                             if (err) {
@@ -125,8 +125,8 @@ const crearHistorial = (req, res) => {
                             }
 
                             // Stock Update
-                            if (t.medicamento_id && t.cantidad) {
-                                connection.query(`UPDATE Inventario_Items SET stock = stock - ? WHERE id = ? AND id_clinica = ?`, [t.cantidad, t.medicamento_id, idClinica], (err) => {
+                            if (t.id_medicamento && t.cantidad) {
+                                connection.query(`UPDATE Inventario_Items SET stock = stock - ? WHERE id = ? AND id_clinica = ?`, [t.cantidad, t.id_medicamento, idClinica], (err) => {
                                     if (err) {
                                         return connection.rollback(() => {
                                             connection.release();
