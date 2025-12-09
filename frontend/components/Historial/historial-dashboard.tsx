@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { AIQueryModal } from "./IAModal"
 import { 
   Search, Plus, Calendar, User, Stethoscope, ChevronDown, ChevronUp, 
-  Syringe, Pill, FileText, PawPrint, Edit, Trash2, Save, Contact
+  Syringe, Pill, FileText, PawPrint, Edit, Trash2, Save, Contact, Sparkles
 } from "lucide-react"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { HistorialMedico, Procedimiento } from "./historial"
@@ -25,7 +26,7 @@ export function HistorialDashboard() {
   console.log(historiales)
   
   const { onOpen: openAlert } = useAlertStore()
-  
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [isMainModalOpen, setIsMainModalOpen] = useState(false)
   const [expandedId, setExpandedId] = useState<number | null>(null)
@@ -130,26 +131,38 @@ export function HistorialDashboard() {
         </Button>
       </div>
 
-      {/* Busqueda */}
-      <Card className="border-slate-200 shadow-sm">
-        <CardContent className="p-4">
-          <form onSubmit={handleSearchSubmit} className="flex gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input 
-                placeholder="Buscar por procedimiento, diagnóstico o paciente..." 
-                className="pl-10 border-slate-200 focus:border-[#066357] focus:ring-[#066357]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button type="submit" variant="ghost" className=" bg-secondary/80 text-white border border-slate-200 hover:bg-secondary">
-              Buscar
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+        {/* Busqueda */}
+        <Card className="border-slate-200 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex gap-4">
+              <form onSubmit={handleSearchSubmit} className="flex gap-4 flex-1">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input 
+                    placeholder="Buscar por procedimiento, diagnóstico o paciente..." 
+                    className="pl-10 border-slate-200 focus:border-[#066357] focus:ring-[#066357]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" variant="ghost" className=" bg-secondary/80 text-white border border-slate-200 hover:bg-secondary">
+                Buscar
+              </Button>
+              </form>
 
+              <div className="w-px bg-slate-200 mx-2 hidden md:block"></div>
+              <Button 
+                className="bg-gradient-to-l from-secondary to-accent text-white shadow-sm gap-2"
+                onClick={() => setIsAIModalOpen(true)}
+              >
+                <Sparkles className="h-4 w-4" /> 
+                <span className="hidden md:inline">Consulta IA</span>
+              </Button>
+
+            </div>
+          </CardContent>
+        </Card>
+      
       {/* Listado */}
       <div className="space-y-4">
         {loading ? (
@@ -384,7 +397,10 @@ export function HistorialDashboard() {
           onSuccess={() => {}} 
         />
       )}
-
+      <AIQueryModal 
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+      />
     </div>
   )
 }
