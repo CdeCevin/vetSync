@@ -152,7 +152,7 @@ export function HistorialDashboard() {
 
               <div className="w-px bg-slate-200 mx-2 hidden md:block"></div>
               <Button 
-                className="bg-gradient-to-l from-secondary to-accent text-white shadow-sm gap-2"
+                className="text-white shadow-sm gap-2 bg-gradient-to-l from-secondary to-accent hover:from-accent/50 hover:to-secondary/50 "
                 onClick={() => setIsAIModalOpen(true)}
               >
                 <Sparkles className="h-4 w-4" /> 
