@@ -141,7 +141,7 @@ export function TratamientoFormModal({ isOpen, onClose, onSubmit, tratamientoEdi
           {/* select paciente con combobox*/}
           {!tratamientoEditar ? (
              <div className="space-y-2 flex flex-col">
-                <Label>Paciente *</Label>
+                <Label>Paciente*</Label>
                 <Combobox
                     value={selectedPacienteId}
                     onChange={(val) => val && handleSelectPaciente(Number(val))}
@@ -213,7 +213,7 @@ export function TratamientoFormModal({ isOpen, onClose, onSubmit, tratamientoEdi
             
             {/* select medicamento con combobox*/}
             <div className="space-y-2 flex flex-col">
-                <Label>Medicamento *</Label>
+                <Label>Medicamento*</Label>
                 
                 <Combobox
                     value={selectedMedicamentoId}

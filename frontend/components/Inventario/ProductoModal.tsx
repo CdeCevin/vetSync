@@ -102,7 +102,7 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Código *</Label>
+              <Label>Código*</Label>
               <Input 
                 {...register("codigo")} 
                 required 
@@ -149,7 +149,7 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
               />
             </div>
             <div className="space-y-2">
-              <Label>Stock Mínimo (Alerta) *</Label>
+              <Label>Stock Mínimo*</Label>
               <Input 
                 type="number" 
                 {...register("stockMinimo")} 

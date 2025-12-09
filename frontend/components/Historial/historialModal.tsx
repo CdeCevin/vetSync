@@ -128,7 +128,11 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
 
   const onMainSubmit = async (formData: any) => {
     if (!selectedPacienteId) {
-        alert("Debes seleccionar un paciente para registrar la consulta.")
+        openAlert("Error", "Debe seleccionar un paciente para registrar la consulta.", "error")
+        return
+    }
+    if (tratamientos.length <= 0) {
+        openAlert("Error", "Debe ingresar un tratamiento.", "error")
         return
     }
 
