@@ -14,9 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { useAlertStore } from "@/hooks/use-alert-store"
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal"
+import { useAIService, IAPrediccionResponse } from "@/hooks/useIAService"
+import { InventoryPredictionModal } from "./IAModalInv"
 import { 
   Edit, Trash2, FileBarChart, Plus, ArrowRightLeft, 
-  Search, Package, AlertTriangle, TrendingDown 
+  Search, Package, AlertTriangle, TrendingDown, Loader2, Sparkles 
 } from "lucide-react"
 
 interface InventarioData {
@@ -48,6 +50,9 @@ export function InventoryManagement() {
   const [filtroCategoria, setFiltroCategoria] = useState("todos")
   const [filtroEstado, setFiltroEstado] = useState("todos")
   const [reportes, setReportes] = useState<InventarioData | null>(null)
+  const { obtenerPrediccionInventario, loadingAI } = useAIService()
+  const [modalPredictionOpen, setModalPredictionOpen] = useState(false)
+  const [predictionData, setPredictionData] = useState<IAPrediccionResponse | null>(null)
 
   useEffect(() => { 
     cargarProductos()     
@@ -58,6 +63,19 @@ export function InventoryManagement() {
     setReportes(data);
     setModalReportsOpen(true);
   };
+
+  const handleAIPrediction = async () => {
+    try {
+      const data = await obtenerPrediccionInventario()
+      if (data) {
+        setPredictionData(data)
+        setModalPredictionOpen(true)
+      }
+    } catch (e: any) {
+      openAlert("Error IA", "No se pudo obtener la predicción del inventario.", "error")
+    }
+  }
+
   const productosFiltrados = productos.filter((item) => {
     const term = busqueda.toLowerCase()
     const coincideBusqueda = 
@@ -121,10 +139,21 @@ export function InventoryManagement() {
             <h1 className="text-2xl font-bold font-serif">Gestión de Inventario</h1>
             <p className="text-gray-500">Administra tus insumos y medicamentos</p>
         </div>
-        <div className="flex gap-2">
-            <Button variant="outline" onClick={abrirReportes}>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={abrirReportes}>
                 <FileBarChart className="mr-2 h-4 w-4"/> Reportes
             </Button>
+            <Button 
+                  variant="default" 
+                  className="text-white shadow-sm gap-2 bg-gradient-to-l from-secondary to-accent hover:from-accent/50 hover:to-secondary/50 "
+
+                  onClick={handleAIPrediction}
+                  disabled={loadingAI}
+              >
+                  {loadingAI ? <Loader2 className="h-4 w-4 animate-spin"/> : <Sparkles className="h-4 w-4 text-white"/>}
+                  {loadingAI ? "Analizando..." : "Predicción IA"}
+            </Button>
+            
             <Button onClick={() => { setProductoSeleccionado(null); setModalFormOpen(true) }}>
                 <Plus className="mr-2 h-4 w-4"/> Nuevo Producto
             </Button>
@@ -277,6 +306,13 @@ export function InventoryManagement() {
          onClose={() => setModalStockOpen(false)}
          producto={productoSeleccionado}
          onConfirm={registrarMovimiento}
+      />
+
+      {/*Predicción de inventario con IA */}
+      <InventoryPredictionModal 
+        isOpen={modalPredictionOpen}
+        onClose={() => setModalPredictionOpen(false)}
+        data={predictionData}
       />
 
       {/* Confirmación de Eliminación */}
