@@ -17,8 +17,9 @@ interface ProductFormModalProps {
 }
 
 export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: ProductFormModalProps) {
-  const { register, reset, setValue, getValues } = useForm<Producto>()
+  const { register, reset, setValue, getValues, watch } = useForm<Producto>()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [noCaduca, setNoCaduca] = useState(false) 
   const { onOpen: openAlert } = useAlertStore()
   
   // validación nativa
@@ -27,10 +28,26 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
   useEffect(() => {
     if (productoEditar) {
       reset(productoEditar)
+      if (!productoEditar.fechaExpiracion) {
+        setNoCaduca(true)
+      } else {
+        setNoCaduca(false)
+      }
     } else {
-      reset({ codigo: "", nombre: "", stockActual: undefined, stockMinimo: undefined, costoUnitario: undefined })
+      reset({ codigo: "", nombre: "", stockActual: undefined, stockMinimo: undefined, costoUnitario: undefined, fechaExpiracion: undefined })
+      setNoCaduca(false)
     }
   }, [productoEditar, isOpen, reset])
+
+  const toggleNoCaduca = () => {
+    const nuevoEstado = !noCaduca
+    setNoCaduca(nuevoEstado)
+    if (nuevoEstado) {
+        // No aplica activado envia undefined
+        setValue("fechaExpiracion", undefined)
+    }
+  }
+
   const handleNativeSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -61,6 +78,10 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
         data.stockActual = Number(data.stockActual)
         data.stockMinimo = Number(data.stockMinimo)
         data.costoUnitario = Number(data.costoUnitario)
+
+        if (noCaduca) {
+            data.fechaExpiracion = null as any 
+        }
         
         await onSubmit(data)
         onClose() 
@@ -155,7 +176,6 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
               <Input 
                 type="number" 
                 {...register("costoUnitario")} 
-                //placeholder="0" 
                 required
                 min={0}
                 step="0.01"
@@ -168,8 +188,23 @@ export function ProductFormModal({ isOpen, onClose, onSubmit, productoEditar }: 
           </div>
 
           <div className="space-y-2">
-            <Label>Fecha de Expiración</Label>
-            <Input type="date" {...register("fechaExpiracion")} />
+            <div className="flex items-center justify-between">
+                <Label className={noCaduca ? "text-gray-400" : ""}>
+                  {!noCaduca ? "Fecha Caducidad*" : <p className="line-through">Fecha Caducidad*</p>}                    
+                  <Label className="inline-flex items-center cursor-pointer">
+                    <Input type="checkbox" value="" className="sr-only peer" onClick={toggleNoCaduca}/>
+                    <div className="relative w-9 h-5 bg-secondary peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary"></div>
+                  </Label>
+                </Label>
+                
+            </div>
+            <Input 
+                type="date" 
+                {...register("fechaExpiracion")} 
+                disabled={noCaduca}
+                required={!noCaduca}
+                className={noCaduca ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""}
+            />
           </div>
 
           <div className="flex justify-end gap-2 mt-4">
