@@ -38,7 +38,7 @@ def auditar_inventario():
         print(f"Auditando últimos {DIAS_ANALISIS} días...")
 
         # 1. Obtener Items Activos
-        query_items = "SELECT id, nombre, stock, stock_minimo FROM Inventario_Items WHERE activo = 1"
+        query_items = "SELECT id, nombre, stock, stock_minimo FROM Inventario_Items WHERE id_clinica = 4 AND activo = 1"
         df_items = pd.read_sql(query_items, conn)
         
         # 2. Obtener Movimientos (Ventas, Consumo, Salidas Medicas)
@@ -46,10 +46,14 @@ def auditar_inventario():
             SELECT id_item, DATE(creado_en) as fecha, cantidad, tipo_movimiento
             FROM Movimientos_Inventario 
             WHERE tipo_movimiento IN ('VENTA', 'SALIDA_MEDICA', 'CONSUMO_INTERNO')
+            AND id_clinica = 4
             AND creado_en >= DATE_SUB(NOW(), INTERVAL {DIAS_ANALISIS} DAY)
         """
         df_movs = pd.read_sql(query_movs, conn)
         
+
+
+
         print((f"Analizando {len(df_items)} items y {len(df_movs)} movimientos..."))
         print("-" * 100)
 
