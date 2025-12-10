@@ -22,6 +22,8 @@ const eliminarProducto = async (req, res) => {
             return res.status(400).json({ error: 'No se puede eliminar un producto con stock positivo' });
         }
 
+
+        /*
         // Requisito VS-006: Sin movimientos en los últimos 90 días
         // Verificamos el último movimiento registrado en Movimientos_Inventario
         // Columnas: creado_en, id_item
@@ -43,6 +45,7 @@ const eliminarProducto = async (req, res) => {
             }
         }
 
+        */
         // Si pasa las validaciones, hacemos Soft Delete
         await query('UPDATE Inventario_Items SET Activo = 0, actualizado_en = NOW() WHERE id = ?', [id]);
 
