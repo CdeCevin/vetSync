@@ -25,7 +25,7 @@ const crearCita = async (req, res) => {
       id_usuario = req.usuario.id;
     }
 
-    // --- MODIFICACIÓN 1: duracion_minutos ahora es obligatorio ---
+
     if (!id_paciente || !id_usuario || !fecha_cita || !duracion_minutos || !motivo || !tipo_cita || !idClinica) {
       return res.status(400).json({ error: 'Faltan datos obligatorios (id_paciente, id_usuario, fecha_cita, duracion_minutos, motivo, tipo_cita, idClinica)' });
     }
@@ -35,7 +35,6 @@ const crearCita = async (req, res) => {
       return res.status(400).json({ error: 'Formato de fecha_cita inválido' });
     }
 
-    // --- MODIFICACIÓN 2: Validación de duracion_minutos (simplificada) ---
     if (typeof duracion_minutos !== 'number' || duracion_minutos <= 0) {
       return res.status(400).json({ error: 'duracion_minutos debe ser un número positivo' });
     }
@@ -101,7 +100,6 @@ const crearCita = async (req, res) => {
       sqlInsert,
       [
         id_paciente, id_usuario, fecha_cita,
-        // --- MODIFICACIÓN 4: duracion_minutos ya no necesita '|| null' ---
         duracion_minutos,
         motivo, tipo_cita, notas && notas.trim().length > 0 ? notas : null, idClinica
       ]

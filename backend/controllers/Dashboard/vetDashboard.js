@@ -50,8 +50,6 @@ const vetDashboard = async (req, res) => {
     };
 
     try {
-        // 3. Ejecutamos las consultas secuencialmente (Serial) para evitar ETIMEDOUT/PoolExhaustion
-        // Antes usamos Promise.all, pero la BD parece inestable con concurrencia.
 
         const citasHoyResults = await queryConReintento(queries.citasHoy, [id_clinica, id_usuario]);
         stats.citasHoy = {

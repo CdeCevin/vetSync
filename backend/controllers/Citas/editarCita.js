@@ -27,7 +27,7 @@ const editarCita = async (req, res) => {
 
     const citaActual = results[0];
 
-    // Validación de Rol: Veterinario (2) solo puede editar sus propias citas
+
     if (req.usuario.id_rol === 2 && citaActual.id_usuario !== req.usuario.id) {
       return res.status(403).json({ error: 'Acceso denegado. No puedes editar citas de otros veterinarios.' });
     }

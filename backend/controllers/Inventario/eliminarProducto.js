@@ -17,36 +17,10 @@ const eliminarProducto = async (req, res) => {
 
         const producto = productos[0];
 
-        // Requisito VS-006: Solo se pueden desactivar productos con stock actual de 0
         if (producto.stock > 0) {
             return res.status(400).json({ error: 'No se puede eliminar un producto con stock positivo' });
         }
 
-
-        /*
-        // Requisito VS-006: Sin movimientos en los últimos 90 días
-        // Verificamos el último movimiento registrado en Movimientos_Inventario
-        // Columnas: creado_en, id_item
-        const movimientos = await query(`
-            SELECT creado_en 
-            FROM Movimientos_Inventario 
-            WHERE id_item = ? 
-            ORDER BY creado_en DESC 
-            LIMIT 1
-        `, [id]);
-
-        if (movimientos.length > 0) {
-            const fechaUltimoMovimiento = new Date(movimientos[0].creado_en);
-            const noventaDiasAtras = new Date();
-            noventaDiasAtras.setDate(noventaDiasAtras.getDate() - 90);
-
-            if (fechaUltimoMovimiento > noventaDiasAtras) {
-                return res.status(400).json({ error: 'No se puede eliminar: el producto tiene movimientos en los últimos 90 días' });
-            }
-        }
-
-        */
-        // Si pasa las validaciones, hacemos Soft Delete
         await query('UPDATE Inventario_Items SET Activo = 0, actualizado_en = NOW() WHERE id = ?', [id]);
 
         res.json({ message: 'Producto desactivado correctamente (Soft Delete)' });

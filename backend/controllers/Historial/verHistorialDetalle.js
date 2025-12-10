@@ -59,8 +59,7 @@ const verHistorialDetalle = async (req, res) => {
             `;
             const tratamientos = await queryConReintento(queryTrat, [historialIds, idClinica]);
 
-            // 5. Unir datos (Merge) en Javascript
-            // Creamos mapas para acceso rápido
+            // 5. Creamos mapas para acceso rápido
             const procMap = {};
             const tratMap = {};
 
@@ -74,7 +73,6 @@ const verHistorialDetalle = async (req, res) => {
                 tratMap[t.id_historial_medico].push(t);
             });
 
-            // Asignar a cada historial
             const resultadoFinal = historiales.map(h => ({
                 ...h,
                 procedimientos: procMap[h.id] || [],

@@ -25,13 +25,11 @@ exports.editarTratamiento = (req, res) => {
             console.error("Error al obtener conexión:", err);
             return res.status(500).json({ error: "Error de conexión" });
         }
-
         connection.beginTransaction((err) => {
             if (err) {
                 connection.release();
                 return res.status(500).json({ error: "Error al iniciar transacción" });
             }
-
             // 1. Obtener tratamiento actual (Lock for update para evitar race conditions en stock)
             connection.query(
                 'SELECT * FROM Tratamientos WHERE id = ? AND id_clinica = ? FOR UPDATE',
@@ -51,14 +49,10 @@ exports.editarTratamiento = (req, res) => {
 
                     // Valores a usar (Nuevos o los que ya tenía)
                     const oldMedId = tratamientoActual.id_medicamento;
-                    const oldCant = tratamientoActual.cantidad; // Nota: La tabla Tratamientos tiene columna cantidad? Verificar schema.
-                    // REVISION: En crearTratamiento usamos 'cantidad' para restar stock pero en la tabla Tratamientos 
-                    // la columna 'cantidad' existe en el schema actual? 
-                    // Revisando migrations/tablas: Tratamientos tiene 'cantidad' INT? 
-                    // CrearTratamiento inserta: dosis, cantidad. Si, el schema la tiene.
+                    const oldCant = tratamientoActual.cantidad;
 
                     const newMedId = id_medicamento !== undefined ? id_medicamento : oldMedId;
-                    const newCant = cantidad !== undefined ? cantidad : oldCant; // Asumimos que Tratamientos guarda la cantidad entregada
+                    const newCant = cantidad !== undefined ? cantidad : oldCant;
 
                     // 2. Lógica de Inventario (Solo si cambia medicamento o cantidad)
                     const handleInventory = (callback) => {

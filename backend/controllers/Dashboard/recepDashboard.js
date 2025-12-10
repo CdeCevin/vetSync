@@ -39,14 +39,11 @@ const recepDashboard = async (req, res) => {
         `
     };
 
-    // 3. Usamos un bloque try...catch para manejar errores
     try {
-        // 4. Preparamos todas las promesas de consulta.
         const citasHoyPromise = queryConReintento(queries.citasHoy, [id_clinica]);
         const alertasStockPromise = queryConReintento(queries.alertasStock, [id_clinica]);
         const pacientesRecientesPromise = queryConReintento(queries.pacientesRecientes, [id_clinica]);
 
-        // 5. Con Promise.all(), ejecutamos TODAS en paralelo
         const [
             citasHoyResults,
             alertasStockResults,
@@ -56,8 +53,6 @@ const recepDashboard = async (req, res) => {
             alertasStockPromise,
             pacientesRecientesPromise
         ]);
-
-        // 6. Asignamos los resultados. 
         stats.citasHoy = {
             total: citasHoyResults[0].total || 0,
             completadas: citasHoyResults[0].completadas || 0
@@ -65,7 +60,6 @@ const recepDashboard = async (req, res) => {
         stats.alertasStock = alertasStockResults[0].total || 0;
         stats.pacientesRecientes = pacientesRecientesResults;
 
-        // 7. Enviamos la respuesta JSON
         res.json(stats);
 
     } catch (err) {

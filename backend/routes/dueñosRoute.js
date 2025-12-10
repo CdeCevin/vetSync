@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
-const verifyToken = require('../middleware/authMiddleware.js');  //ACUERDATE KEVIN
+const verifyToken = require('../middleware/authMiddleware.js');
 const permitirRoles = require('../middleware/roleMiddleware');
 router.use(verifyToken);
 

@@ -1,3 +1,4 @@
+#Código para validar y comparar la respuesta de la IA respecto a la predicción de Inventario.
 import mysql.connector
 import pandas as pd
 import numpy as np

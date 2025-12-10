@@ -3,7 +3,7 @@ const router = express.Router({ mergeParams: true });
 const verifyToken = require('../middleware/authMiddleware.js');
 const permitirRoles = require('../middleware/roleMiddleware');
 router.use(verifyToken);
-// router.use(permitirRoles(2, 3)); // <-- ERROR: Bloqueaba rutas posteriores para Admins
+
 
 // Importar funciones desde cada controlador
 

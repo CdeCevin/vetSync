@@ -25,8 +25,7 @@ const getInventoryPrediction = async (req, res) => {
 
         if (items.length === 0) return res.status(200).json({ resumen: "Sin datos", alertas_compra: [] });
 
-        // 2. Obtener movimientos (CORREGIDO PARA MAYÚSCULAS/MINÚSCULAS)
-        // Usamos UPPER() para asegurar que 'salida', 'Salida' y 'SALIDA' cuenten igual
+        // 2. Obtener movimientos
         const movimientos = await query(`
             SELECT id_item, cantidad, creado_en 
             FROM Movimientos_Inventario 
@@ -38,17 +37,10 @@ const getInventoryPrediction = async (req, res) => {
         console.log(`Items encontrados: ${items.length}`);
         console.log(`Movimientos encontrados (90 días): ${movimientos.length}`);
 
-        // 3. Estructurar datos (CORRECCIÓN CRÍTICA DE TIPOS)
+        // 3. Estructurar datos
         const inventoryData = items.map(item => {
-            // TRUCO: Convertimos ambos ID a String para evitar error Number vs String
             const salidasItem = movimientos.filter(m => String(m.id_item) === String(item.id));
-
             const totalSalidas = salidasItem.reduce((acc, curr) => acc + curr.cantidad, 0);
-
-            // LOG DE DEPURACIÓN: Si es la jeringa (ID 30), muéstrame qué encontró
-            if (item.id == 30) {
-                console.log(`DEBUG ITEM 30 (Jeringa): Movimientos encontrados: ${salidasItem.length}, Total Salidas: ${totalSalidas}`);
-            }
 
             return {
                 id: item.id,
@@ -65,10 +57,10 @@ const getInventoryPrediction = async (req, res) => {
             };
         });
 
-        // 4. Gemini (Sin cambios mayores, solo el modelo)
+        // 4. llamada aGemini
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash", // Usamos la versión estable
+            model: "gemini-2.5-flash",
             generationConfig: { responseMimeType: "application/json" }
         });
 

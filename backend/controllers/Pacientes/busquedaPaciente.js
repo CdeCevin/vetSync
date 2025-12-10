@@ -44,7 +44,7 @@ const busquedaPacientes = async (req, res) => {
       edad: row.edad,
       numero_microchip: row.numero_microchip,
       dueno: {
-        id: row.id_dueño, // It's useful to have the ID too
+        id: row.id_dueño,
         nombre: row.dueno_nombre,
         telefono: row.dueno_telefono
       }

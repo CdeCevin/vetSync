@@ -3,10 +3,8 @@ const { queryConReintento } = require('../../db/queryHelper');
 const buscarTratamiento = async (req, res) => {
     try {
         const idClinica = req.clinicaId;
-        // El frontend puede enviar ?q=paracetamol o ?q=firulais
         const filtro = req.query.q || '';
 
-        // Base query: Joins con Pacientes, Médicos (Usuarios) e Inventario (Medicamentos)
         let query = `
             SELECT 
                 t.id,

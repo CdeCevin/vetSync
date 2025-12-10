@@ -20,8 +20,6 @@ const login = async (req, res) => {
 
     if (results.length === 0) {
       // Intento de login con usuario no existente
-      // No tenemos ID de usuario, así que pasamos null (si la DB lo permite) o no logueamos este caso particular para evitar error FK.
-      // Probaremos pasando null.
       await logAuditoria({
         id_usuario: null,
         id_clinica: null, // No sabemos clínica tampoco

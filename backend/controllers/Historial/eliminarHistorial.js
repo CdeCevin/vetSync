@@ -20,8 +20,6 @@ const eliminarHistorial = (req, res) => {
                 connection.release();
                 return res.status(500).json({ error: "Error al iniciar transacción" });
             }
-
-            // 1. Verificar existencia
             connection.query('SELECT * FROM Historial_Medico WHERE id = ? AND id_clinica = ? AND activo = 1', [id, id_clinica], (err, rows) => {
                 if (err) {
                     return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error base de datos" }); });
@@ -31,26 +29,24 @@ const eliminarHistorial = (req, res) => {
                     return connection.rollback(() => { connection.release(); res.status(404).json({ error: "Historial no encontrado" }); });
                 }
 
-                // 2. Soft Delete Historial
                 connection.query('UPDATE Historial_Medico SET activo = 0 WHERE id = ?', [id], (err) => {
                     if (err) {
                         return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al eliminar historial" }); });
                     }
 
-                    // 3. Cascade Soft Delete Tratamientos
+                    // Cascade Soft Delete Tratamientos
                     // Marcamos como Cancelado y Inactivo
                     connection.query('UPDATE Tratamientos SET estado = "Cancelado", activo = 0 WHERE id_historial_medico = ?', [id], (err) => {
                         if (err) {
                             return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al eliminar tratamientos vinculados" }); });
                         }
 
-                        // 4. Cascade Soft Delete Procedimientos
+                        //Cascade Soft Delete Procedimientos
                         connection.query('UPDATE Procedimientos SET estado = "Eliminado", activo = 0 WHERE id_historial_medico = ?', [id], (err) => {
                             if (err) {
                                 return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al eliminar procedimientos vinculados" }); });
                             }
 
-                            // 5. Auditoría
                             connection.query(
                                 'INSERT INTO Registros_Auditoria (id_usuario, id_clinica, accion, entidad, id_entidad, detalles) VALUES (?, ?, ?, ?, ?, ?)',
                                 [

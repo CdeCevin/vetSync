@@ -2,11 +2,6 @@ const { queryConReintento } = require('../../db/queryHelper');
 
 const verTratamientos = async (req, res) => {
   const idClinica = req.clinicaId;
-
-  // Si viene idPaciente en query params o params, podríamos filtrar, 
-  // pero el requerimiento es "pasarlo a listado".
-  // Haremos que devuelva los últimos 50 tratamientos de la clínica.
-
   try {
     const query = `
           SELECT 

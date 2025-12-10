@@ -2,7 +2,7 @@ const { queryConReintento } = require('../../db/queryHelper');
 
 const verLogs = async (req, res) => {
     try {
-        const idClinica = req.clinicaId; // Middleware lo pone aquí
+        const idClinica = req.clinicaId;
         const { id_usuario, fechaInicio, fechaFin, accion, limite } = req.query;
 
         let query = `

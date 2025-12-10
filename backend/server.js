@@ -3,9 +3,9 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', 'backend/.env') });
 const cors = require('cors');
 const router = express.Router({ mergeParams: true });
-const verifyToken = require('./middleware/authMiddleware');  //ACUERDATE KEVIN
+const verifyToken = require('./middleware/authMiddleware');
 const app = express();
-app.use(cors()); // Aplica CORS antes de las rutas
+app.use(cors());
 
 console.log('JWT_SECRET en server.js:', process.env.JWT_SECRET);
 
@@ -15,7 +15,7 @@ const authRoutes = require('./routes/login');
 const dueñosRoutes = require('./routes/dueñosRoute');
 const pacientesRoutes = require('./routes/pacientesRoute');
 const citasRoutes = require('./routes/citasRoute');
-const tratamientosRoutes = require('./routes/TratamientosRoute.js');
+const tratamientosRoutes = require('./routes/tratamientosRoute');
 const inventarioRoutes = require('./routes/inventarioRoute');
 const dashboardRoutes = require('./routes/dashboardRoute');
 const logsRoutes = require('./routes/logsRoute');
@@ -33,7 +33,6 @@ app.use('/api', authRoutes);
 
 // Prefijo base con id de clínica dinámico para rutas protegidas 
 
-//APLICAR EL VERIFYTOKEN A TODAS LAS RUTAS QUE LO NECESITEN, para no mandar directamente el idClinica
 app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
   next();
@@ -48,7 +47,6 @@ app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
   next();
 }, pacientesRoutes);
-
 
 app.use('/api/:idClinica', (req, res, next) => {
   req.clinicaId = req.params.idClinica;
@@ -95,14 +93,12 @@ app.get('/', (req, res) => {
   res.send('Servidor funcionando');
 });
 
-
-// Al final del archivo, antes de app.listen()  
 module.exports = app;
 
 // Modificar el listen para que solo se ejecute si no es un test  
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en ${PORT}`);
   });
 }
 

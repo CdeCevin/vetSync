@@ -5,15 +5,12 @@ const actualizarProducto = async (req, res) => {
     const id_clinica = req.clinicaId;
     const { id } = req.params;
     const {
-        // Campos para edición de info
         nombre,
         categoria,
         descripcion,
         stockMinimo,
         unidadMedida,
         costoUnitario,
-
-        // Campos para movimiento de stock
         tipo, // 'entrada', 'salida', 'ajuste'
         cantidad,
         motivo
@@ -32,16 +29,11 @@ const actualizarProducto = async (req, res) => {
         if (checkProduct.length === 0) {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
-
         const productoActual = checkProduct[0];
 
-        // --- Lógica de Movimiento de Stock (VS-005) ---
         if (tipo && cantidad !== undefined) {
             if (cantidad < 0) return res.status(400).json({ error: 'La cantidad debe ser positiva' });
-
             let nuevoStock = productoActual.stock;
-            // No necesitamos mapear accionAudit para el Audit Log antiguo, 
-            // pero lo usabamos antes. Ahora usamos Movimientos_Inventario.
 
             switch (tipo) {
                 case 'entrada':
@@ -60,10 +52,7 @@ const actualizarProducto = async (req, res) => {
                     return res.status(400).json({ error: 'Tipo de movimiento inválido' });
             }
 
-            // OBTENER CONEXIÓN DEDICADA PARA LA TRANSACCIÓN
             const connection = await getConnection();
-
-            // Promisify methods of the dedicated connection
             const queryTx = util.promisify(connection.query).bind(connection);
             const beginTransaction = util.promisify(connection.beginTransaction).bind(connection);
             const commit = util.promisify(connection.commit).bind(connection);
@@ -76,7 +65,6 @@ const actualizarProducto = async (req, res) => {
                 await queryTx('UPDATE Inventario_Items SET stock = ?, actualizado_en = NOW() WHERE id = ?', [nuevoStock, id]);
 
                 // 2. Registrar Movimiento en Movimientos_Inventario
-                // Columnas: id_clinica, realizado_por, tipo_movimiento, cantidad, motivo, creado_en, id_item
                 await queryTx(`
                     INSERT INTO Movimientos_Inventario 
                     (id_clinica, realizado_por, tipo_movimiento, cantidad, motivo, creado_en, id_item) 
@@ -90,11 +78,11 @@ const actualizarProducto = async (req, res) => {
                 await rollback();
                 throw txError;
             } finally {
-                connection.release(); // IMPORTANTE: Devolver la conexión al pool
+                connection.release();
             }
         }
 
-        // --- Lógica de Actualización de Información (VS-004) ---
+
         if (nombre || categoria || stockMinimo !== undefined || unidadMedida || costoUnitario !== undefined || descripcion !== undefined) {
 
             if (nombre && nombre !== productoActual.nombre) {
@@ -120,11 +108,6 @@ const actualizarProducto = async (req, res) => {
             const updateQuery = `UPDATE Inventario_Items SET ${updates.join(', ')} WHERE id = ?`;
             await queryPool(updateQuery, values);
 
-            // También logueamos la edición en Auditoría si se desea, 
-            // pero el usuario priorizó Movimientos para stock. 
-            // Mantendré el log de auditoría general (opcional) o lo quito si causa ruido.
-            // Lo dejaré comentado o activo si no rompe nada.
-            // Para simplicidad y evitar errores de contexto, lo omito ahora o uso queryPool.
 
             await queryPool(`
                 INSERT INTO Registros_Auditoria 

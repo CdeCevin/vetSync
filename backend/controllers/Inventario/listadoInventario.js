@@ -27,16 +27,8 @@ const listadoInventario = (req, res) => {
     }
 
     const resultsWithStatus = results.map(item => {
-      // Estado logic: "activo" if Activo=1 (which is filtered in query), 
-      // but user might mean "Estado de Stock"?
-      // User example showed "estado": "activo".
-      // We will keep 'activo' as the item state. 
-      // If frontend needs stock status (Green/Yellow/Red), it might process it or we send it.
-      // The VS-002 requirement mentioned "visual status indicators". 
-      // The user example shows "estado": "activo". I will return "activo".
-
       return {
-        id: item.id.toString(), // Frontend expects string ID usually
+        id: item.id.toString(),
         codigo: item.codigo,
         nombre: item.nombre,
         categoria: item.categoria,

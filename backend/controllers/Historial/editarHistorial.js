@@ -19,7 +19,7 @@ const editarHistorial = (req, res) => {
         return res.status(400).json({ error: "Falta el ID del historial" });
     }
 
-    // Dynamic filtering of fields
+
     const fieldsToUpdate = [];
     const values = [];
 
@@ -42,7 +42,6 @@ const editarHistorial = (req, res) => {
         return res.status(400).json({ error: "No se enviaron campos para actualizar." });
     }
 
-    // Add ID and Clinic to standard values array for the WHERE clause
     values.push(id);
     values.push(id_clinica);
 
@@ -58,17 +57,16 @@ const editarHistorial = (req, res) => {
                 return res.status(500).json({ error: "Error al iniciar transacción" });
             }
 
-            // 1. Validaciones Previa (Si hay cambios de FK)
+
             const validateForeignKeys = (next) => {
                 let pendingValidations = 0;
                 let errorFound = null;
 
                 const checkDone = () => {
-                    if (errorFound) return; // Already failed
+                    if (errorFound) return;
                     if (pendingValidations === 0) next();
                 };
 
-                // Validate Patient
                 if (id_paciente !== undefined) {
                     pendingValidations++;
                     connection.query('SELECT id FROM Pacientes WHERE id = ? AND id_clinica = ? AND activo = 1', [id_paciente, id_clinica], (err, rows) => {
@@ -80,7 +78,6 @@ const editarHistorial = (req, res) => {
                     });
                 }
 
-                // Validate User
                 if (id_usuario !== undefined) {
                     pendingValidations++;
                     connection.query('SELECT id FROM Usuarios WHERE id = ? AND id_clinica = ?', [id_usuario, id_clinica], (err, rows) => {
@@ -97,7 +94,7 @@ const editarHistorial = (req, res) => {
 
 
             validateForeignKeys(() => {
-                // 2. Verificar existencia del Historial
+
                 connection.query('SELECT * FROM Historial_Medico WHERE id = ? AND id_clinica = ? AND activo = 1', [id, id_clinica], (err, rows) => {
                     if (err) {
                         return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error base de datos" }); });
@@ -108,15 +105,12 @@ const editarHistorial = (req, res) => {
                     }
 
                     const historialActual = rows[0];
-
-                    // 3. Ejecutar Update del Historial
                     const querySql = `UPDATE Historial_Medico SET ${fieldsToUpdate.join(", ")} WHERE id = ? AND id_clinica = ?`;
                     connection.query(querySql, values, (err) => {
                         if (err) {
                             return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al actualizar historial" }); });
                         }
 
-                        // 4. Cascade Update Logic (If patient changed)
                         const handleCascade = (done) => {
                             if (id_paciente !== undefined && id_paciente != historialActual.id_paciente) {
                                 // Cascade to Tratamientos
@@ -133,7 +127,6 @@ const editarHistorial = (req, res) => {
                         };
 
                         handleCascade(() => {
-                            // 5. Auditoría
                             let detallesCambio = "Edición Completa: ";
                             if (diagnostico !== undefined) detallesCambio += `[Diagnóstico] `;
                             if (notas !== undefined) detallesCambio += `[Notas] `;

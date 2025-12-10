@@ -32,7 +32,6 @@ const eliminarProcedimiento = (req, res) => {
                 }
 
                 // 2. Soft Delete
-                // Asumiendo que la migración agregó 'estado' y 'activo'
                 connection.query('UPDATE Procedimientos SET estado = "Eliminado", activo = FALSE WHERE id = ?', [id], (err) => {
                     if (err) {
                         return connection.rollback(() => { connection.release(); res.status(500).json({ error: "Error al eliminar procedimiento" }); });

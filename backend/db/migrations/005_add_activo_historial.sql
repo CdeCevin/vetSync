@@ -1,1 +1,0 @@
-ALTER TABLE Historial_Medico ADD COLUMN activo BOOLEAN DEFAULT 1;

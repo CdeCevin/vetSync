@@ -20,9 +20,6 @@ const searchMedicalHistorySmart = async (req, res) => {
 
     try {
         // 1. Obtener base de historiales (Contexto para la IA)
-        // Traemos un conjunto amplio de datos recientes para que la IA filtre.
-        // Limitamos a 500 por seguridad y rendimiento, asumiendo que es suficiente para "historial reciente/relevante".
-        // La IA podrá filtrar por fecha si la consulta lo pide (ej: "últimos 6 meses"), siempre que los datos estén en este set.
         const sql = `
             SELECT 
                 h.id,
@@ -57,7 +54,7 @@ const searchMedicalHistorySmart = async (req, res) => {
             return res.status(200).json([]);
         }
 
-        // 2. Simplificar y preparar datos para ahorrar tokens (aunque Flash tiene 1M, es buena práctica)
+        // 2. Simplificar y preparar datos para ahorrar tokens
         const contextData = histories.map(h => ({
             id: h.id,
             fecha: new Date(h.fecha_visita).toLocaleDateString(),
@@ -68,7 +65,7 @@ const searchMedicalHistorySmart = async (req, res) => {
             tratamientos: h.tratamientos || ''
         }));
 
-        // 3. Llamar a Gemini
+        // 3. Llamada a Gemini
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
             model: "gemini-2.5-flash",
@@ -82,7 +79,6 @@ const searchMedicalHistorySmart = async (req, res) => {
         let text = response.text();
 
         // 4. Limpieza de JSON
-        // Busca desde el primer '{' hasta el último '}' porque ahora esperamos un OBJETO, no un array
         const jsonStartIndex = text.indexOf('{');
         const jsonEndIndex = text.lastIndexOf('}');
 

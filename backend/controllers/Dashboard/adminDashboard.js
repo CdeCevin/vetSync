@@ -7,19 +7,17 @@ const adminDashboard = async (req, res) => {
     // 2. Definimos las 3 queries que necesitamos
     const queries = {
 
-        // Query 1: Cantidad de Usuarios (Corregida a 'activo = 1' como pusiste)
+        // Query 1: Cantidad de Usuarios
         totalUsuarios: 'SELECT COUNT(*) AS total FROM Usuarios WHERE activo = 1 AND id_clinica = ?',
 
         // Query 2: Últimos 5 cambios (Corregido el 'id_clinica = 1' hardcodeado)
-        // Selecciono columnas específicas en lugar de '*' para ser más eficiente
         ultimosCambios: `
             SELECT COUNT(*) AS total 
             FROM Registros_Auditoria 
             WHERE id_clinica = ? AND creado_en >= NOW() - INTERVAL 7 DAY
         `,
 
-        // Query 3: Actividad reciente (¡NUEVA QUERY!)
-        // Esta une Registros, Usuarios y Roles, y calcula el tiempo transcurrido.
+        // Query 3: Actividad reciente
         actividadReciente: `
             SELECT
                 RA.accion,
@@ -41,18 +39,13 @@ const adminDashboard = async (req, res) => {
             ORDER BY RA.creado_en DESC
             LIMIT 10
         `
-        // Usamos LEFT JOIN por si un usuario es eliminado, que el log igual aparezca.
     };
 
-    // 3. Usamos un bloque try...catch para manejar errores
     try {
-        // 4. Preparamos todas las promesas de consulta.
-        //    (Todas usan [id_clinica] como parámetro)
         const totalUsuariosPromise = queryConReintento(queries.totalUsuarios, [id_clinica]);
         const ultimosCambiosPromise = queryConReintento(queries.ultimosCambios, [id_clinica]);
         const actividadRecientePromise = queryConReintento(queries.actividadReciente, [id_clinica]);
 
-        // 5. Con Promise.all(), ejecutamos TODAS en paralelo
         const [
             totalUsuariosResults,
             ultimosCambiosResults,
@@ -63,12 +56,10 @@ const adminDashboard = async (req, res) => {
             actividadRecientePromise
         ]);
 
-        // 6. Asignamos los resultados. 
         stats.totalUsuarios = totalUsuariosResults[0].total;
         stats.ultimosCambios = ultimosCambiosResults[0].total;
         stats.actividadReciente = actividadRecienteResults;
 
-        // 7. Enviamos la respuesta JSON
         res.json(stats);
 
     } catch (err) {

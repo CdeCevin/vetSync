@@ -30,7 +30,7 @@ const crearHistorial = (req, res) => {
         });
     }
 
-    // Transaction using Standard Callbacks (No Promises)
+
     pool.getConnection((err, connection) => {
         if (err) {
             console.error("Error al obtener conexión del pool:", err);
@@ -44,7 +44,6 @@ const crearHistorial = (req, res) => {
                 return res.status(500).json({ error: "Error al iniciar consulta" });
             }
 
-            // 1. Insertar Historial_Medico
             const queryHistorial = `INSERT INTO Historial_Medico (id_paciente, id_cita, id_usuario, fecha_visita, diagnostico, notas, id_clinica) 
                                     VALUES (?, ?, ?, NOW(), ?, ?, ?)`;
             const paramsHistorial = [paciente_id, cita_id || null, idUsuario, diagnostico, notas_generales || '', idClinica];
@@ -60,7 +59,6 @@ const crearHistorial = (req, res) => {
 
                 const historialId = resultHistorial.insertId;
 
-                // Function to handle next steps logically to avoid deep nesting
                 const processCita = () => {
                     if (!cita_id) return processProcedimientos();
 
@@ -102,8 +100,6 @@ const crearHistorial = (req, res) => {
                 const processTratamientos = () => {
                     if (!tratamientos || tratamientos.length === 0) return commitTransaction();
 
-                    // Process treatments sequentially or via Promise.all? No promises allows.
-                    // We must loop. Using a simple recursive function for async serial execution.
                     let i = 0;
                     const nextTratamiento = () => {
                         if (i >= tratamientos.length) return commitTransaction();
@@ -192,8 +188,6 @@ const crearHistorial = (req, res) => {
                         });
                     });
                 };
-
-                // Start chain
                 processCita();
             });
         });

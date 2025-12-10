@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
-const verifyToken = require('../middleware/authMiddleware.js');  //ACUERDATE KEVIN
+const verifyToken = require('../middleware/authMiddleware.js');
 router.use(verifyToken);
 const permitirRoles = require('../middleware/roleMiddleware');
 const { getInventoryPrediction } = require('../controllers/IA/manejoInventario.js');
