@@ -169,7 +169,7 @@ export function InventoryManagement() {
       <Card>
         <CardHeader>
             <div className="flex items-center justify-between">
-                <CardTitle className="font-serif text-lg">Listado de Prescripciones</CardTitle>
+                <CardTitle className="font-serif text-lg">Listado de Productos</CardTitle>
             </div>
         </CardHeader>
         <CardContent>
