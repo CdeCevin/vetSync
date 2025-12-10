@@ -217,8 +217,6 @@ export default function VetManagementHome() {
           )}
           {activeSection === "inventory" && <InventoryManagement />}
 
-          {activeSection === "billing" && <BillingModule />}
-
           {activeSection === "users" && <UserManagementDashboard />}
 
           {activeSection === "owners" && <OwnerManagementDashboard />}
@@ -228,36 +226,6 @@ export default function VetManagementHome() {
           {activeSection === "logs" && <AuditDashboard />}
 
           {activeSection === "records" && <HistorialDashboard />}
-
-          {activeSection !== "dashboard" &&
-            activeSection !== "patients" &&
-            activeSection !== "appointments" &&
-            activeSection !== "inventory" &&
-            activeSection !== "billing" &&
-            activeSection !== "users" &&
-            activeSection !== "treatments" &&
-             activeSection !== "logs" &&
-             activeSection !== "records" &&
-            activeSection !== "owners" && (
-              <div className="space-y-6">
-                <div>
-                  <h1 className="font-serif font-bold text-2xl text-foreground capitalize">{activeSection}</h1>
-                  <p className="text-muted-foreground">Gestión de {activeSection} para su práctica veterinaria</p>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="font-serif">Próximamente</CardTitle>
-                    <CardDescription>El módulo de {activeSection} está actualmente en desarrollo</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Esta sección contendrá herramientas completas de gestión de {activeSection}.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
         </main>
       </div>
     </div>
