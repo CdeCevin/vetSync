@@ -10,8 +10,8 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { AIQueryModal } from "./IAModal"
-import { 
-  Search, Plus, Calendar, User, Stethoscope, ChevronDown, ChevronUp, 
+import {
+  Search, Plus, Calendar, User, Stethoscope, ChevronDown, ChevronUp,
   Syringe, Pill, FileText, PawPrint, Edit, Trash2, Save, Contact, Sparkles
 } from "lucide-react"
 import { useAlertStore } from "@/hooks/use-alert-store"
@@ -19,12 +19,12 @@ import { HistorialMedico, Procedimiento } from "./historial"
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal"
 
 export function HistorialDashboard() {
-  const { 
-    historiales, loading, cargarHistoriales, crearHistorial, 
-    agregarProcedimiento, editarProcedimiento, eliminarProcedimiento 
+  const {
+    historiales, loading, cargarHistoriales, crearHistorial,
+    agregarProcedimiento, editarProcedimiento, eliminarProcedimiento
   } = useHistorialService()
   console.log(historiales)
-  
+
   const { onOpen: openAlert } = useAlertStore()
   const [isAIModalOpen, setIsAIModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -131,101 +131,101 @@ export function HistorialDashboard() {
         </Button>
       </div>
 
-        {/* Busqueda */}
-        <Card className="border-slate-200 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex gap-4">
-              <form onSubmit={handleSearchSubmit} className="flex gap-4 flex-1">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input 
-                    placeholder="Buscar por procedimiento, diagnóstico o paciente..." 
-                    className="pl-10 border-slate-200 focus:border-[#066357] focus:ring-[#066357]"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" variant="ghost" className=" bg-secondary/80 text-white border border-slate-200 hover:bg-secondary">
+      {/* Busqueda */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex gap-4">
+            <form onSubmit={handleSearchSubmit} className="flex gap-4 flex-1">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Buscar por procedimiento, diagnóstico o paciente..."
+                  className="pl-10 border-slate-200 focus:border-[#066357] focus:ring-[#066357]"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Button type="submit" variant="ghost" className=" bg-secondary/80 text-white border border-slate-200 hover:bg-secondary">
                 Buscar
               </Button>
-              </form>
+            </form>
 
-              <div className="w-px bg-slate-200 mx-2 hidden md:block"></div>
-              <Button 
-                className="text-white shadow-sm gap-2 bg-gradient-to-l from-secondary to-accent hover:from-accent/50 hover:to-secondary/50 "
-                onClick={() => setIsAIModalOpen(true)}
-              >
-                <Sparkles className="h-4 w-4" /> 
-                <span className="hidden md:inline">Consulta IA</span>
-              </Button>
+            <div className="w-px bg-slate-200 mx-2 hidden md:block"></div>
+            <Button
+              className="text-white shadow-sm gap-2 bg-gradient-to-l from-secondary to-accent hover:from-accent/50 hover:to-secondary/50 "
+              onClick={() => setIsAIModalOpen(true)}
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden md:inline">Consulta IA</span>
+            </Button>
 
-            </div>
-          </CardContent>
-        </Card>
-      
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Listado */}
       <div className="space-y-4">
         {loading ? (
-           <div className="flex justify-center py-12">
-             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#066357]"></div>
-           </div>
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#066357]"></div>
+          </div>
         ) : historiales.length === 0 ? (
-           <div className="text-center py-16 bg-white rounded-lg border border-dashed border-slate-300">
-             <Stethoscope className="h-12 w-12 mx-auto text-slate-300 mb-3" />
-             <h3 className="text-lg font-medium text-slate-900">No hay registros</h3>
-             <p className="text-slate-500">No se encontraron consultas con los filtros actuales.</p>
-           </div>
+          <div className="text-center py-16 bg-white rounded-lg border border-dashed border-slate-300">
+            <Stethoscope className="h-12 w-12 mx-auto text-slate-300 mb-3" />
+            <h3 className="text-lg font-medium text-slate-900">No hay registros</h3>
+            <p className="text-slate-500">No se encontraron consultas con los filtros actuales.</p>
+          </div>
         ) : (
           historiales.map((historial) => (
             <Card key={historial.id} className="group border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden ">
-              <div 
+              <div
                 className="flex items-center justify-between p-5 md:p-6 cursor-pointer"
                 onClick={() => setExpandedId(expandedId === historial.id ? null : historial.id)}
               >
                 <div className="flex items-center gap-50 flex-1 min-w-0 mr-4">
-                  
+
                   {/* paciente */}
                   <div className="flex items-center gap-4 shrink-0">
-                     <div className="h-10 w-10 shrink-0 rounded-full bg-[#066357]/10 flex items-center justify-center text-[#066357]">
-                       <PawPrint className="h-5 w-5" />
-                     </div>
-                     <div className="flex flex-col min-w-[120px] max-w-[200px]">
-                       <span className="font-bold text-base text-slate-900 truncate" title={getNombrePaciente(historial)}>
-                         {getNombrePaciente(historial)}
-                       </span>
-                       <div className="flex items-center gap-1.5 text-xs text-slate-500 truncate">
-                        <Contact className="h-3.5 w-3.5 text-slate-400" /> 
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-[#066357]/10 flex items-center justify-center text-[#066357]">
+                      <PawPrint className="h-5 w-5" />
+                    </div>
+                    <div className="flex flex-col min-w-[120px] max-w-[200px]">
+                      <span className="font-bold text-base text-slate-900 truncate" title={getNombrePaciente(historial)}>
+                        {getNombrePaciente(historial)}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 truncate">
+                        <Contact className="h-3.5 w-3.5 text-slate-400" />
                         <span>{getNombreDueno(historial).split(" ")[0]} {getNombreDueno(historial).split(" ")[1]}</span>
-                     </div>
-                     </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* diagnostico y vet */}
                   <div className="flex flex-col items-left min-w-0 shrink-0 pt-1 ml-5">
-                     <div className="flex items-left gap-2 mb-1.5">
-                       <Badge variant="outline" className={`${getDiagnosticoColor(historial.diagnostico)} px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide`}>
-                          {historial.diagnostico}
-                       </Badge>
-                     </div>
-                     <div className="flex items-left gap-1.5 text-xs text-slate-500 truncate">
-                        <User className="h-3.5 w-3.5 text-slate-400" /> 
-                        <span>Dr/a. {getNombreVeterinario(historial)}</span>
-                     </div>
+                    <div className="flex items-left gap-2 mb-1.5">
+                      <Badge variant="outline" className={`${getDiagnosticoColor(historial.diagnostico)} px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide`}>
+                        {historial.diagnostico}
+                      </Badge>
+                    </div>
+                    <div className="flex items-left gap-1.5 text-xs text-slate-500 truncate">
+                      <User className="h-3.5 w-3.5 text-slate-400" />
+                      <span>Dr/a. {getNombreVeterinario(historial)}</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* fecha y chevron*/}
-                <div className="flex items-center gap-5 shrink-0"> 
+                <div className="flex items-center gap-5 shrink-0">
                   <div className="flex flex-col items-end text-right">
                     <div className="flex items-center gap-1.5 font-medium text-slate-700 text-sm">
                       <Calendar className="h-4 w-4 text-[#066357]" />
                       {new Date(getFecha(historial)).toLocaleDateString()}
                     </div>
                     <span className="text-xs text-slate-400 mt-0.5">
-                      {new Date(getFecha(historial)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {new Date(getFecha(historial)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  
+
                   <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-300 group-hover:text-slate-500 shrink-0 hover:bg-slate-100 rounded-full">
                     {expandedId === historial.id ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                   </Button>
@@ -248,16 +248,16 @@ export function HistorialDashboard() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
-                    
+
                     {/* proc*/}
                     <div className="flex flex-col h-full">
                       <div className="flex items-center justify-between mb-4 border-b border-slate-200 pb-2">
                         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                           <Syringe className="h-4 w-4 text-secondary" /> Procedimientos
                         </h4>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/10 font-medium"
                           onClick={() => openAddProcModal(historial.id)}
                         >
@@ -271,24 +271,24 @@ export function HistorialDashboard() {
                             const isObject = typeof proc !== 'string';
                             const nombre = isObject ? proc.nombre_procedimiento : proc;
                             const notas = isObject ? proc.notas : null;
-                            
+
                             return (
                               <div key={isObject ? proc.id : idx} className="group/proc bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all flex justify-between items-start gap-3">
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-semibold text-slate-800 break-words">{nombre}</p>
                                   {notas && <p className="text-xs text-slate-500 mt-1 pl-2 border-l-2 border-slate-200 break-words">{notas}</p>}
                                 </div>
-                                
+
                                 {isObject && (
                                   <div className="flex gap-1 opacity-0 group-hover/proc:opacity-100 transition-opacity duration-200 shrink-0">
-                                    <Button 
+                                    <Button
                                       variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-primary hover:bg-primary/10"
                                       onClick={() => openEditProcModal(proc)}
                                       title="Editar"
                                     >
                                       <Edit className="h-3.5 w-3.5" />
                                     </Button>
-                                    <Button 
+                                    <Button
                                       variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50"
                                       onClick={() => setProcToDelete(proc)}
                                       title="Eliminar"
@@ -302,7 +302,7 @@ export function HistorialDashboard() {
                           })
                         ) : (
                           <div className="text-sm text-slate-400 italic p-4 text-center bg-slate-100/50 rounded-lg border border-dashed border-slate-200 h-full flex items-center justify-center">
-                              Ninguno realizado.
+                            Ninguno realizado.
                           </div>
                         )}
                       </div>
@@ -327,14 +327,14 @@ export function HistorialDashboard() {
                                   {trat.dosis}
                                 </div>
                                 {trat.instrucciones && (
-                                    <p className="text-xs text-slate-500 italic mt-1 break-words">{trat.instrucciones}</p>
+                                  <p className="text-xs text-slate-500 italic mt-1 break-words">{trat.instrucciones}</p>
                                 )}
                               </div>
                             </div>
                           ))
                         ) : (
                           <div className="text-sm text-slate-400 italic p-4 text-center bg-slate-100/50 rounded-lg border border-dashed border-slate-200 h-full flex items-center justify-center">
-                              Ningún tratamiento.
+                            Ningún tratamiento.
                           </div>
                         )}
                       </div>
@@ -348,7 +348,7 @@ export function HistorialDashboard() {
         )}
       </div>
 
-      <HistorialFormModal 
+      <HistorialFormModal
         isOpen={isMainModalOpen}
         onClose={() => setIsMainModalOpen(false)}
         onSubmit={handleCreateHistorial}
@@ -362,18 +362,17 @@ export function HistorialDashboard() {
           <form onSubmit={handleProcSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Nombre del Procedimiento</Label>
-              <Input 
-                value={procFormData.nombre} 
-                onChange={e => setProcFormData({...procFormData, nombre: e.target.value})} 
-                required 
+              <Input
+                value={procFormData.nombre}
+                onChange={e => setProcFormData({ ...procFormData, nombre: e.target.value })}
                 placeholder="Ej: Limpieza dental"
               />
             </div>
             <div className="space-y-2">
               <Label>Notas / Observaciones</Label>
-              <Input 
-                value={procFormData.notas} 
-                onChange={e => setProcFormData({...procFormData, notas: e.target.value})} 
+              <Input
+                value={procFormData.notas}
+                onChange={e => setProcFormData({ ...procFormData, notas: e.target.value })}
                 placeholder="Detalles de la intervención..."
               />
             </div>
@@ -394,10 +393,10 @@ export function HistorialDashboard() {
           onConfirm={confirmDeleteProc}
           mensajeConf={<>¿Eliminar el procedimiento <b>{procToDelete.nombre_procedimiento}</b>?</>}
           mensajeEx="Procedimiento eliminado."
-          onSuccess={() => {}} 
+          onSuccess={() => { }}
         />
       )}
-      <AIQueryModal 
+      <AIQueryModal
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
       />
