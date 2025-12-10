@@ -1,6 +1,5 @@
 "use client"
 import { ROUTES } from '../apiRoutes';
-// Importa useEffect
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,7 +9,6 @@ import { SidebarNav } from "@/components/sidebar-nav"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { PatientDashboard  } from "@/components/Pacientes/patient-dashboard"
 import { InventoryManagement } from "@/components/Inventario/inventory-management"
-import { BillingModule } from "../components/billing-module"
 import { UserManagementDashboard } from "../components/Usuarios/user-dashboard"
 import { OwnerManagementDashboard } from "../components/Dueños/ow-dashboard"
 import { HistorialDashboard } from "../components/Historial/historial-dashboard"

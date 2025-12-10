@@ -74,9 +74,7 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
       // Manejar pre-selección de paciente
       if (pacienteId && pacienteNombre) {
         setSelectedPacienteId(pacienteId)
-        // CRITICAL FIX: Establecer el nombre directamente desde los props
-        // Esto evita la "condición de carrera" donde el Combobox no muestra nada 
-        // porque la lista de pacientes aún no ha cargado.
+        // Establece el nombre directamente desde los props
         setSelectedPacienteNombre(pacienteNombre)
       } else {
         setSelectedPacienteId(0)
@@ -164,7 +162,7 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
 
           {!pacienteId && (
             <div className=" p-4 ">
-              <Label className="mb-2 block font-semibold text-slate-700">Seleccionar Paciente</Label>
+              <Label className="mb-2 block font-semibold text-slate-700">Seleccionar Paciente*</Label>
               <Combobox
                 value={selectedPacienteId}
                 onChange={(val) => {

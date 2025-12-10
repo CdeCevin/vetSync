@@ -132,7 +132,7 @@ export function PacienteModal({
        if (isOwnerEdit) {
         
         if (isCreatingOwner) {
-          // Lógica para CREAR dueño
+          // Lógica para crear dueño
           const newOwner = await createOwner({
             nombre: formData.ownerNombre,
             telefono: formData.ownerTelefono,
@@ -154,7 +154,7 @@ export function PacienteModal({
           openAlert("Éxito", "Dueño creado y seleccionado", "success")
         
         } else {
-          // Lógica para ACTUALIZAR dueño
+          // Lógica para actualizar dueño
           await updateOwner(formData.id_dueño, {
             nombre: formData.ownerNombre,
             telefono: formData.ownerTelefono,

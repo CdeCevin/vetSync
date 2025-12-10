@@ -69,7 +69,7 @@ export function CitaModal({
       try {
         const basePromises = [getPacientes(""), getOwners()]
 
-        // Si vienen veterinarios desde el padre → NO llamar getUsers()
+        // Si vienen veterinarios desde el padre no llama getUsers()
         if (veterinarios && veterinarios.length > 0) {
           setVeterinariosList(veterinarios.filter(u => u.id_rol === 2))
 
@@ -78,7 +78,7 @@ export function CitaModal({
           setOwnersList(ownersData || [])
         }
         else {
-          // Si no vienen desde el padre → cargar desde el backend
+          // Si no vienen desde el padre carga desde el backend
           const [pacientesData, ownersData, usersData] = await Promise.all([
             ...basePromises,
             getVeterinarios()
@@ -86,7 +86,7 @@ export function CitaModal({
 
           setPacientesList(pacientesData || [])
           setOwnersList(ownersData || [])
-          setVeterinariosList(usersData) // Ya viene filtrado
+          setVeterinariosList(usersData)
         }
 
       } catch (err) {

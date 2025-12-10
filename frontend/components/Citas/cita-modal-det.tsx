@@ -57,7 +57,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate, veterinarios
         const pacientesData = await getPacientes("")
         setPacientesList(pacientesData || [])
 
-        // Si el padre YA entregó los veterinarios
+        // Si el padre ya entregó los veterinarios
         if (veterinarios && veterinarios.length > 0) {
           setVeterinariosList(veterinarios)
         } else {
@@ -285,7 +285,7 @@ export function CitaDetallesDialog({ open, onClose, cita, onUpdate, veterinarios
         onSuccess={() => setShowDeleteModal(false)}
         mensajeEx={"La cita seleccionada se ha eliminado."}
         mensajeConf={"¿Estás seguro de que deseas eliminar la cita seleccionada? Esta acción no se puede deshacer."}
-      //userName="la cita seleccionada"
+
       />
     </Dialog>
   )

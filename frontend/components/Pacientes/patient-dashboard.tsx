@@ -100,9 +100,6 @@ useEffect(() => {
   fetchPacientes()
 }, [fetchPacientes])
 
-  //const handleSearch = async () => {
-    //await fetchPacientes(searchTerm)
-  //}
    const handleCreate = async (data: any) => {
     await createPaciente(data)
   }
@@ -150,7 +147,7 @@ useEffect(() => {
             </div>  
         </div>
 
-          {/* --- GRUPO DERECHO --- */}
+          {/*  GRUPO DERECHO*/}
           {puedeCRUD && (
           <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" /> Registrar Paciente
@@ -161,9 +158,9 @@ useEffect(() => {
       </CardHeader>
     </Card>
 
-      {/* Layout de Lista / Detalle */}
+      {/* Layout de Lista  */}
          <div className="w-full grid gap-6 grid-cols-3 ">
-        {/* Columna de la Lista (Izquierda) */}
+        {/* Izquierda */}
             <div className="lg:col-span-1 ">
                <div className="rounded-xl shadow border bg-card  min-h-97">
             <div className="px-6 pt-6 pb-2">
@@ -203,7 +200,7 @@ useEffect(() => {
                   </div>
             </div>
 
-        {/* Columna de Detalles (Derecha) */}
+        {/* Derecha */}
             <div className="lg:col-span-2">
           {isLoadingDetails ? (
             <Card>
@@ -284,7 +281,6 @@ useEffect(() => {
           }}
           mensajeEx={`El paciente ${selectedPatient.mascota.nombre} se ha eliminado.`}
           mensajeConf={<>¿Estás seguro de que deseas eliminar al paciente <b>{selectedPatient.mascota.nombre}</b>? Esta acción no se puede deshacer.</>}
-          //userName={<>el paciente <strong>{selectedPatient.mascota.nombre}</strong></>}
         />
       )}
     </div>
@@ -405,11 +401,7 @@ function DetallesPaciente({
                <TabsContent value="medical" className="space-y-4">
                   <div className="flex items-center justify-between">
                      <h4 className="font-serif font-semibold">Historial Medico</h4>
-                     {/*
-                     <Button size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Añadir Registro
-                     </Button> */}
+
                   </div>
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
               {paciente.historial.length > 0 ? (
@@ -430,10 +422,7 @@ function DetallesPaciente({
                                        <p className="text-sm text-muted-foreground">Veterinario: {record.veterinario_nombre}</p>
                                        {record.notas && <p className="text-sm">{record.notas}</p>}
                                     </div>
-                                    {/*
-                                    <Button variant="ghost" size="sm">
-                                       <Edit className="h-4 w-4" />
-                                    </Button>* */}
+
                                  </div>
                               </CardContent>
                            </Card>

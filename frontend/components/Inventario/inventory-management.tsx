@@ -232,7 +232,7 @@ export function InventoryManagement() {
                     </TableRow>
                 ) : (
                     productosFiltrados.map(p => {
-                        // Lógica visual de estado (Badges)
+                        // logica visual de estado
                         let badgeColor = "bg-green-100 text-green-800 hover:bg-green-100"
                         let estadoTexto = "Normal"
                         if (p.stockActual === 0) {

@@ -103,7 +103,7 @@ export function CitasRecepcionistaPage() {
     const loadData = async () => {
       const [citasData, usersData] = await Promise.all([getCitas(), getVeterinarios()])
       setCitas(citasData)
-      setVeterinarios(usersData || []) // Ya viene filtrado
+      setVeterinarios(usersData || [])
     }
     loadData()
   }, [])
@@ -146,7 +146,7 @@ export function CitasRecepcionistaPage() {
     if (filtros.fechaInicio) {
       setDisplayDate(parseDateInputAsLocal(filtros.fechaInicio))
     } else {
-      // Opcional: si limpia el filtro, vuelve al día de hoy
+      // Opcional si limpia el filtro, vuelve al día de hoy
       const now = new Date()
       now.setHours(0, 0, 0, 0)
       setDisplayDate(now)

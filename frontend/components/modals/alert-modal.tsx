@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, XCircle, Info } from "lucide-react" // Íconos
+import { CheckCircle, XCircle, Info } from "lucide-react" 
 import { useAlertStore } from "@/hooks/use-alert-store"
 
 export function AlertModal() {

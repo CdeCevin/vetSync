@@ -83,7 +83,7 @@ export function OwnerModal({
         dataToSubmit.id = safeInitialData.id ?? -1;
       }
 
-      // Lógica original: no enviar contraseña si está vacía en edición
+      // Lógica original no enviar contraseña si está vacía en edición
       await onSubmit(dataToSubmit)
       await onSuccess()
       const successMessage = isEdit ? "Usuario actualizado" : "Usuario creado"  
@@ -156,7 +156,6 @@ export function OwnerModal({
                 id="direccion"
                 value={formData.direccion}
                 onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-                //required={!isEdit}
                 maxLength={60}
                 />
             </div>

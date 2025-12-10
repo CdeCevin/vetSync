@@ -176,7 +176,6 @@ export function CitasPage() {
                 onClose={() => setIsHistorialModalOpen(false)}
                 onSubmit={handleSaveHistorial}
                 pacienteId={selectedCitaParaHistorial.id_paciente}
-                // Aquí pasamos el nombre explícitamente para evitar la condición de carrera en el Combobox
                 pacienteNombre={pacientes.find(p => p.id === selectedCitaParaHistorial.id_paciente)?.nombre}
                 citaId={selectedCitaParaHistorial.id}
               />
