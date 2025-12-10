@@ -16,6 +16,7 @@ interface CitaCardProps {
   onEstadoChange?: () => void
   pacienteNombre: string
   veterinarioNombre: string
+  onComplete?: (cita: Cita) => void
 }
 
 const ESTADOS_COLORES: Record<Cita["estado"], string> = {
@@ -26,14 +27,22 @@ const ESTADOS_COLORES: Record<Cita["estado"], string> = {
   no_asistio: "bg-gray-200 text-gray-700",
 }
 
-export function CitaCard({ cita, onSelect, onEstadoChange, pacienteNombre, veterinarioNombre}: CitaCardProps) {
+export function CitaCard({ cita, onSelect, onEstadoChange, pacienteNombre, veterinarioNombre, onComplete }: CitaCardProps) {
   const { patchEstadoCita } = useCitaService()
   const { onOpen: openAlert } = useAlertStore()
   const [estado, setEstado] = useState<Cita["estado"]>(cita.estado)
 
-  
+  useEffect(() => {
+    setEstado(cita.estado)
+  }, [cita.estado])
+
+
   const handleEstadoChange = async (nuevoEstado: Cita["estado"]) => {
     try {
+      if (nuevoEstado === 'completada' && onComplete) {
+        onComplete(cita)
+        return // Detener aquí para que no se actualice el estado visualmente aún
+      }
       setEstado(nuevoEstado)
       await patchEstadoCita(cita.id, nuevoEstado)
       openAlert("Éxito", `Estado actualizado a "${nuevoEstado}".`, "success")

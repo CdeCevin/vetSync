@@ -48,6 +48,17 @@ const eliminarProducto = async (req, res) => {
 
         res.json({ message: 'Producto desactivado correctamente (Soft Delete)' });
 
+        // Auditoría
+        const logAuditoria = require('../../utils/auditLogger');
+        await logAuditoria({
+            id_usuario: req.usuario.id,
+            id_clinica: id_clinica,
+            accion: 'ELIMINAR',
+            entidad: 'Inventario',
+            id_entidad: id,
+            detalles: 'Baja (Soft Delete)'
+        });
+
     } catch (error) {
         console.error('Error eliminando producto:', error);
         res.status(500).json({ error: 'Error interno del servidor' });

@@ -116,11 +116,32 @@ const getInventoryPrediction = async (req, res) => {
             inventario_saludable: enriquecerItems(aiResponse.inventario_saludable)
         };
 
+        // Auditoría
+        const logAuditoria = require('../../utils/auditLogger');
+        await logAuditoria({
+            id_usuario: req.usuario.id,
+            id_clinica: id_clinica,
+            accion: 'PREDICCION_INVENTARIO',
+            entidad: 'Inventario',
+            id_entidad: 0,
+            detalles: `Resumen de inventario IA: ${respuestaFinal.resumen_general}`
+        });
+
         res.json(respuestaFinal);
 
     } catch (error) {
-        console.error('Error Fatal:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Error Fatal en Predicción Inventario:', error);
+
+        let errorMessage = 'Error interno del servidor';
+        let errorDetails = error.message;
+
+        if (error.message?.includes('GoogleGenerativeAI')) {
+            errorMessage = 'Error en el servicio de IA (Gemini)';
+        } else if (error.code && (error.code === 'ECONNREFUSED' || error.code === 'ER_ACCESS_DENIED_ERROR')) {
+            errorMessage = 'Error de conexión con la base de datos';
+        }
+
+        res.status(500).json({ error: errorMessage, details: errorDetails });
     }
 };
 

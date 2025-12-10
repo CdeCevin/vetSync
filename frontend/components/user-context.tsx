@@ -32,13 +32,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   })
 
   useEffect(() => {
-  if (usuario) {
-    document.body.classList.add("with-sidebar")
-  } else {
-    document.body.classList.remove("with-sidebar")
-  }
-}, [usuario])
-  
+    if (usuario) {
+      document.body.classList.add("with-sidebar")
+    } else {
+      document.body.classList.remove("with-sidebar")
+    }
+  }, [usuario])
+
   // Sincronizar token con localStorage
   useEffect(() => {
     if (token) localStorage.setItem("token", token)
@@ -86,13 +86,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const response = await fetch(url, { ...options, headers })
 
     // Detectar errores de autenticación o servidor
-    if (response.status === 401 || response.status === 403 || response.status >= 500) {
+    if (response.status === 401 || response.status === 403) {
       console.warn("Token inválido o sesión expirada. Cerrando sesión automáticamente...")
       clearAuthInfo()
       if (typeof window !== "undefined") {
         window.location.href = "/" // redirigir al login
       }
-      throw new Error("Sesión expirada o error del servidor")
+      throw new Error("Sesión expirada")
+    }
+
+    if (!response.ok) {
+      // Para otros errores (500, 400, etc) simplemente lanzamos error para que lo maneje el componente
+      throw new Error(`Error del servidor: ${response.status}`)
     }
 
     return response

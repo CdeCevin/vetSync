@@ -64,7 +64,7 @@ const crearHistorial = (req, res) => {
                 const processCita = () => {
                     if (!cita_id) return processProcedimientos();
 
-                    connection.query(`UPDATE Citas SET estado = 'Completada' WHERE id = ? AND id_clinica = ?`, [cita_id, idClinica], (err) => {
+                    connection.query(`UPDATE Citas SET estado = 'completada' WHERE id = ? AND id_clinica = ?`, [cita_id, idClinica], (err) => {
                         if (err) {
                             return connection.rollback(() => {
                                 connection.release();
@@ -110,12 +110,12 @@ const crearHistorial = (req, res) => {
 
                         const t = tratamientos[i];
                         const queryTrat = `INSERT INTO Tratamientos 
-                        (id_historial_medico, id_paciente,prescripto_por, id_clinica, fecha_prescripcion, dosis, instrucciones, duracion_dias, notas, id_medicamento)
-                        VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)`;
+                        (id_historial_medico, id_paciente,prescripto_por, id_clinica, fecha_prescripcion, dosis, instrucciones, duracion_dias, notas, id_medicamento, cantidad)
+                        VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?)`;
 
-                        const paramsTrat = [historialId, paciente_id, idUsuario, idClinica, t.dosis, t.instrucciones, t.duracion_dias, t.notas || '', t.id_medicamento];
+                        const paramsTrat = [historialId, paciente_id, idUsuario, idClinica, t.dosis, t.instrucciones, t.duracion_dias, t.notas || '', t.id_medicamento, t.cantidad || 0];
 
-                        connection.query(queryTrat, paramsTrat, (err) => {
+                        connection.query(queryTrat, paramsTrat, (err, resultTratamiento) => {
                             if (err) {
                                 return connection.rollback(() => {
                                     connection.release();
@@ -123,6 +123,8 @@ const crearHistorial = (req, res) => {
                                     res.status(500).json({ error: "Error al guardar tratamiento" });
                                 });
                             }
+
+                            const idTratamiento = resultTratamiento.insertId;
 
                             // Stock Update
                             if (t.id_medicamento && t.cantidad) {
@@ -134,8 +136,25 @@ const crearHistorial = (req, res) => {
                                             res.status(500).json({ error: "Error al actualizar inventario" });
                                         });
                                     }
-                                    i++;
-                                    nextTratamiento();
+
+                                    // Registrar Movimiento de Inventario
+                                    connection.query(
+                                        'INSERT INTO Movimientos_Inventario (id_clinica, realizado_por, tipo_movimiento, cantidad, motivo, id_item) VALUES (?, ?, ?, ?, ?, ?)',
+                                        [idClinica, idUsuario, 'SALIDA', t.cantidad, `Tratamiento #${idTratamiento} (Historial #${historialId})`, t.id_medicamento],
+                                        (err) => {
+                                            if (err) {
+                                                return connection.rollback(() => {
+                                                    connection.release();
+                                                    console.error("Error registrando movimiento:", err);
+                                                    res.status(500).json({ error: "Error al registrar movimiento de inventario" });
+                                                });
+                                            }
+
+                                            // Siguiente tratamiento
+                                            i++;
+                                            nextTratamiento();
+                                        }
+                                    );
                                 });
                             } else {
                                 i++;
@@ -159,6 +178,17 @@ const crearHistorial = (req, res) => {
                         res.status(201).json({
                             message: 'Historial médico creado exitosamente',
                             id: historialId
+                        });
+
+                        // Auditoría
+                        const logAuditoria = require('../../utils/auditLogger');
+                        logAuditoria({
+                            id_usuario: idUsuario,
+                            id_clinica: idClinica,
+                            accion: 'CREAR',
+                            entidad: 'Historial_Medico',
+                            id_entidad: historialId,
+                            detalles: `Paciente ID: ${paciente_id}, Diagnóstico: ${diagnostico.substring(0, 50)}...`
                         });
                     });
                 };

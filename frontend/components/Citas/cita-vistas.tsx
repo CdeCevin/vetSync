@@ -20,9 +20,10 @@ interface DayViewProps {
   citas: Cita[]
   isLoading: boolean
   onSelect?: (cita: Cita) => void
-  pacientes: Paciente[]         
-  veterinarios: Veterinario[] 
+  pacientes: Paciente[]
+  veterinarios: Veterinario[]
   onEstadoChange: () => void
+  onComplete?: (cita: Cita) => void
 }
 
 interface WeekViewProps {
@@ -30,9 +31,10 @@ interface WeekViewProps {
   isLoading: boolean
   selectedDate: Date
   onSelect?: (cita: Cita) => void
-  pacientes: Paciente[]      
-  veterinarios: Veterinario[] 
+  pacientes: Paciente[]
+  veterinarios: Veterinario[]
   onEstadoChange: () => void
+  onComplete?: (cita: Cita) => void
 }
 
 interface MonthViewProps {
@@ -43,10 +45,11 @@ interface MonthViewProps {
   pacientes: Paciente[]
   veterinarios: Veterinario[]
   onEstadoChange: () => void
+  onComplete?: (cita: Cita) => void
 }
 
 // Vista diaria
-export function DayView({ citas, onSelect, isLoading,pacientes,veterinarios,onEstadoChange }: DayViewProps) {
+export function DayView({ citas, onSelect, isLoading, pacientes, veterinarios, onEstadoChange, onComplete }: DayViewProps) {
   const citasOrdenadas = [...citas].sort(
     (a, b) => new Date(a.fecha_cita).getTime() - new Date(b.fecha_cita).getTime()
   )
@@ -69,13 +72,14 @@ export function DayView({ citas, onSelect, isLoading,pacientes,veterinarios,onEs
           const vet = veterinarios.find(v => v.id === cita.id_usuario)
 
           return (
-            <CitaCard 
-              key={cita.id} 
-              cita={cita} 
+            <CitaCard
+              key={cita.id}
+              cita={cita}
               onSelect={() => onSelect?.(cita)}
               pacienteNombre={paciente ? paciente.nombre : "Desconocido"}
               veterinarioNombre={vet ? vet.nombre_completo : "Desconocido"}
               onEstadoChange={onEstadoChange}
+              onComplete={onComplete}
             />
           )
         })
@@ -85,11 +89,11 @@ export function DayView({ citas, onSelect, isLoading,pacientes,veterinarios,onEs
 }
 
 // Vista semanal
-export function WeekView({ citas, selectedDate, onSelect, isLoading,pacientes,veterinarios,onEstadoChange }: WeekViewProps) {
+export function WeekView({ citas, selectedDate, onSelect, isLoading, pacientes, veterinarios, onEstadoChange, onComplete }: WeekViewProps) {
   const inicioSemana = startOfWeek(selectedDate, { weekStartsOn: 1 })
   const finSemana = endOfWeek(selectedDate, { weekStartsOn: 1 })
   const diasSemana = eachDayOfInterval({ start: inicioSemana, end: finSemana })
-  
+
   if (isLoading) {
     return (
       <p className="text-muted-foreground text-center py-6">
@@ -126,15 +130,16 @@ export function WeekView({ citas, selectedDate, onSelect, isLoading,pacientes,ve
                   {citasDia.map((cita) => {
                     const paciente = pacientes.find(p => p.id === cita.id_paciente)
                     const vet = veterinarios.find(v => v.id === cita.id_usuario)
-                    
+
                     return (
-                      <CitaCard 
-                        key={cita.id} 
-                        cita={cita} 
-                        onSelect={() => onSelect?.(cita)} 
+                      <CitaCard
+                        key={cita.id}
+                        cita={cita}
+                        onSelect={() => onSelect?.(cita)}
                         pacienteNombre={paciente ? paciente.nombre : "Desconocido"}
                         veterinarioNombre={vet ? vet.nombre_completo : "Desconocido"}
                         onEstadoChange={onEstadoChange}
+                        onComplete={onComplete}
                       />
                     )
                   })}
@@ -149,7 +154,7 @@ export function WeekView({ citas, selectedDate, onSelect, isLoading,pacientes,ve
 }
 
 // Vista mensual
-export function MonthView({ citas, selectedDate, isLoading,onSelect,pacientes,veterinarios,onEstadoChange  }: MonthViewProps) {
+export function MonthView({ citas, selectedDate, isLoading, onSelect, pacientes, veterinarios, onEstadoChange, onComplete }: MonthViewProps) {
   const mesActual = selectedDate.getMonth()
   const añoActual = selectedDate.getFullYear()
 
@@ -209,13 +214,14 @@ export function MonthView({ citas, selectedDate, isLoading,onSelect,pacientes,ve
                     const vet = veterinarios.find(v => v.id === cita.id_usuario)
 
                     return (
-                      <CitaCard 
-                        key={cita.id} 
-                        cita={cita} 
-                        onSelect={() => onSelect?.(cita)} 
+                      <CitaCard
+                        key={cita.id}
+                        cita={cita}
+                        onSelect={() => onSelect?.(cita)}
                         pacienteNombre={paciente ? paciente.nombre : "Desconocido"}
                         veterinarioNombre={vet ? vet.nombre_completo : "Desconocido"}
                         onEstadoChange={onEstadoChange}
+                        onComplete={onComplete}
                       />
                     )
                   })}

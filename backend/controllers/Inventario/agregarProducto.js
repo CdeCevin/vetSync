@@ -67,6 +67,17 @@ const agregarProducto = (req, res) => {
                 message: 'Producto agregado exitosamente',
                 id: result.insertId
             });
+
+            // Auditoría
+            const logAuditoria = require('../../utils/auditLogger');
+            logAuditoria({
+                id_usuario: req.usuario.id,
+                id_clinica: id_clinica,
+                accion: 'CREAR',
+                entidad: 'Inventario',
+                id_entidad: result.insertId,
+                detalles: `Código: ${codigo}, Nombre: ${nombre}`
+            });
         });
     });
 };

@@ -22,22 +22,24 @@ interface ProcedimientoForm {
 
 interface TratamientoForm {
   id_medicamento: number
-  medicamento_nombre: string 
+  medicamento_nombre: string
   dosis: string
   instrucciones: string
   duracion_dias: number
   notas: string
+  cantidad: number
 }
 
 interface HistorialFormModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: any) => Promise<void>
-  pacienteId?: number       
-  pacienteNombre?: string    
+  pacienteId?: number
+  pacienteNombre?: string
+  citaId?: number
 }
 
-export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, pacienteNombre }: HistorialFormModalProps) {
+export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, pacienteNombre, citaId }: HistorialFormModalProps) {
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm()
   const { usuario } = useAuth()
   const { onOpen: openAlert } = useAlertStore()
@@ -68,51 +70,55 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
       reset({ diagnostico: "", notas_generales: "" })
       setTempTratamiento({ dosis: "", instrucciones: "", duracion_dias: 1, notas: "" })
       setTempProcedimiento({ nombre: "", notas: "" })
-      
+
       // Manejar pre-selección de paciente
       if (pacienteId && pacienteNombre) {
-          setSelectedPacienteId(pacienteId)
-          setSelectedPacienteNombre(pacienteNombre)
+        setSelectedPacienteId(pacienteId)
+        // CRITICAL FIX: Establecer el nombre directamente desde los props
+        // Esto evita la "condición de carrera" donde el Combobox no muestra nada 
+        // porque la lista de pacientes aún no ha cargado.
+        setSelectedPacienteNombre(pacienteNombre)
       } else {
-          setSelectedPacienteId(0)
-          setSelectedPacienteNombre("")
-          setQueryPaciente("")
+        setSelectedPacienteId(0)
+        setSelectedPacienteNombre("")
+        setQueryPaciente("")
       }
       setSelectedMedId(0)
       setQueryMedicamento("")
     }
   }, [isOpen, cargarProductos, reset, pacienteId, pacienteNombre, getPacientes])
 
-  const filteredProductos = productos.filter(p => 
+  const filteredProductos = productos.filter(p =>
     p.nombre?.toLowerCase().includes(queryMedicamento.toLowerCase()) && p.stockActual > 0
   )
-  
-  const filteredPacientes = queryPaciente === "" 
-    ? pacientesList 
+
+  const filteredPacientes = queryPaciente === ""
+    ? pacientesList
     : pacientesList.filter((paciente: any) => {
-        const term = queryPaciente.toLowerCase()
-        const nombreDueño = paciente.dueño?.nombre || paciente.dueno?.nombre || ""
-        return paciente.nombre.toLowerCase().includes(term) || nombreDueño.toLowerCase().includes(term)
-      })
+      const term = queryPaciente.toLowerCase()
+      const nombreDueño = paciente.dueño?.nombre || paciente.dueno?.nombre || ""
+      return paciente.nombre.toLowerCase().includes(term) || nombreDueño.toLowerCase().includes(term)
+    })
 
   const handleAddTratamiento = () => {
     if (selectedMedId === 0) {
-        openAlert("Error", "Por favor seleccione un medicamento válido del inventario.", "error")
-        return
+      openAlert("Error", "Por favor seleccione un medicamento válido del inventario.", "error")
+      return
     }
     if (!tempTratamiento.dosis) {
-        openAlert("Error", "El campo dosis es obligatorio.", "error")
-        return
+      openAlert("Error", "El campo dosis es obligatorio.", "error")
+      return
     }
     const producto = productos.find(p => String(p.id) === String(selectedMedId))
-    
+
     setTratamientos([...tratamientos, {
       id_medicamento: selectedMedId,
       medicamento_nombre: producto?.nombre || "Medicamento",
       dosis: tempTratamiento.dosis || "",
       instrucciones: tempTratamiento.instrucciones || "",
       duracion_dias: Number(tempTratamiento.duracion_dias) || 1,
-      notas: tempTratamiento.notas || ""
+      notas: tempTratamiento.notas || "",
+      cantidad: 1
     } as TratamientoForm])
 
     setSelectedMedId(0)
@@ -128,17 +134,17 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
 
   const onMainSubmit = async (formData: any) => {
     if (!selectedPacienteId) {
-        openAlert("Error", "Debe seleccionar un paciente para registrar la consulta.", "error")
-        return
+      openAlert("Error", "Debe seleccionar un paciente para registrar la consulta.", "error")
+      return
     }
     if (tratamientos.length <= 0) {
-        openAlert("Error", "Debe ingresar un tratamiento.", "error")
-        return
+      openAlert("Error", "Debe ingresar un tratamiento.", "error")
+      return
     }
 
     const payload = {
       paciente_id: selectedPacienteId,
-      cita_id: null,
+      cita_id: citaId || null,
       diagnostico: formData.diagnostico,
       notas_generales: formData.notas_generales,
       procedimientos: procedimientos.length > 0 ? procedimientos : undefined,
@@ -154,59 +160,59 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>
-              {pacienteId ? `Nueva Consulta: ${pacienteNombre}` : "Registrar Nueva Consulta"}
+            {pacienteId ? `Nueva Consulta: ${pacienteNombre}` : "Registrar Nueva Consulta"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onMainSubmit)} className="space-y-4 mt-2">
-          
+
           {!pacienteId && (
-             <div className=" p-4 ">
-                <Label className="mb-2 block font-semibold text-slate-700">Seleccionar Paciente</Label>
-                <Combobox 
-                    value={selectedPacienteId} 
-                    onChange={(val) => {
-                        const pid = Number(val)
-                        setSelectedPacienteId(pid)
-                        const p = pacientesList.find(x => x.id === pid)
-                        if(p) setSelectedPacienteNombre(p.nombre)
-                    }}
-                >
-                    <div className="relative mt-1">
-                        <div className="relative w-full cursor-default overflow-hidden rounded-md border border-input bg-background text-left shadow-sm focus:outline-none sm:text-sm">
-                            <ComboboxInput
-                                className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none"
-                                displayValue={() => selectedPacienteNombre}
-                                onChange={(event) => setQueryPaciente(event.target.value)}
-                                placeholder="Buscar por nombre de mascota o dueño..."
-                                autoComplete="off"
-                            />
-                            <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                            </ComboboxButton>
-                        </div>
-                        <ComboboxOptions className="absolute z-[9999] mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
-                            {filteredPacientes.length === 0 && queryPaciente !== "" ? (
-                                <div className="relative cursor-default select-none px-4 py-2 text-gray-700">
-                                    No se encontraron pacientes.
-                                </div>                            ) : (
-                                filteredPacientes.map((p: any) => (
-                                    <ComboboxOption key={p.id} value={p.id} className={({ active }) => `cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-[#066357]/10 text-[#066357]' : 'text-gray-900'}`}>
-                                        {({ selected }) => (
-                                            <>
-                                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                                    {p.nombre} <span className="text-gray-500 text-xs">({p.dueño?.nombre || p.dueno?.nombre})</span>
-                                                </span>
-                                                {selected ? <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[#066357]"><Check className="h-5 w-5" /></span> : null}
-                                            </>
-                                        )}
-                                    </ComboboxOption>
-                                ))
-                            )}
-                        </ComboboxOptions>
-                    </div>
-                </Combobox>
-             </div>
+            <div className=" p-4 ">
+              <Label className="mb-2 block font-semibold text-slate-700">Seleccionar Paciente</Label>
+              <Combobox
+                value={selectedPacienteId}
+                onChange={(val) => {
+                  const pid = Number(val)
+                  setSelectedPacienteId(pid)
+                  const p = pacientesList.find(x => x.id === pid)
+                  if (p) setSelectedPacienteNombre(p.nombre)
+                }}
+              >
+                <div className="relative mt-1">
+                  <div className="relative w-full cursor-default overflow-hidden rounded-md border border-input bg-background text-left shadow-sm focus:outline-none sm:text-sm">
+                    <ComboboxInput
+                      className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none"
+                      displayValue={() => selectedPacienteNombre}
+                      onChange={(event) => setQueryPaciente(event.target.value)}
+                      placeholder="Buscar por nombre de mascota o dueño..."
+                      autoComplete="off"
+                    />
+                    <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                      <ChevronsUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </ComboboxButton>
+                  </div>
+                  <ComboboxOptions className="absolute z-[9999] mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+                    {filteredPacientes.length === 0 && queryPaciente !== "" ? (
+                      <div className="relative cursor-default select-none px-4 py-2 text-gray-700">
+                        No se encontraron pacientes.
+                      </div>) : (
+                      filteredPacientes.map((p: any) => (
+                        <ComboboxOption key={p.id} value={p.id} className={({ active }) => `cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-[#066357]/10 text-[#066357]' : 'text-gray-900'}`}>
+                          {({ selected }) => (
+                            <>
+                              <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                {p.nombre} <span className="text-gray-500 text-xs">({p.dueño?.nombre || p.dueno?.nombre})</span>
+                              </span>
+                              {selected ? <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-[#066357]"><Check className="h-5 w-5" /></span> : null}
+                            </>
+                          )}
+                        </ComboboxOption>
+                      ))
+                    )}
+                  </ComboboxOptions>
+                </div>
+              </Combobox>
+            </div>
           )}
 
           <Tabs defaultValue="general" className="w-full">
@@ -220,20 +226,20 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
             <TabsContent value="general" className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="diagnostico" className="text-base font-semibold">Diagnóstico Principal*</Label>
-                <Input 
-                  id="diagnostico" 
-                  placeholder="Ej: Gastritis Aguda" 
-                  {...register("diagnostico", { required: true })} 
+                <Input
+                  id="diagnostico"
+                  placeholder="Ej: Gastritis Aguda"
+                  {...register("diagnostico", { required: true })}
                   required
                   className="text-lg"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notas">Notas Generales</Label>
-                <Textarea 
-                  id="notas" 
-                  placeholder="Síntomas, temperatura, peso en consulta..." 
-                  {...register("notas_generales")} 
+                <Textarea
+                  id="notas"
+                  placeholder="Síntomas, temperatura, peso en consulta..."
+                  {...register("notas_generales")}
                   className="min-h-[150px]"
                 />
               </div>
@@ -243,22 +249,22 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
             <TabsContent value="procedimientos" className="space-y-4 py-4">
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
                 <h4 className="font-medium text-sm flex items-center gap-2 text-slate-700">
-                    <Syringe className="h-4 w-4"/> Nuevo Procedimiento
+                  <Syringe className="h-4 w-4" /> Nuevo Procedimiento
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <Input 
-                    placeholder="Nombre (ej: Ecografía, Limpieza)" 
+                  <Input
+                    placeholder="Nombre (ej: Ecografía, Limpieza)"
                     value={tempProcedimiento.nombre}
-                    onChange={e => setTempProcedimiento({...tempProcedimiento, nombre: e.target.value})}
+                    onChange={e => setTempProcedimiento({ ...tempProcedimiento, nombre: e.target.value })}
                   />
-                  <Input 
-                    placeholder="Notas (ej: Sin sedación)" 
+                  <Input
+                    placeholder="Notas (ej: Sin sedación)"
                     value={tempProcedimiento.notas}
-                    onChange={e => setTempProcedimiento({...tempProcedimiento, notas: e.target.value})}
+                    onChange={e => setTempProcedimiento({ ...tempProcedimiento, notas: e.target.value })}
                   />
                 </div>
                 <Button type="button" variant="secondary" size="sm" onClick={handleAddProcedimiento} disabled={!tempProcedimiento.nombre} className="w-full">
-                  <Plus className="h-4 w-4 mr-2"/> Agregar a la lista
+                  <Plus className="h-4 w-4 mr-2" /> Agregar a la lista
                 </Button>
               </div>
               <div className="space-y-2">
@@ -281,7 +287,7 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
             <TabsContent value="tratamientos" className="space-y-4 py-4">
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
                 <h4 className="font-medium text-sm flex items-center gap-2 text-slate-700">
-                    <Pill className="h-4 w-4"/> Añadir tratamiento
+                  <Pill className="h-4 w-4" /> Añadir tratamiento
                 </h4>
                 <div className="space-y-1">
                   <Label className="text-xs">Producto (Stock disponible)</Label>
@@ -328,16 +334,16 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
                 <div className="grid grid-cols-1">
                   <div>
                     <Label className="text-xs">Dosis*</Label>
-                    <Input placeholder="Ej: 1 comprimido" value={tempTratamiento.dosis} onChange={e => setTempTratamiento({...tempTratamiento, dosis: e.target.value})} />
+                    <Input placeholder="Ej: 1 comprimido" value={tempTratamiento.dosis} onChange={e => setTempTratamiento({ ...tempTratamiento, dosis: e.target.value })} />
                   </div>
                 </div>
                 <div>
-                    <Label className="text-xs">Instrucciones</Label>
-                    <Input placeholder="Ej: Cada 8 horas con comida" value={tempTratamiento.instrucciones} onChange={e => setTempTratamiento({...tempTratamiento, instrucciones: e.target.value})} />
+                  <Label className="text-xs">Instrucciones</Label>
+                  <Input placeholder="Ej: Cada 8 horas con comida" value={tempTratamiento.instrucciones} onChange={e => setTempTratamiento({ ...tempTratamiento, instrucciones: e.target.value })} />
                 </div>
 
                 <Button type="button" variant="secondary" size="sm" onClick={handleAddTratamiento} className="w-full">
-                  <Plus className="h-4 w-4 mr-2"/> Agregar Tratamiento
+                  <Plus className="h-4 w-4 mr-2" /> Agregar Tratamiento
                 </Button>
               </div>
               <div className="space-y-2">
@@ -345,7 +351,7 @@ export function HistorialFormModal({ isOpen, onClose, onSubmit, pacienteId, paci
                   <div key={idx} className="flex items-start justify-between p-3 bg-white border rounded-md shadow-sm">
                     <div className="grid gap-1">
                       <div className="font-semibold text-sm flex items-center gap-2">
-                        <Pill className="h-3 w-3 text-primary"/> {t.medicamento_nombre}
+                        <Pill className="h-3 w-3 text-primary" /> {t.medicamento_nombre}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {t.dosis} - {t.instrucciones}

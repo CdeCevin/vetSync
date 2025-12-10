@@ -12,6 +12,8 @@ import { useCitaService, Cita } from "@/hooks/useCitaService"
 import { usePacienteService } from "@/hooks/usePacienteService"
 import { useUserService } from "@/hooks/useUsuarioService"
 import { CitaModal } from "./cita-modal"
+import { useHistorialService } from "@/hooks/useHistorialService"
+import { HistorialFormModal } from "@/components/Historial/historialModal"
 import { DayView, WeekView, MonthView } from "./cita-vistas"
 import { CitaDetallesDialog } from "./cita-modal-det"
 import { es } from "date-fns/locale"
@@ -29,6 +31,10 @@ export function CitasPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [stats, setStats] = useState<{ total: number; completadas: string; pendientes: string }>({ total: 0, completadas: "0", pendientes: "0" })
   const [selectedCita, setSelectedCita] = useState<Cita | null>(null)
+  const [selectedCitaParaHistorial, setSelectedCitaParaHistorial] = useState<Cita | null>(null)
+  const [isHistorialModalOpen, setIsHistorialModalOpen] = useState(false)
+  const { crearHistorial } = useHistorialService()
+  const { patchEstadoCita } = useCitaService()
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -56,6 +62,26 @@ export function CitasPage() {
     setSelectedCita({ ...cita })
     setIsDetailsOpen(true)
   }
+
+  const handleCompleteCita = (cita: Cita) => {
+    setSelectedCitaParaHistorial(cita)
+    setIsHistorialModalOpen(true)
+  }
+
+  const handleSaveHistorial = async (data: any) => {
+    await crearHistorial(data)
+
+    // Explicitamente actualizamos el estado, aunque el backend ya lo haga,
+    // para asegurar feedback visual y consistencia
+    if (selectedCitaParaHistorial) {
+      await patchEstadoCita(selectedCitaParaHistorial.id, 'completada')
+    }
+
+    await loadData() // Recargar para actualizar el estado de la cita
+    setIsHistorialModalOpen(false)
+    setSelectedCitaParaHistorial(null)
+  }
+
   const citasDelDia = citas.filter(c =>
     new Date(c.fecha_cita).toDateString() === selectedDate.toDateString())
   return (
@@ -131,9 +157,9 @@ export function CitasPage() {
               </Card>
             </div>
             <div className="lg:col-span-3  space-y-4">
-              {viewMode === "day" && <DayView isLoading={isLoading} citas={citasDelDia} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData} />}
-              {viewMode === "week" && <WeekView isLoading={isLoading} selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData} />}
-              {viewMode === "month" && <MonthView isLoading={isLoading} selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData} />}
+              {viewMode === "day" && <DayView isLoading={isLoading} citas={citasDelDia} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData} onComplete={handleCompleteCita} />}
+              {viewMode === "week" && <WeekView isLoading={isLoading} selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData} onComplete={handleCompleteCita} />}
+              {viewMode === "month" && <MonthView isLoading={isLoading} selectedDate={selectedDate} citas={citas} onSelect={handleSelectCita} pacientes={pacientes} veterinarios={veterinarios} onEstadoChange={loadData} onComplete={handleCompleteCita} />}
 
             </div>
             <CitaDetallesDialog
@@ -142,6 +168,19 @@ export function CitasPage() {
               onClose={() => setIsDetailsOpen(false)}
               onUpdate={loadData}
             />
+
+            {/* Modal para crear historial al completar cita */}
+            {isHistorialModalOpen && selectedCitaParaHistorial && (
+              <HistorialFormModal
+                isOpen={isHistorialModalOpen}
+                onClose={() => setIsHistorialModalOpen(false)}
+                onSubmit={handleSaveHistorial}
+                pacienteId={selectedCitaParaHistorial.id_paciente}
+                // Aquí pasamos el nombre explícitamente para evitar la condición de carrera en el Combobox
+                pacienteNombre={pacientes.find(p => p.id === selectedCitaParaHistorial.id_paciente)?.nombre}
+                citaId={selectedCitaParaHistorial.id}
+              />
+            )}
 
           </div>
         </main>

@@ -113,13 +113,36 @@ const searchMedicalHistorySmart = async (req, res) => {
             registros: enrichedResults
         };
 
+        // Auditoría
+        const logAuditoria = require('../../utils/auditLogger');
+        await logAuditoria({
+            id_usuario: req.usuario.id,
+            id_clinica: id_clinica,
+            accion: 'CONSULTA_IA',
+            entidad: 'Pacientes',
+            id_entidad: 0, // No aplica un ID específico
+            detalles: `Consulta de Historial medico: ${consulta}\n Respuesta: ${responseData.resumen_paciente}`
+        });
+
         res.json(responseData);
 
     } catch (error) {
-        console.error('Error en búsqueda inteligente:', error);
+        console.error('CRITICAL ERROR in busquedaInteligente:', error);
+
+        // Determinar si es error de IA (GoogleGenerativeAI) o de Base de Datos
+        let errorMessage = 'Error interno del servidor';
+        let errorDetails = error.message;
+
+        if (error.message?.includes('GoogleGenerativeAI')) {
+            errorMessage = 'Error en el servicio de IA (Gemini)';
+        } else if (error.code && (error.code === 'ECONNREFUSED' || error.code === 'ER_ACCESS_DENIED_ERROR')) {
+            errorMessage = 'Error de conexión con la base de datos';
+        }
+
         res.status(500).json({
-            error: 'Error al procesar la búsqueda inteligente',
-            details: error.message
+            error: errorMessage,
+            details: errorDetails,
+            timestamp: new Date().toISOString()
         });
     }
 };

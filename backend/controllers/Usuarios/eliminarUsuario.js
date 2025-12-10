@@ -9,7 +9,7 @@ const eliminarUsuario = async (req, res) => {
     const qDesactivarCitas = `
       UPDATE Citas 
       SET activo = FALSE, estado = 'cancelada' 
-      WHERE id_usuario = ? AND id_clinica = ? AND activo = TRUE
+      WHERE id_usuario = ? AND id_clinica = ? AND activo = TRUE AND fecha_cita >= NOW()
     `;
 
     const qDesactivarUsuario = `
@@ -29,7 +29,7 @@ const eliminarUsuario = async (req, res) => {
         accion: 'ELIMINAR',
         entidad: 'Usuario',
         id_entidad: idUsuario,
-        detalles: `Usuario ${idUsuario} eliminado (desactivado) y sus citas canceladas.`
+        detalles: `Usuario ${idUsuario} eliminado (desactivado) y sus citas futuras canceladas.`
       });
     }
 

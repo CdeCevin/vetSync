@@ -6,12 +6,22 @@ const eliminarPaciente = async (req, res) => {
     const idPaciente = req.params.id;
     const idClinica = req.clinicaId;
 
+    const queryCitas = `
+      UPDATE Citas 
+      SET activo = FALSE, estado = 'cancelada' 
+      WHERE id_paciente = ? AND id_clinica = ? AND activo = TRUE AND fecha_cita >= NOW()
+    `;
+
     const query = `
       UPDATE Pacientes 
       SET activo = FALSE 
       WHERE id = ? AND id_clinica = ? AND activo = TRUE
     `;
 
+    // Primero cancelamos citas futuras
+    await queryConReintento(queryCitas, [idPaciente, idClinica]);
+
+    // Luego desactivamos al paciente
     const results = await queryConReintento(query, [idPaciente, idClinica]);
 
     // Registro de auditoría (si se afectó alguna fila, aunque la lógica original chequea affectedRows después, es mejor loguear solo si hubo cambio real)
@@ -29,7 +39,7 @@ const eliminarPaciente = async (req, res) => {
       accion: 'ELIMINAR',
       entidad: 'Paciente',
       id_entidad: idPaciente,
-      detalles: `Paciente ${idPaciente} eliminado (desactivado).`
+      detalles: `Paciente ${idPaciente} eliminado (desactivado) y sus citas futuras canceladas.`
     });
   } catch (error) {
     console.error('Error desactivando paciente:', error);
