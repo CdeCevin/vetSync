@@ -3,7 +3,6 @@ import { useAuth } from "@/components/user-context"
 import { ROUTES } from "@/apiRoutes"
 import { useMemo } from "react"
 
-// --- Interfaces ---
 export interface PacienteEnLista {
   id: number
   nombre: string

@@ -74,7 +74,7 @@ export function useUserService() {
     return res.json()
   }
 
-  // Obtener solo veterinarios (Público/Compartido)
+  // Obtener solo veterinarios 
   const getVeterinarios = async (): Promise<User[]> => {
     const res = await fetchWithAuth(`${ROUTES.base}/${idClinica}/usuarios/veterinarios`, {
       cache: "no-store",

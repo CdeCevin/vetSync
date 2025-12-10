@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react"
 import { useAuth } from "@/components/user-context"
-// Asumo que tienes una ruta base, si no, ajusta esto según tu apiRoutes
 import { ROUTES } from "@/apiRoutes" 
 
 export interface LogEntry {
@@ -10,7 +9,7 @@ export interface LogEntry {
   accion: string
   entidad: string
   id_entidad: number
-  detalles: string // Ojo: Viene como string, a veces es JSON, a veces texto
+  detalles: string 
   fecha: string
   usuario: string
   correo_electronico: string
@@ -23,8 +22,6 @@ export function useLogService() {
   const [loading, setLoading] = useState(false)
 
   const idClinica = usuario?.id_clinica
-  // Construimos la URL: localhost:3001/api/{idClinica}/verLogs
-  // Ajusta 'verLogs' si tu ROUTES.base ya incluye parte del path
   const baseUrl = idClinica ? `${ROUTES.base}/${idClinica}/verLogs` : ""
 
   const getLogs = useCallback(async () => {

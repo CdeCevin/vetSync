@@ -130,8 +130,6 @@ export function useInventoryService() {
     };
   }, [idClinica, token, fetchWithAuth, baseUrl]);
 
-
-  // ARREGLAR
   const generarReportes = useCallback(() => {
     const totalValor = productos.reduce((acc, p) => acc + (p.stockActual * p.costoUnitario), 0)
     const stockBajo = productos.filter(p => p.stockActual <= p.stockMinimo)

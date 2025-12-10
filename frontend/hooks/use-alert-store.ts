@@ -1,10 +1,7 @@
 // hooks/use-alert-store.ts
 import { create } from 'zustand'
 
-// Define los tipos de alerta que tendrás
 type AlertType = 'success' | 'error' | 'info'
-
-// Define la "forma" de tu store
 interface AlertStore {
   isOpen: boolean
   title: string
@@ -14,14 +11,12 @@ interface AlertStore {
   onClose: () => void
 }
 
-// Crea el hook
 export const useAlertStore = create<AlertStore>((set) => ({
   isOpen: false,
   title: '',
   message: '',
   type: 'info',
   
-  // Función para ABRIR el modal con un mensaje
   onOpen: (title, message, type = 'info') => set({ 
     isOpen: true, 
     title, 
@@ -29,6 +24,5 @@ export const useAlertStore = create<AlertStore>((set) => ({
     type 
   }),
   
-  // Función para CERRAR el modal
   onClose: () => set({ isOpen: false, title: '', message: '' }),
 }))
