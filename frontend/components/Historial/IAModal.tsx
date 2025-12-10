@@ -115,9 +115,14 @@ export function AIQueryModal({ isOpen, onClose }: AIQueryModalProps) {
                   </Card>
                 ))}
               </div>
+              <p className="text-xs text-slate-500 text-center">
+                <span className="text-slate-600 font-semibold italic">La IA puede cometer errores, recuerda revisar la información.</span>
+              </p>    
             </div>
+            
           )}
         </div>
+        
       </DialogContent>
     </Dialog>
   )
